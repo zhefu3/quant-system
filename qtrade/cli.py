@@ -16,13 +16,14 @@ from .backtest.engine import Engine
 from .backtest.report import render_text, save_markdown
 from .data.adapters.ashare_baostock import AShareAdapter
 from .data.adapters.crypto_ccxt import CryptoAdapter
+from .data.adapters.us_yfinance import USAdapter
 from .data.store import BarStore
 from .markets.rules import BY_NAME
 from .strategies.dual_ma import DualMA
 from .strategies.momentum import TSMomentum
 
 STRATEGIES = {"dual_ma": DualMA, "ts_momentum": TSMomentum}
-ADAPTERS = {"crypto": CryptoAdapter, "ashare": AShareAdapter}
+ADAPTERS = {"crypto": CryptoAdapter, "ashare": AShareAdapter, "us": USAdapter}
 
 
 def cmd_fetch(args):
