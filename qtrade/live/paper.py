@@ -22,9 +22,9 @@ import pandas as pd
 
 from ..data.adapters.crypto_ccxt import CryptoAdapter
 from ..presets import BookPreset
+from .signals import compute_targets
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[2] / "outputs" / "paper"
-WARMUP_BARS = 1100  # covers regime_window 720 + vol_window 168 + slack
 
 
 class PaperTrader:
@@ -56,16 +56,7 @@ class PaperTrader:
     def tick(self) -> dict:
         p = self.preset
         now = pd.Timestamp.now("UTC")
-        tf_delta = pd.Timedelta(p.timeframe)
-        start = now - tf_delta * WARMUP_BARS
-
-        closes, targets = {}, {}
-        for sym in p.symbols:
-            bars = self.adapter.fetch_ohlcv(sym, p.timeframe, start)
-            bars = bars[bars.index + tf_delta <= now]  # completed bars only
-            closes[sym] = float(bars["close"].iloc[-1])
-            raw = p.strategy().target_position(bars)
-            targets[sym] = float(raw.iloc[-1]) / len(p.symbols)  # equal alloc
+        targets, closes = compute_targets(p, self.adapter)
 
         state = self._load_state()
         cash, positions = state["cash"], state["positions"]

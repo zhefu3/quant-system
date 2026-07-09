@@ -177,6 +177,14 @@ def cmd_paper_report(args):
     run_report(args.preset, state_dir=args.state_dir)
 
 
+def cmd_live(args):
+    from .live.broker import OKXExecutor
+    from .presets import PRESETS
+
+    executor = OKXExecutor(PRESETS[args.preset], capital=args.capital)
+    executor.run(send=args.send, flatten=args.flatten)
+
+
 def _add_vt_args(parser):
     parser.add_argument("--vol-target", type=float, default=None,
                         help="annualized vol target, e.g. 0.3 (wraps strategy in VolTarget)")
@@ -249,6 +257,14 @@ def main():
     pr.add_argument("--preset", default="crypto_core")
     pr.add_argument("--state-dir", default=None)
     pr.set_defaults(fn=cmd_paper_report)
+
+    lv = sub.add_parser("live", help="real execution on OKX swaps (dry-run unless --send)")
+    lv.add_argument("--preset", default="crypto_core")
+    lv.add_argument("--capital", type=float, required=True,
+                    help="max USDT this book may manage (hard cap)")
+    lv.add_argument("--send", action="store_true", help="actually place orders")
+    lv.add_argument("--flatten", action="store_true", help="close all positions")
+    lv.set_defaults(fn=cmd_live)
 
     args = p.parse_args()
     args.fn(args)

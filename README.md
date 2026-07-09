@@ -50,6 +50,34 @@ python -m qtrade.cli paper-report
 # 月度重校验(制度): 补数据->重跑组合->追加历史->对照审计带
 python research/revalidate.py
 
+# 实盘执行 (OKX 永续): 默认 dry-run 只打印计划订单; --send 才真下单
+python -m qtrade.cli live --preset crypto_core --capital 3000
+python -m qtrade.cli live --preset crypto_core --capital 3000 --send
+python -m qtrade.cli live --preset crypto_core --capital 3000 --flatten --send  # 一键清仓
+```
+
+## 实盘接入指南（先 DEMO，后小钱）
+
+**第一步（免费）：OKX 模拟交易。** okx.com 登录后 → 交易 → 模拟交易 → 创建模拟盘 API key。
+模拟环境走真实 API 全流程，资金是假的，用它跑通至少两周。
+
+**第二步（真钱）：现货账户开 API key 时只勾"交易"权限，绝不开"提币"；建议绑定 IP 白名单。**
+本组合的忠实执行需要 **≥3000 USDT**（合约最小粒度决定，更小的资金凑不齐一张 ETH/SOL 合约）。
+
+**密钥只放环境变量**（加到 ~/.zshrc，永远不要写进命令或代码）：
+
+```bash
+export OKX_API_KEY=...
+export OKX_API_SECRET=...
+export OKX_API_PASSPHRASE=...
+export QTRADE_OKX_DEMO=1     # 模拟环境; 真实环境删掉这行
+```
+
+**内置护栏（硬编码）**：只管理 `--capital` 指定的额度；单品种权重 ≤15%；总敞口 ≤100%（不加杠杆）；
+回撤 -20% 触发熔断（自动清仓 + 写 HALTED 标志，人工排查删除标志后才能重启）。
+
+```bash
+
 pytest tests/                # 跑防自欺测试
 ```
 
