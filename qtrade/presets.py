@@ -78,4 +78,31 @@ CRYPTO_CORE_4H = BookPreset(
     build=_crypto_core_4h_strategy,
 )
 
-PRESETS = {p.name: p for p in (CRYPTO_CORE, CRYPTO_CORE_4H)}
+def _crypto_core_v2_strategy() -> Strategy:
+    # E34/E35 candidate: meanrev shorts additionally require close < MA2160
+    # (deep-bear confirmation). Improved all three panels incl the pristine
+    # 2019-22 segment, but Sharpe deltas (+0.04/+0.07/+0.08) sit below the
+    # pre-registered +0.1 replacement gate — so it runs as a PARALLEL preset.
+    # Promotion rule (pre-registered 2026-07-10): replaces crypto_core at the
+    # next quarterly review iff its paper record and the new out-of-sample
+    # quarter confirm non-inferiority (paper Sharpe >= v1, no new worst-DD).
+    def vt(s):
+        return VolTarget(s, target_vol=0.4, vol_window=168, bars_per_year=8760)
+
+    trend = vt(CTATrend(h1=96, h2=288, h3=720))
+    meanrev = vt(BollingerRevert(window=96, entry_z=2.0, side="both",
+                                 regime_window=720, short_regime_window=2160))
+    return Composite([(trend, 0.5), (meanrev, 0.5)])
+
+
+CRYPTO_CORE_V2 = BookPreset(
+    name="crypto_core_v2",
+    market="crypto",
+    timeframe="1h",
+    symbols=list(_UNIVERSE),
+    rules=CRYPTO_PERP,
+    rebalance_eps=0.05,
+    build=_crypto_core_v2_strategy,
+)
+
+PRESETS = {p.name: p for p in (CRYPTO_CORE, CRYPTO_CORE_4H, CRYPTO_CORE_V2)}
