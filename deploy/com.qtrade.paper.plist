@@ -6,12 +6,12 @@
     <string>com.qtrade.paper</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/Users/kelsey/Desktop/量化/.venv/bin/python</string>
-        <string>-m</string>
-        <string>qtrade.cli</string>
-        <string>paper</string>
-        <string>--preset</string>
-        <string>crypto_core</string>
+        <string>/bin/zsh</string>
+        <string>deploy/paper_all.sh</string>
+        
+        
+        
+        
     </array>
     <key>WorkingDirectory</key>
     <string>/Users/kelsey/Desktop/量化</string>
