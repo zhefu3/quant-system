@@ -53,6 +53,9 @@ python -m qtrade.cli paper-report
 # 品种池评分: 边际贡献 (leave-one-out / add-one-in), 季度重评
 python research/universe_score.py
 
+# 每周看这一条就够: 健康检查 + v1/v2 A/B + 制度到期提醒
+python -m qtrade.cli weekly
+
 # 月度重校验(制度): 补数据->重跑组合->追加历史->对照审计带
 python research/revalidate.py
 

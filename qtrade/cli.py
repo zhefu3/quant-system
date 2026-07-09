@@ -274,6 +274,9 @@ def main():
     ab.add_argument("--b", default="crypto_core_v2")
     ab.set_defaults(fn=lambda a: __import__("qtrade.live.report", fromlist=["run_ab"]).run_ab(a.a, a.b))
 
+    wk = sub.add_parser("weekly", help="one-command weekly digest + protocol due reminders")
+    wk.set_defaults(fn=lambda a: __import__("qtrade.live.weekly", fromlist=["run_weekly"]).run_weekly())
+
     lv = sub.add_parser("live", help="real execution on OKX swaps (dry-run unless --send)")
     lv.add_argument("--preset", default="crypto_core")
     lv.add_argument("--capital", type=float, required=True,
