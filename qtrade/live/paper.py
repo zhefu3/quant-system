@@ -52,6 +52,25 @@ class PaperTrader:
         df = pd.DataFrame([row])
         df.to_csv(path, mode="a", header=not path.exists(), index=False)
 
+    def _log_funding(self, now, positions: dict):
+        """Best-effort: record current funding rates for held symbols so the
+        paper record can later be reconciled against live funding flows."""
+        if not positions:
+            return
+        try:
+            ex = self.adapter.exchange
+            rows = []
+            for sym in positions:
+                fr = ex.fetch_funding_rate(f"{sym}:USDT")
+                rows.append({"ts": str(now), "symbol": sym,
+                             "funding_rate": fr.get("fundingRate")})
+            if rows:
+                pd.DataFrame(rows).to_csv(
+                    self.dir / "funding.csv", mode="a",
+                    header=not (self.dir / "funding.csv").exists(), index=False)
+        except Exception:  # noqa: BLE001 — never let telemetry break the tick
+            pass
+
     # -- one tick ------------------------------------------------------------
     def tick(self) -> dict:
         p = self.preset
@@ -94,6 +113,7 @@ class PaperTrader:
             "cash": round(cash, 2), "gross_exposure": round(gross / equity_now, 3),
             "n_positions": len(positions), "n_fills": len(fills),
         })
+        self._log_funding(now, positions)
         self._save_state({"cash": cash, "positions": positions, "last_ts": str(now)})
 
         return {

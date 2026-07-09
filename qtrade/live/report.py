@@ -87,3 +87,37 @@ def run_report(preset_name: str, state_dir: str | None = None):
         print(f"{'PASS' if ok else 'WARN'}  {name}: {detail}")
     if any(not ok for _, ok, _ in checks):
         print("\nWARN present: investigate before adding capital or going live.")
+
+    _print_regime_context(p)
+
+
+def _print_regime_context(preset):
+    """Where does the current market sit vs the strategy's known weak regime?
+
+    E23 showed the book bleeds in one-way melt-ups (2024: -14%) and earns in
+    chop/bear. This prints the basket's trailing 90d return percentile vs the
+    full stored history — context for reading live P&L, NOT a trading signal.
+    """
+    from ..data.store import BarStore
+
+    try:
+        store = BarStore()
+        closes = {}
+        for sym in preset.symbols:
+            closes[sym] = store.load(preset.market, sym, preset.timeframe)["close"]
+        df = pd.DataFrame(closes).dropna()
+        basket = df.div(df.iloc[0]).mean(axis=1)
+        win = 90 * 24
+        r90 = basket.pct_change(win).dropna()
+        cur = float(r90.iloc[-1])
+        pct = float((r90 <= cur).mean()) * 100
+        if pct >= 90:
+            zone = "单边暴涨区 — 策略的已知弱势 regime (参照2024): 预期跑输基准甚至小亏"
+        elif pct <= 10:
+            zone = "深跌区 — 策略历史上相对基准最强的 regime"
+        else:
+            zone = "常态区间 — 策略的主场"
+        print(f"\n--- regime context (as of stored data {df.index[-1]:%Y-%m-%d %H:%M}) ---")
+        print(f"basket 90d return {cur:+.1%}, percentile {pct:.0f}% of 7y history -> {zone}")
+    except Exception as e:  # noqa: BLE001 — context is best-effort, never block the report
+        print(f"\n(regime context unavailable: {e})")
