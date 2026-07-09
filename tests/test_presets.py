@@ -25,3 +25,9 @@ def test_preset_builds_and_emits_valid_weights(name):
     assert (w.abs() <= 1.0 + 1e-9).all()
     assert not w.isna().any()
     assert p.rules.allow_short or (w >= 0).all()
+
+    # explain() must produce a self-consistent decision chain
+    info = strategy.explain(bars)
+    assert info["target"] == pytest.approx(float(w.iloc[-1]), abs=1e-6)
+    for leg in info.get("legs", []):
+        assert "target" in leg and "scale" in leg
