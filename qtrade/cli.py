@@ -165,6 +165,12 @@ def cmd_portfolio(args):
     print(res.to_string())
 
 
+def cmd_paper(args):
+    from .live.paper import run_tick
+
+    run_tick(args.preset, state_dir=args.state_dir)
+
+
 def _add_vt_args(parser):
     parser.add_argument("--vol-target", type=float, default=None,
                         help="annualized vol target, e.g. 0.3 (wraps strategy in VolTarget)")
@@ -227,6 +233,11 @@ def main():
     pf.add_argument("--allocation", default="inv_vol", choices=["equal", "inv_vol"])
     _add_vt_args(pf)
     pf.set_defaults(fn=cmd_portfolio)
+
+    pp = sub.add_parser("paper", help="paper-trade a validated preset (one tick per call)")
+    pp.add_argument("--preset", default="crypto_core")
+    pp.add_argument("--state-dir", default=None, help="override state dir (testing)")
+    pp.set_defaults(fn=cmd_paper)
 
     args = p.parse_args()
     args.fn(args)

@@ -33,8 +33,28 @@ python -m qtrade.cli walkforward --symbol BTC/USDT --timeframe 1h --rules crypto
     --strategy ts_momentum --grid lookback=24,72,168,336 --grid vol_filter=true,false \
     --param allow_short=true --folds 5
 
+# 组合回测: 多品种共享资金 (equal / inv_vol 分配)
+python -m qtrade.cli portfolio --rules crypto_perp --strategy boll_revert \
+    --param window=96 --param entry_z=2.0 --param side=both --param regime_window=720 \
+    --allocation equal --vol-target 0.4
+
+# 模拟盘: 每小时跑一个 tick (cron/launchd 调度), 状态在 outputs/paper/<preset>/
+python -m qtrade.cli paper --preset crypto_core
+
 pytest tests/                # 跑防自欺测试
 ```
+
+## 当前候选组合 "crypto_core"（定义在 qtrade/presets.py）
+
+慢 CTA 趋势 (EWMA 96/288/720) + regime 对齐布林回归 (96, z=2, MA720)，
+各腿 vol target 40%，风险 50/50，10 币种等权，eps=0.05。
+
+3 年全周期回测（2023-07 → 2026-07，含 2024 牛市与 2025-26 熊市，费用+滑点后）：
+**+47.8%（年化 ~14%），夏普 1.16，最大回撤 15.2%，牛熊两段皆正收益**。
+过拟合审计：参数扰动 9/11 变体收益 +26%~+55%（平原）；逐品种 6/10 为正（依赖分散）。
+详细实验记录（含所有失败尝试）见 research/log.md。
+
+尚未建模：永续资金费率、极端行情滑点。**实盘前置条件：模拟盘 ≥1 个月运转正常。**
 
 ## 结构
 
@@ -69,10 +89,13 @@ qtrade/
   - 双均线/动量在 5m 级别被成本碾压；1h 级别与基准打平
   - 多空动量 BTC walk-forward 5 折 3 胜 (+13pp)，但 **ETH 迁移失败 (-1.4pp) → 判定行情运气**
   - SPY 日线金叉 10 年样本外跑输 buy&hold 27pp（著名结果，系统如实复现）
-- [ ] 组合层：多品种资金分配与风控
-- [ ] 更多策略族：均值回归 / 截面动量轮动 / 波动率目标仓位
-- [ ] 永续资金费率建模；A股涨跌停约束
-- [ ] （远期）模拟盘/实盘执行 —— 仅当某策略经受住 walk-forward + 多品种迁移后再启动
+- [x] 组合层：多品种共享资金、equal/inv_vol 分配、Composite 多策略组合
+- [x] 策略族：均值回归（regime 对齐）/ CTA 趋势 / 截面轮动（已淘汰）/ vol target
+- [x] 3 年全周期验证 + 过拟合审计 → crypto_core 候选
+- [x] 模拟盘 paper 命令（已启动记录）
+- [ ] 永续资金费率建模；极端行情滑点模型；A股涨跌停约束
+- [ ] A股/美股方向的策略研究（当前策略均为 crypto 验证）
+- [ ] （远期）实盘执行 —— 前置条件：模拟盘 ≥1 个月正常且结果与回测一致
 
 ## 提醒
 
