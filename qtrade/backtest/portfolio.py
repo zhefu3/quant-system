@@ -59,13 +59,20 @@ def run_portfolio(
     closes = pd.DataFrame(
         {sym: df.loc[common, "close"] for sym, df in bars_by_symbol.items()}
     )
-    alloc = _allocations(closes, allocation, vol_window)
 
     orders, effective = {}, {}
-    for sym, df in bars_by_symbol.items():
-        raw = strategy.target_position(df.loc[common]).reindex(common).fillna(0.0)
-        scaled = (raw * alloc[sym]).clip(-1.0, 1.0)
-        orders[sym], effective[sym] = engine.process_weights(scaled, common)
+    if hasattr(strategy, "target_weights"):
+        # Portfolio-level strategy: emits the whole weight matrix itself
+        # (its gross budget replaces the per-symbol allocation step).
+        weights = strategy.target_weights(closes)
+        for sym in closes.columns:
+            orders[sym], effective[sym] = engine.process_weights(weights[sym], common)
+    else:
+        alloc = _allocations(closes, allocation, vol_window)
+        for sym, df in bars_by_symbol.items():
+            raw = strategy.target_position(df.loc[common]).reindex(common).fillna(0.0)
+            scaled = (raw * alloc[sym]).clip(-1.0, 1.0)
+            orders[sym], effective[sym] = engine.process_weights(scaled, common)
     orders = pd.DataFrame(orders)
     effective = pd.DataFrame(effective)
 

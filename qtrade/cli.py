@@ -32,6 +32,11 @@ STRATEGIES = {
     "cta_trend": CTATrend,
 }
 
+# Portfolio-level strategies (need the whole universe, portfolio command only).
+from .strategies.xsection import XSectionMomentum  # noqa: E402
+
+PORTFOLIO_STRATEGIES = {"xs_momentum": XSectionMomentum}
+
 
 def _strategy_cls(args):
     cls = STRATEGIES[args.strategy]
@@ -138,7 +143,10 @@ def cmd_portfolio(args):
     for kv in args.param or []:
         k, v = kv.split("=", 1)
         params[k] = _parse_value(v)
-    strategy = _strategy_cls(args)(**params)
+    if args.strategy in PORTFOLIO_STRATEGIES:
+        strategy = PORTFOLIO_STRATEGIES[args.strategy](**params)
+    else:
+        strategy = _strategy_cls(args)(**params)
 
     store = BarStore()
     if args.symbols:
@@ -213,7 +221,8 @@ def main():
     pf.add_argument("--rules", default=None, choices=list(BY_NAME))
     pf.add_argument("--symbols", default=None, help="comma-separated; default = all in store")
     pf.add_argument("--timeframe", default="1h")
-    pf.add_argument("--strategy", required=True, choices=list(STRATEGIES))
+    pf.add_argument("--strategy", required=True,
+                    choices=list(STRATEGIES) + list(PORTFOLIO_STRATEGIES))
     pf.add_argument("--param", action="append", help="k=v, repeatable")
     pf.add_argument("--allocation", default="inv_vol", choices=["equal", "inv_vol"])
     _add_vt_args(pf)
