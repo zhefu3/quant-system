@@ -56,32 +56,51 @@ class BacktestResult:
 
 
 def _enforce_t_plus_one(pos: pd.Series, tz: str) -> pd.Series:
-    """Delay any same-trading-day exit to the next day's first bar.
+    """Forbid reducing a position on the trading day it was (last) increased.
 
-    `pos` is already in execution terms (post-shift): pos[i]==1 means we hold
-    during bar i. A buy filling on date D cannot be sold until date > D.
+    `pos` is in execution terms (post-shift): pos[i] is the weight held during
+    bar i. Shares bought on date D cannot be sold until date > D. Works for
+    fractional weights: any decrease on the same date as the last increase is
+    held at the previous weight instead.
     """
     dates = pos.index.tz_convert(tz).date
     out = pos.to_numpy().copy()
-    holding = False
-    entry_date = None
+    prev = 0.0
+    last_buy_date = None
     for i in range(len(out)):
-        if not holding:
-            if out[i] == 1.0:
-                holding, entry_date = True, dates[i]
+        if out[i] > prev:
+            last_buy_date = dates[i]
+        elif out[i] < prev and last_buy_date is not None and dates[i] == last_buy_date:
+            out[i] = prev  # forced hold: T+1 forbids same-day reduction
+        prev = out[i]
+    return pd.Series(out, index=pos.index)
+
+
+def _throttle_rebalance(pos: pd.Series, eps: float) -> pd.Series:
+    """Suppress orders smaller than `eps` of equity: emit NaN (= hold) unless
+    the target weight moved at least eps away from the last emitted target.
+    Keeps continuous-weight strategies from paying fees every single bar."""
+    out = pos.to_numpy().copy()
+    last = 0.0
+    for i in range(len(out)):
+        w = out[i]
+        if abs(w - last) < eps and not (w == 0.0 and last != 0.0):
+            out[i] = float("nan")
         else:
-            if out[i] == 0.0:
-                if dates[i] == entry_date:
-                    out[i] = 1.0  # forced hold: T+1 forbids same-day exit
-                else:
-                    holding = False
+            last = w
     return pd.Series(out, index=pos.index)
 
 
 class Engine:
-    def __init__(self, rules: MarketRules, init_cash: float = 10_000.0):
+    def __init__(
+        self,
+        rules: MarketRules,
+        init_cash: float = 10_000.0,
+        rebalance_eps: float = 0.02,
+    ):
         self.rules = rules
         self.init_cash = init_cash
+        self.rebalance_eps = rebalance_eps
 
     def run(
         self,
@@ -115,8 +134,8 @@ class Engine:
         are simulated on out-of-sample bars only.
         """
         pos = strategy.target_position(bars).reindex(bars.index).fillna(0.0)
-        if not pos.isin([-1.0, 0.0, 1.0]).all():
-            raise ValueError("target_position values must be in {-1, 0, 1}")
+        if (pos.abs() > 1.0 + 1e-9).any():
+            raise ValueError("target_position weights must lie in [-1, 1] (no leverage)")
         if (pos < 0).any() and not self.rules.allow_short:
             raise ValueError(
                 f"strategy emits short positions but market '{self.rules.market}' "
@@ -129,6 +148,10 @@ class Engine:
         if self.rules.t_plus_one:
             pos = _enforce_t_plus_one(pos, self.rules.tz)
 
+        pos = _throttle_rebalance(pos, self.rebalance_eps)
+        # Effective weight state at every bar (NaN = "hold last target").
+        effective = pos.ffill().fillna(0.0)
+
         split = int(len(bars) * (1 - oos_fraction))
         slices = {"full": slice(None)}
         if 0 < oos_fraction < 1:
@@ -137,14 +160,16 @@ class Engine:
 
         pfs = {}
         for label, sl in slices.items():
-            seg_bars, seg_pos = bars.iloc[sl], pos.iloc[sl]
-            prev = seg_pos.shift(1).fillna(0.0)
-            pfs[label] = vbt.Portfolio.from_signals(
+            seg_bars, seg_pos = bars.iloc[sl], pos.iloc[sl].copy()
+            # A segment must be self-contained: its first bar states the
+            # inherited effective target so the sim enters that position.
+            if len(seg_pos):
+                seg_pos.iloc[0] = effective.iloc[sl].iloc[0]
+            pfs[label] = vbt.Portfolio.from_orders(
                 seg_bars["close"],
-                entries=(seg_pos == 1) & (prev != 1),
-                exits=(seg_pos != 1) & (prev == 1),
-                short_entries=(seg_pos == -1) & (prev != -1),
-                short_exits=(seg_pos != -1) & (prev == -1),
+                size=seg_pos,
+                size_type="targetpercent",
+                direction="both" if self.rules.allow_short else "longonly",
                 fees=self.rules.fee_rate,
                 slippage=self.rules.slippage,
                 init_cash=self.init_cash,

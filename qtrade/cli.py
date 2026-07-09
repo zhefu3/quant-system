@@ -19,10 +19,30 @@ from .data.adapters.crypto_ccxt import CryptoAdapter
 from .data.adapters.us_yfinance import USAdapter
 from .data.store import BarStore
 from .markets.rules import BY_NAME
+from .strategies.cta import CTATrend
 from .strategies.dual_ma import DualMA
+from .strategies.meanrev import BollingerRevert
 from .strategies.momentum import TSMomentum
+from .strategies.overlays import with_vol_target
 
-STRATEGIES = {"dual_ma": DualMA, "ts_momentum": TSMomentum}
+STRATEGIES = {
+    "dual_ma": DualMA,
+    "ts_momentum": TSMomentum,
+    "boll_revert": BollingerRevert,
+    "cta_trend": CTATrend,
+}
+
+
+def _strategy_cls(args):
+    cls = STRATEGIES[args.strategy]
+    if getattr(args, "vol_target", None):
+        cls = with_vol_target(
+            cls,
+            target_vol=args.vol_target,
+            vol_window=args.vol_window,
+            bars_per_year=args.bars_per_year,
+        )
+    return cls
 ADAPTERS = {"crypto": CryptoAdapter, "ashare": AShareAdapter, "us": USAdapter}
 
 
@@ -45,7 +65,7 @@ def cmd_backtest(args):
     for kv in args.param or []:
         k, v = kv.split("=", 1)
         params[k] = _parse_value(v)
-    strategy = STRATEGIES[args.strategy](**params)
+    strategy = _strategy_cls(args)(**params)
 
     bars = BarStore().load(args.market, args.symbol, args.timeframe)
     engine = Engine(BY_NAME[args.rules or args.market])
@@ -78,7 +98,7 @@ def cmd_scan(args):
         fixed[k] = _parse_value(v)
     bars = BarStore().load(args.market, args.symbol, args.timeframe)
     rules = BY_NAME[args.rules or args.market]
-    res = grid_scan(STRATEGIES[args.strategy], bars, grid, rules, args.timeframe, fixed=fixed)
+    res = grid_scan(_strategy_cls(args), bars, grid, rules, args.timeframe, fixed=fixed)
     print(res.to_string())
     if len(grid) == 2:
         x, y = list(grid)
@@ -101,11 +121,19 @@ def cmd_walkforward(args):
     bars = BarStore().load(args.market, args.symbol, args.timeframe)
     rules = BY_NAME[args.rules or args.market]
     wf = walk_forward(
-        STRATEGIES[args.strategy], bars, grid, rules, args.timeframe,
+        _strategy_cls(args), bars, grid, rules, args.timeframe,
         n_folds=args.folds, fixed=fixed,
     )
     print(wf.to_string())
     print("\n" + wf_verdict(wf))
+
+
+def _add_vt_args(parser):
+    parser.add_argument("--vol-target", type=float, default=None,
+                        help="annualized vol target, e.g. 0.3 (wraps strategy in VolTarget)")
+    parser.add_argument("--vol-window", type=int, default=168)
+    parser.add_argument("--bars-per-year", type=float, default=8760,
+                        help="8760 for 1h crypto, 105120 for 5m crypto, 252 for daily stocks")
 
 
 def main():
@@ -130,6 +158,7 @@ def main():
     b.add_argument("--timeframe", default="5m")
     b.add_argument("--strategy", required=True, choices=list(STRATEGIES))
     b.add_argument("--param", action="append", help="k=v, repeatable")
+    _add_vt_args(b)
     b.set_defaults(fn=cmd_backtest)
 
     for name, fn, extra in [
@@ -145,6 +174,7 @@ def main():
         g.add_argument("--grid", action="append", required=True,
                        help="k=v1,v2,v3 (repeatable; scanned dimensions)")
         g.add_argument("--param", action="append", help="k=v fixed params (repeatable)")
+        _add_vt_args(g)
         if name == "walkforward":
             g.add_argument("--folds", type=int, default=5)
         g.set_defaults(fn=fn)
