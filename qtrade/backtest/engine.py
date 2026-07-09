@@ -120,20 +120,15 @@ class Engine:
             strategy=strategy.describe(), symbol=symbol, timeframe=timeframe, segments=segments
         )
 
-    def portfolios(
-        self,
-        strategy: Strategy,
-        bars: pd.DataFrame,
-        timeframe: str = "?",
-        oos_fraction: float = 0.3,
-    ) -> dict:
-        """Simulate and return {segment_label: vbt.Portfolio}.
+    def process_weights(self, pos: pd.Series, index: pd.Index) -> tuple[pd.Series, pd.Series]:
+        """Honesty pipeline for raw strategy weights.
 
-        Positions are computed on the FULL window before slicing, so the
-        out-of-sample segment keeps indicator warm-up context — but its trades
-        are simulated on out-of-sample bars only.
+        Validates range and short permission, delays execution to the next bar,
+        enforces T+1, throttles micro-rebalances. Returns (orders, effective):
+        `orders` has NaN where no order should be emitted; `effective` is the
+        weight actually held at each bar.
         """
-        pos = strategy.target_position(bars).reindex(bars.index).fillna(0.0)
+        pos = pos.reindex(index).fillna(0.0)
         if (pos.abs() > 1.0 + 1e-9).any():
             raise ValueError("target_position weights must lie in [-1, 1] (no leverage)")
         if (pos < 0).any() and not self.rules.allow_short:
@@ -149,8 +144,22 @@ class Engine:
             pos = _enforce_t_plus_one(pos, self.rules.tz)
 
         pos = _throttle_rebalance(pos, self.rebalance_eps)
-        # Effective weight state at every bar (NaN = "hold last target").
-        effective = pos.ffill().fillna(0.0)
+        return pos, pos.ffill().fillna(0.0)
+
+    def portfolios(
+        self,
+        strategy: Strategy,
+        bars: pd.DataFrame,
+        timeframe: str = "?",
+        oos_fraction: float = 0.3,
+    ) -> dict:
+        """Simulate and return {segment_label: vbt.Portfolio}.
+
+        Positions are computed on the FULL window before slicing, so the
+        out-of-sample segment keeps indicator warm-up context — but its trades
+        are simulated on out-of-sample bars only.
+        """
+        pos, effective = self.process_weights(strategy.target_position(bars), bars.index)
 
         split = int(len(bars) * (1 - oos_fraction))
         slices = {"full": slice(None)}

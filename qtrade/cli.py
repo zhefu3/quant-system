@@ -77,7 +77,10 @@ def cmd_backtest(args):
 def _parse_value(v: str):
     if v.lower() in ("true", "false"):
         return v.lower() == "true"
-    return float(v) if "." in v else int(v)
+    try:
+        return float(v) if "." in v else int(v)
+    except ValueError:
+        return v  # plain string param, e.g. side=long
 
 
 def _parse_grid(pairs: list[str]) -> dict[str, list]:
@@ -126,6 +129,32 @@ def cmd_walkforward(args):
     )
     print(wf.to_string())
     print("\n" + wf_verdict(wf))
+
+
+def cmd_portfolio(args):
+    from .backtest.portfolio import run_portfolio
+
+    params = {}
+    for kv in args.param or []:
+        k, v = kv.split("=", 1)
+        params[k] = _parse_value(v)
+    strategy = _strategy_cls(args)(**params)
+
+    store = BarStore()
+    if args.symbols:
+        symbols = args.symbols.split(",")
+    else:
+        cov = store.coverage()
+        cov = cov[(cov["market"] == args.market) & (cov["timeframe"] == args.timeframe)]
+        symbols = sorted(cov["symbol"])
+    bars = {s: store.load(args.market, s, args.timeframe) for s in symbols}
+    rules = BY_NAME[args.rules or args.market]
+    res = run_portfolio(
+        strategy, bars, rules, args.timeframe, allocation=args.allocation
+    )
+    print(f"strategy : {strategy.describe()}")
+    print(f"universe : {', '.join(symbols)}  ({args.timeframe}, alloc={args.allocation})\n")
+    print(res.to_string())
 
 
 def _add_vt_args(parser):
@@ -178,6 +207,17 @@ def main():
         if name == "walkforward":
             g.add_argument("--folds", type=int, default=5)
         g.set_defaults(fn=fn)
+
+    pf = sub.add_parser("portfolio", help="multi-symbol portfolio backtest, shared cash")
+    pf.add_argument("--market", default="crypto")
+    pf.add_argument("--rules", default=None, choices=list(BY_NAME))
+    pf.add_argument("--symbols", default=None, help="comma-separated; default = all in store")
+    pf.add_argument("--timeframe", default="1h")
+    pf.add_argument("--strategy", required=True, choices=list(STRATEGIES))
+    pf.add_argument("--param", action="append", help="k=v, repeatable")
+    pf.add_argument("--allocation", default="inv_vol", choices=["equal", "inv_vol"])
+    _add_vt_args(pf)
+    pf.set_defaults(fn=cmd_portfolio)
 
     args = p.parse_args()
     args.fn(args)
