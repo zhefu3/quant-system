@@ -28,6 +28,10 @@ def test_preset_builds_and_emits_valid_weights(name):
 
     # explain() must produce a self-consistent decision chain
     info = strategy.explain(bars)
-    assert info["target"] == pytest.approx(float(w.iloc[-1]), abs=1e-6)
+    assert info["target"] == pytest.approx(float(w.iloc[-1]), abs=1e-4)  # 4dp rounding
     for leg in info.get("legs", []):
-        assert "target" in leg and "scale" in leg
+        assert "target" in leg and "mix" in leg
+    # composite target must equal the mix-weighted sum of leg targets
+    if info.get("legs"):
+        blend = sum(leg["mix"] * leg["target"] for leg in info["legs"])
+        assert info["target"] == pytest.approx(blend, abs=1e-3)

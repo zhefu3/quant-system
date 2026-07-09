@@ -33,6 +33,8 @@ class Composite(Strategy):
         return f"composite({inner})"
 
     def explain(self, bars: pd.DataFrame) -> dict:
-        legs = [{"scale": s, **leg.explain(bars)} for leg, s in self.legs]
+        # NB: "mix" is the composite blend weight; legs may carry their own
+        # "scale" (e.g. VolTarget's vol scaling) — keys must not collide.
+        legs = [{**leg.explain(bars), "mix": s} for leg, s in self.legs]
         return {"name": self.name, "legs": legs,
                 "target": round(float(self.target_position(bars).iloc[-1]), 4)}

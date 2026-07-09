@@ -17,9 +17,8 @@ from .signals import compute_targets, fetch_live_bars
 def _leg_line(leg: dict) -> str:
     base = leg.get("base", leg)
     name = base.get("name", "?")
-    scale = leg.get("scale", 1.0)
+    mix = leg.get("mix", 1.0)
     vol = leg.get("realized_vol")
-    vscale = leg.get("scale") if "realized_vol" in leg else None
     if name == "cta_trend":
         votes = base["votes"]
         arrows = " ".join(f"{h}{'↑' if v > 0 else ('↓' if v < 0 else '→')}"
@@ -36,7 +35,7 @@ def _leg_line(leg: dict) -> str:
         detail = f"{name}: target {base.get('target')}"
     if vol is not None:
         detail += f" | 波动率 {vol:.0%}→缩放 {leg['scale']:.2f}"
-    return f"    {detail} | 贡献 {scale * leg['target']:+.4f}"
+    return f"    {detail} | 贡献 {mix * leg['target']:+.4f}"
 
 
 def render_symbol(sym: str, info: dict, alloc_n: int, price: float,
