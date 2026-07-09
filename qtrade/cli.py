@@ -269,6 +269,11 @@ def main():
     ex.add_argument("--state-dir", default=None)
     ex.set_defaults(fn=cmd_explain)
 
+    ab = sub.add_parser("paper-ab", help="compare two parallel paper records")
+    ab.add_argument("--a", default="crypto_core")
+    ab.add_argument("--b", default="crypto_core_v2")
+    ab.set_defaults(fn=lambda a: __import__("qtrade.live.report", fromlist=["run_ab"]).run_ab(a.a, a.b))
+
     lv = sub.add_parser("live", help="real execution on OKX swaps (dry-run unless --send)")
     lv.add_argument("--preset", default="crypto_core")
     lv.add_argument("--capital", type=float, required=True,

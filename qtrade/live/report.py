@@ -91,6 +91,27 @@ def run_report(preset_name: str, state_dir: str | None = None):
     _print_regime_context(p)
 
 
+def run_ab(name_a: str, name_b: str):
+    """Side-by-side paper records — the arbiter for parallel-preset promotion."""
+    print(f"=== paper A/B: {name_a} vs {name_b} ===")
+    rows = []
+    for name in (name_a, name_b):
+        f = DEFAULT_ROOT / name / "equity.csv"
+        if not f.exists():
+            print(f"{name}: no record yet")
+            continue
+        eq = pd.read_csv(f, parse_dates=["ts"]).drop_duplicates("ts").set_index("ts")["equity"]
+        days = max((eq.index[-1] - eq.index[0]).total_seconds() / 86400, 1e-9)
+        dd = float((eq / eq.cummax() - 1).min())
+        rows.append({"preset": name, "days": round(days, 1),
+                     "pnl_pct": round((eq.iloc[-1] / eq.iloc[0] - 1) * 100, 3),
+                     "max_dd_pct": round(dd * 100, 3), "marks": len(eq)})
+    if rows:
+        print(pd.DataFrame(rows).set_index("preset").to_string())
+        if len(rows) == 2 and min(r["days"] for r in rows) < 60:
+            print("\n提示: 晋升裁决需要 ≥1 个季度的并行记录, 现在的差异只是噪声。")
+
+
 def _print_regime_context(preset):
     """Where does the current market sit vs the strategy's known weak regime?
 
