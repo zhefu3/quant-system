@@ -24,3 +24,12 @@ class Strategy(ABC):
     def describe(self) -> str:
         params = {k: v for k, v in vars(self).items() if not k.startswith("_")}
         return f"{self.name}({', '.join(f'{k}={v}' for k, v in params.items())})"
+
+    def explain(self, bars: pd.DataFrame) -> dict:
+        """Machine-readable decision state at the LAST bar.
+
+        Subclasses override to expose their internals (votes, z-scores,
+        regime state) so every live decision can answer "why".
+        """
+        return {"name": self.name,
+                "target": round(float(self.target_position(bars).iloc[-1]), 4)}

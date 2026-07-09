@@ -177,6 +177,12 @@ def cmd_paper_report(args):
     run_report(args.preset, state_dir=args.state_dir)
 
 
+def cmd_explain(args):
+    from .live.explain import run_explain
+
+    run_explain(args.preset, state_dir=args.state_dir)
+
+
 def cmd_live(args):
     from .live.broker import OKXExecutor
     from .presets import PRESETS
@@ -257,6 +263,11 @@ def main():
     pr.add_argument("--preset", default="crypto_core")
     pr.add_argument("--state-dir", default=None)
     pr.set_defaults(fn=cmd_paper_report)
+
+    ex = sub.add_parser("explain", help="why each position: full decision chain right now")
+    ex.add_argument("--preset", default="crypto_core")
+    ex.add_argument("--state-dir", default=None)
+    ex.set_defaults(fn=cmd_explain)
 
     lv = sub.add_parser("live", help="real execution on OKX swaps (dry-run unless --send)")
     lv.add_argument("--preset", default="crypto_core")

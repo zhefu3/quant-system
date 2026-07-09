@@ -114,6 +114,15 @@ class PaperTrader:
             "n_positions": len(positions), "n_fills": len(fills),
         })
         self._log_funding(now, positions)
+        # Signal audit trail: replayable "why" for every tick (pair with
+        # `qtrade.cli explain` for the full decision chain).
+        sig_rows = [{"ts": str(now), "symbol": s, "target_w": round(targets[s], 4),
+                     "held_w": round(positions.get(s, 0.0) * closes[s] / equity_now, 4)
+                     if equity_now else 0.0}
+                    for s in p.symbols]
+        pd.DataFrame(sig_rows).to_csv(self.dir / "signals.csv", mode="a",
+                                      header=not (self.dir / "signals.csv").exists(),
+                                      index=False)
         self._save_state({"cash": cash, "positions": positions, "last_ts": str(now)})
 
         return {

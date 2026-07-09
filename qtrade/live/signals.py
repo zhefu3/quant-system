@@ -11,23 +11,33 @@ from ..presets import BookPreset
 WARMUP_BARS = 1100  # covers regime_window 720 + vol_window 168 + slack
 
 
-def compute_targets(
+def fetch_live_bars(
     preset: BookPreset, adapter: CryptoAdapter | None = None
-) -> tuple[dict[str, float], dict[str, float]]:
-    """Fetch fresh bars and return ({symbol: target_weight}, {symbol: last_close}).
-
-    Weights are the per-symbol strategy output scaled by equal allocation,
-    computed on completed bars only (the in-progress bar is dropped).
-    """
+) -> dict[str, pd.DataFrame]:
+    """Fresh warm-up-deep bars per symbol, completed bars only."""
     adapter = adapter or CryptoAdapter()
     now = pd.Timestamp.now("UTC")
     tf_delta = pd.Timedelta(preset.timeframe)
     start = now - tf_delta * WARMUP_BARS
-
-    closes, targets = {}, {}
+    out = {}
     for sym in preset.symbols:
         bars = adapter.fetch_ohlcv(sym, preset.timeframe, start)
-        bars = bars[bars.index + tf_delta <= now]  # completed bars only
+        out[sym] = bars[bars.index + tf_delta <= now]  # drop in-progress bar
+    return out
+
+
+def compute_targets(
+    preset: BookPreset,
+    adapter: CryptoAdapter | None = None,
+    bars_by_symbol: dict[str, pd.DataFrame] | None = None,
+) -> tuple[dict[str, float], dict[str, float]]:
+    """Return ({symbol: target_weight}, {symbol: last_close}).
+
+    Weights are the per-symbol strategy output scaled by equal allocation.
+    """
+    bars_by_symbol = bars_by_symbol or fetch_live_bars(preset, adapter)
+    closes, targets = {}, {}
+    for sym, bars in bars_by_symbol.items():
         closes[sym] = float(bars["close"].iloc[-1])
         raw = preset.strategy().target_position(bars)
         targets[sym] = float(raw.iloc[-1]) / len(preset.symbols)  # equal alloc

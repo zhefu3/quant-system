@@ -47,6 +47,16 @@ class VolTarget(Strategy):
             f"win={self.vol_window}, cap={self.max_weight})"
         )
 
+    def explain(self, bars: pd.DataFrame) -> dict:
+        realized = float(
+            bars["close"].pct_change().rolling(self.vol_window).std().iloc[-1]
+            * np.sqrt(self.bars_per_year)
+        )
+        scale = min(self.target_vol / realized, self.max_weight) if realized else 0.0
+        return {"name": self.name, "base": self.base.explain(bars),
+                "realized_vol": round(realized, 3), "scale": round(scale, 3),
+                "target": round(float(self.target_position(bars).iloc[-1]), 4)}
+
 
 def with_vol_target(base_cls, **vt_kwargs):
     """Class factory: `base_cls` wrapped in VolTarget, still grid-scannable

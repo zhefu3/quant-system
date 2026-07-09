@@ -31,3 +31,8 @@ class Composite(Strategy):
     def describe(self) -> str:
         inner = " + ".join(f"{s:.2f}*{leg.describe()}" for leg, s in self.legs)
         return f"composite({inner})"
+
+    def explain(self, bars: pd.DataFrame) -> dict:
+        legs = [{"scale": s, **leg.explain(bars)} for leg, s in self.legs]
+        return {"name": self.name, "legs": legs,
+                "target": round(float(self.target_position(bars).iloc[-1]), 4)}

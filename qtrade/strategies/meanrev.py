@@ -94,3 +94,15 @@ class BollingerRevert(Strategy):
                     locked = True  # thesis broken: wait for z to normalize
             w[i] = state
         return pd.Series(w, index=bars.index)
+
+    def explain(self, bars: pd.DataFrame) -> dict:
+        close = bars["close"]
+        mean = close.rolling(self.window).mean().iloc[-1]
+        std = close.rolling(self.window).std().iloc[-1]
+        z = float((close.iloc[-1] - mean) / std) if std else float("nan")
+        out = {"name": self.name, "z": round(z, 2), "entry_z": self.entry_z,
+               "target": round(float(self.target_position(bars).iloc[-1]), 4)}
+        if self.regime_window:
+            regime_ma = close.rolling(self.regime_window).mean().iloc[-1]
+            out["regime"] = "long_ok" if close.iloc[-1] >= regime_ma else "short_ok"
+        return out

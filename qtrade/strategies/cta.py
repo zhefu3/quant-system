@@ -33,3 +33,13 @@ class CTATrend(Strategy):
             w = w.clip(lower=0.0)
         w.iloc[: max(self.h1, self.h2, self.h3)] = 0.0  # warm-up
         return w.fillna(0.0)
+
+    def explain(self, bars: pd.DataFrame) -> dict:
+        close = bars["close"]
+        votes = {}
+        for h in (self.h1, self.h2, self.h3):
+            fast = close.ewm(span=max(2, h // 4), adjust=False).mean().iloc[-1]
+            slow = close.ewm(span=h, adjust=False).mean().iloc[-1]
+            votes[f"{h}h"] = 1 if fast > slow else (-1 if fast < slow else 0)
+        return {"name": self.name, "votes": votes,
+                "target": round(sum(votes.values()) / len(votes), 4)}
