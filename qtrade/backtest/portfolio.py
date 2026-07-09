@@ -31,6 +31,17 @@ def _allocations(
         alloc = inv.div(inv.sum(axis=1), axis=0)
         # Warm-up (all-NaN rows): fall back to equal weight.
         return alloc.fillna(1.0 / closes.shape[1])
+    if style == "inv_beta":
+        # Low-beta tilt (E36: beta IC negative at weekly horizon). Slow-moving
+        # weights so the tilt adds ~no turnover; BTC itself gets beta 1.
+        r = closes.pct_change()
+        btc = r.get("BTC/USDT")
+        if btc is None:
+            raise ValueError("inv_beta allocation needs BTC/USDT in the universe")
+        beta = r.rolling(720).cov(btc).div(btc.rolling(720).var(), axis=0)
+        inv = 1.0 / beta.clip(lower=0.25)  # cap the tilt; shorts of beta make no sense here
+        alloc = inv.div(inv.sum(axis=1), axis=0)
+        return alloc.fillna(1.0 / closes.shape[1])
     raise ValueError(f"unknown allocation style {style!r}")
 
 
