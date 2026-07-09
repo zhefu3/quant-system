@@ -44,11 +44,14 @@ def run_portfolio(
     oos_fraction: float = 0.3,
     init_cash: float = 10_000.0,
     rebalance_eps: float = 0.02,
-) -> pd.DataFrame:
+    return_details: bool = False,
+):
     """Backtest `strategy` applied to every symbol under a shared cash pool.
 
     Returns a summary frame (full / in_sample / out_of_sample rows) comparing
     the portfolio against an equal-weight buy&hold of the same symbols.
+    With return_details=True, returns (summary, {"weights": ..., "closes": ...})
+    where weights is the effective per-symbol weight matrix actually held.
     """
     engine = Engine(rules, init_cash=init_cash, rebalance_eps=rebalance_eps)
 
@@ -115,4 +118,7 @@ def run_portfolio(
                 "fees": round(float(pf.orders.fees.sum()), 2),
             }
         )
-    return pd.DataFrame(rows).set_index("segment")
+    summary = pd.DataFrame(rows).set_index("segment")
+    if return_details:
+        return summary, {"weights": effective, "closes": closes}
+    return summary

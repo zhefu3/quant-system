@@ -38,8 +38,11 @@ python -m qtrade.cli portfolio --rules crypto_perp --strategy boll_revert \
     --param window=96 --param entry_z=2.0 --param side=both --param regime_window=720 \
     --allocation equal --vol-target 0.4
 
-# 模拟盘: 每小时跑一个 tick (cron/launchd 调度), 状态在 outputs/paper/<preset>/
+# 模拟盘: 每小时跑一个 tick, 状态在 outputs/paper/<preset>/
 python -m qtrade.cli paper --preset crypto_core
+# 自动化(可选, 每小时第5分钟自动跑; 卸载用 bootout):
+#   cp deploy/com.qtrade.paper.plist ~/Library/LaunchAgents/
+#   launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.qtrade.paper.plist
 
 pytest tests/                # 跑防自欺测试
 ```
