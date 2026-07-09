@@ -69,34 +69,59 @@ class Engine:
         oos_fraction: float = 0.3,
     ) -> BacktestResult:
         """Backtest with a chronological in-sample / out-of-sample split."""
+        pfs = self.portfolios(strategy, bars, timeframe, oos_fraction)
+        segments = [
+            SegmentResult(label=label, stats=pf.stats(), portfolio=pf)
+            for label, pf in pfs.items()
+        ]
+        return BacktestResult(
+            strategy=strategy.describe(), symbol=symbol, timeframe=timeframe, segments=segments
+        )
+
+    def portfolios(
+        self,
+        strategy: Strategy,
+        bars: pd.DataFrame,
+        timeframe: str = "?",
+        oos_fraction: float = 0.3,
+    ) -> dict:
+        """Simulate and return {segment_label: vbt.Portfolio}.
+
+        Positions are computed on the FULL window before slicing, so the
+        out-of-sample segment keeps indicator warm-up context — but its trades
+        are simulated on out-of-sample bars only.
+        """
         pos = strategy.target_position(bars).reindex(bars.index).fillna(0.0)
-        if not pos.isin([0.0, 1.0]).all():
-            raise ValueError("target_position must be in {0,1} (long/flat) for now")
+        if not pos.isin([-1.0, 0.0, 1.0]).all():
+            raise ValueError("target_position values must be in {-1, 0, 1}")
+        if (pos < 0).any() and not self.rules.allow_short:
+            raise ValueError(
+                f"strategy emits short positions but market '{self.rules.market}' "
+                "disallows shorting (use e.g. crypto_perp rules)"
+            )
 
         # Execute on the NEXT bar: what you decide at t's close fills at t+1.
         pos = pos.shift(1).fillna(0.0)
 
         split = int(len(bars) * (1 - oos_fraction))
-        segments = []
-        for label, sl in [
-            ("full", slice(None)),
-            ("in_sample", slice(None, split)),
-            ("out_of_sample", slice(split, None)),
-        ]:
+        slices = {"full": slice(None)}
+        if 0 < oos_fraction < 1:
+            slices["in_sample"] = slice(None, split)
+            slices["out_of_sample"] = slice(split, None)
+
+        pfs = {}
+        for label, sl in slices.items():
             seg_bars, seg_pos = bars.iloc[sl], pos.iloc[sl]
-            entries = (seg_pos > 0) & (seg_pos.shift(1).fillna(0.0) == 0)
-            exits = (seg_pos == 0) & (seg_pos.shift(1).fillna(0.0) > 0)
-            pf = vbt.Portfolio.from_signals(
+            prev = seg_pos.shift(1).fillna(0.0)
+            pfs[label] = vbt.Portfolio.from_signals(
                 seg_bars["close"],
-                entries,
-                exits,
+                entries=(seg_pos == 1) & (prev != 1),
+                exits=(seg_pos != 1) & (prev == 1),
+                short_entries=(seg_pos == -1) & (prev != -1),
+                short_exits=(seg_pos != -1) & (prev == -1),
                 fees=self.rules.fee_rate,
                 slippage=self.rules.slippage,
                 init_cash=self.init_cash,
                 freq=timeframe if timeframe != "?" else None,
             )
-            segments.append(SegmentResult(label=label, stats=pf.stats(), portfolio=pf))
-
-        return BacktestResult(
-            strategy=strategy.describe(), symbol=symbol, timeframe=timeframe, segments=segments
-        )
+        return pfs

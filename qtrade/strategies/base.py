@@ -1,8 +1,8 @@
 """Strategy interface: a strategy maps bars -> target position, nothing else.
 
 Strategies are engine-agnostic. They receive canonical OHLCV bars and return a
-target position Series in {0, 1} (long/flat; -1 reserved for markets that allow
-shorting). The position at bar t may only use information up to and including
+target position Series in {-1, 0, 1} (short/flat/long); the engine rejects -1
+unless the market rules allow shorting. The position at bar t may only use information up to and including
 bar t's close — the engine delays execution to bar t+1, so peeking at the
 current bar's close is safe, peeking beyond it is a bug in the strategy.
 """

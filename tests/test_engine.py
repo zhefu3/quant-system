@@ -68,6 +68,28 @@ def test_costs_reduce_returns():
     assert r_dear < r_cheap
 
 
+class AlwaysShort(Strategy):
+    name = "always_short"
+
+    def target_position(self, bars):
+        return pd.Series(-1.0, index=bars.index)
+
+
+def test_short_rejected_when_market_disallows():
+    bars = make_bars(list(np.linspace(100, 50, 30)))
+    with pytest.raises(ValueError, match="disallows shorting"):
+        Engine(CRYPTO).run(AlwaysShort(), bars)
+
+
+def test_short_profits_in_downtrend():
+    from qtrade.markets.rules import CRYPTO_PERP
+
+    bars = make_bars(list(np.linspace(100, 50, 60)))  # steady 50% decline
+    r = Engine(CRYPTO_PERP).run(AlwaysShort(), bars).to_frame().loc["full"]
+    assert r["total_return_pct"] > 20, "short in a halving market should profit"
+    assert r["benchmark_return_pct"] < -40
+
+
 def test_store_roundtrip_and_dedup(tmp_path):
     store = BarStore(root=tmp_path)
     bars = normalize_ohlcv(make_bars([1.0, 2.0, 3.0]))

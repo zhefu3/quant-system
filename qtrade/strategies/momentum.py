@@ -15,15 +15,25 @@ from .base import Strategy
 class TSMomentum(Strategy):
     name = "ts_momentum"
 
-    def __init__(self, lookback: int = 288, vol_window: int = 288, vol_filter: bool = True):
+    def __init__(
+        self,
+        lookback: int = 288,
+        vol_window: int = 288,
+        vol_filter: bool = True,
+        allow_short: bool = False,
+    ):
         self.lookback = lookback
         self.vol_window = vol_window
         self.vol_filter = vol_filter
+        self.allow_short = allow_short
 
     def target_position(self, bars: pd.DataFrame) -> pd.Series:
         close = bars["close"]
         ret = close.pct_change(self.lookback)
-        pos = (ret > 0).astype(float)
+        if self.allow_short:
+            pos = pd.Series(np.sign(ret).fillna(0.0), index=bars.index)
+        else:
+            pos = (ret > 0).astype(float)
 
         if self.vol_filter:
             bar_ret = close.pct_change()
