@@ -45,6 +45,7 @@ def run_portfolio(
     init_cash: float = 10_000.0,
     rebalance_eps: float = 0.02,
     return_details: bool = False,
+    align: str = "inner",
 ):
     """Backtest `strategy` applied to every symbol under a shared cash pool.
 
@@ -55,13 +56,27 @@ def run_portfolio(
     """
     engine = Engine(rules, init_cash=init_cash, rebalance_eps=rebalance_eps)
 
-    # Common timeline: inner join so every symbol has a bar at every ts.
-    common = None
-    for df in bars_by_symbol.values():
-        common = df.index if common is None else common.intersection(df.index)
-    closes = pd.DataFrame(
-        {sym: df.loc[common, "close"] for sym, df in bars_by_symbol.items()}
-    )
+    if align == "inner":
+        # Common timeline: inner join so every symbol has a bar at every ts.
+        common = None
+        for df in bars_by_symbol.values():
+            common = df.index if common is None else common.intersection(df.index)
+        closes = pd.DataFrame(
+            {sym: df.loc[common, "close"] for sym, df in bars_by_symbol.items()}
+        )
+    elif align == "ffill":
+        # Union timeline for large stock universes where suspensions would
+        # collapse an intersection. Gaps are forward-filled for marking;
+        # fills at stale prices are an approximation — suspended names rarely
+        # top a momentum rank because their momentum input is stale too.
+        common = None
+        for df in bars_by_symbol.values():
+            common = df.index if common is None else common.union(df.index)
+        closes = pd.DataFrame(
+            {sym: df["close"].reindex(common) for sym, df in bars_by_symbol.items()}
+        ).ffill()
+    else:
+        raise ValueError(f"unknown align {align!r}")
 
     orders, effective = {}, {}
     if hasattr(strategy, "target_weights"):
@@ -73,7 +88,9 @@ def run_portfolio(
     else:
         alloc = _allocations(closes, allocation, vol_window)
         for sym, df in bars_by_symbol.items():
-            raw = strategy.target_position(df.loc[common]).reindex(common).fillna(0.0)
+            # Signals are computed on the symbol's native bars, then held
+            # (ffilled) across any timestamps it is missing from the grid.
+            raw = strategy.target_position(df).reindex(common).ffill().fillna(0.0)
             scaled = (raw * alloc[sym]).clip(-1.0, 1.0)
             orders[sym], effective[sym] = engine.process_weights(scaled, common)
     orders = pd.DataFrame(orders)

@@ -44,6 +44,12 @@ python -m qtrade.cli paper --preset crypto_core
 #   cp deploy/com.qtrade.paper.plist ~/Library/LaunchAgents/
 #   launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.qtrade.paper.plist
 
+# 模拟盘体检: 实时表现 vs 回测预期, 带 PASS/WARN 判定
+python -m qtrade.cli paper-report
+
+# 月度重校验(制度): 补数据->重跑组合->追加历史->对照审计带
+python research/revalidate.py
+
 pytest tests/                # 跑防自欺测试
 ```
 

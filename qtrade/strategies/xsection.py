@@ -24,19 +24,21 @@ class XSectionMomentum:
         rebalance: int = 24,
         long_short: bool = False,
         gross: float = 1.0,  # total gross exposure budget
+        skip: int = 0,       # classic momentum skips the most recent bars (short-term reversal)
     ):
         self.lookback = lookback
         self.top_k = top_k
         self.rebalance = rebalance
         self.long_short = long_short
         self.gross = gross
+        self.skip = skip
 
     def target_weights(self, closes: pd.DataFrame) -> pd.DataFrame:
-        mom = closes.pct_change(self.lookback)
+        mom = closes.shift(self.skip).pct_change(self.lookback)
         w = pd.DataFrame(0.0, index=closes.index, columns=closes.columns)
 
         rb_mask = np.zeros(len(closes), dtype=bool)
-        rb_mask[self.lookback :: self.rebalance] = True
+        rb_mask[self.lookback + self.skip :: self.rebalance] = True
 
         for i in np.flatnonzero(rb_mask):
             row = mom.iloc[i].dropna()

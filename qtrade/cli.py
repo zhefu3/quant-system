@@ -171,6 +171,12 @@ def cmd_paper(args):
     run_tick(args.preset, state_dir=args.state_dir)
 
 
+def cmd_paper_report(args):
+    from .live.report import run_report
+
+    run_report(args.preset, state_dir=args.state_dir)
+
+
 def _add_vt_args(parser):
     parser.add_argument("--vol-target", type=float, default=None,
                         help="annualized vol target, e.g. 0.3 (wraps strategy in VolTarget)")
@@ -238,6 +244,11 @@ def main():
     pp.add_argument("--preset", default="crypto_core")
     pp.add_argument("--state-dir", default=None, help="override state dir (testing)")
     pp.set_defaults(fn=cmd_paper)
+
+    pr = sub.add_parser("paper-report", help="live paper record vs backtest expectation")
+    pr.add_argument("--preset", default="crypto_core")
+    pr.add_argument("--state-dir", default=None)
+    pr.set_defaults(fn=cmd_paper_report)
 
     args = p.parse_args()
     args.fn(args)
