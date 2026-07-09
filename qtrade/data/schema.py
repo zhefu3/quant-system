@@ -34,6 +34,14 @@ def normalize_ohlcv(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
+def resample_ohlcv(df: pd.DataFrame, rule: str) -> pd.DataFrame:
+    """Downsample canonical bars (ts = bar open time) to a coarser timeframe."""
+    out = df.resample(rule, label="left", closed="left").agg(
+        {"open": "first", "high": "max", "low": "min", "close": "last", "volume": "sum"}
+    )
+    return out.dropna(subset=["close"])
+
+
 def validate_ohlcv(df: pd.DataFrame) -> None:
     """Raise if a frame violates the canonical schema."""
     if list(df.columns) != OHLCV_COLUMNS:

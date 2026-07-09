@@ -34,6 +34,32 @@ def _allocations(
     raise ValueError(f"unknown allocation style {style!r}")
 
 
+BARS_PER_YEAR = {"1h": 8760.0, "4h": 2190.0, "1d": 365.0}
+
+
+def _scale_to_book_vol(
+    W: pd.DataFrame,
+    closes: pd.DataFrame,
+    timeframe: str,
+    target: float,
+    window: int,
+    cap: float,
+) -> pd.DataFrame:
+    """Scale the whole weight matrix so the BOOK's trailing realized vol tracks
+    `target` (annualized). Uses only past returns of the weights actually held
+    (pre-cost approximation); scaling up is capped and total gross stays <= 1."""
+    bpy = BARS_PER_YEAR.get(timeframe, 8760.0)
+    book_ret = (W.shift(1) * closes.pct_change()).sum(axis=1)
+    realized = book_ret.rolling(window).std() * np.sqrt(bpy)
+    scale = (target / realized).clip(upper=cap).fillna(1.0)
+    scaled = W.mul(scale, axis=0).clip(-1.0, 1.0)
+    gross = scaled.abs().sum(axis=1)
+    over = gross > 1.0
+    if over.any():
+        scaled.loc[over] = scaled.loc[over].div(gross[over], axis=0)
+    return scaled
+
+
 def run_portfolio(
     strategy: Strategy,
     bars_by_symbol: dict[str, pd.DataFrame],
@@ -46,6 +72,9 @@ def run_portfolio(
     rebalance_eps: float = 0.02,
     return_details: bool = False,
     align: str = "inner",
+    book_vol_target: float | None = None,
+    book_vol_window: int = 168,
+    book_scale_cap: float = 2.0,
 ):
     """Backtest `strategy` applied to every symbol under a shared cash pool.
 
@@ -78,21 +107,27 @@ def run_portfolio(
     else:
         raise ValueError(f"unknown align {align!r}")
 
-    orders, effective = {}, {}
     if hasattr(strategy, "target_weights"):
         # Portfolio-level strategy: emits the whole weight matrix itself
         # (its gross budget replaces the per-symbol allocation step).
-        weights = strategy.target_weights(closes)
-        for sym in closes.columns:
-            orders[sym], effective[sym] = engine.process_weights(weights[sym], common)
+        W = strategy.target_weights(closes)[list(closes.columns)]
     else:
         alloc = _allocations(closes, allocation, vol_window)
+        cols = {}
         for sym, df in bars_by_symbol.items():
             # Signals are computed on the symbol's native bars, then held
             # (ffilled) across any timestamps it is missing from the grid.
             raw = strategy.target_position(df).reindex(common).ffill().fillna(0.0)
-            scaled = (raw * alloc[sym]).clip(-1.0, 1.0)
-            orders[sym], effective[sym] = engine.process_weights(scaled, common)
+            cols[sym] = (raw * alloc[sym]).clip(-1.0, 1.0)
+        W = pd.DataFrame(cols)
+
+    if book_vol_target is not None:
+        W = _scale_to_book_vol(W, closes, timeframe, book_vol_target,
+                               book_vol_window, book_scale_cap)
+
+    orders, effective = {}, {}
+    for sym in W.columns:
+        orders[sym], effective[sym] = engine.process_weights(W[sym], common)
     orders = pd.DataFrame(orders)
     effective = pd.DataFrame(effective)
 
