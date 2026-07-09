@@ -25,6 +25,7 @@ class BollingerRevert(Strategy):
         trend_veto_window: int = 0,  # 0 = off; else skip longs below this MA
         regime_window: int = 0,      # 0 = off; longs only above this MA, shorts only below
         short_regime_window: int = 0,  # 0 = off; shorts ALSO need close < this slower MA
+        vol_confirm: float = 0.0,    # 0 = off; entry needs 1d/10d dollar-vol ratio > this
         stop_z: float = 0.0,         # 0 = off; exit if z stretches this far AGAINST us
         max_hold: int = 0,           # 0 = off; time stop in bars
     ):
@@ -33,6 +34,7 @@ class BollingerRevert(Strategy):
         self.side = side or ("long" if long_only else "both")
         self.regime_window = regime_window
         self.short_regime_window = short_regime_window
+        self.vol_confirm = vol_confirm
         self.trend_veto_window = trend_veto_window
         self.stop_z = stop_z
         self.max_hold = max_hold
@@ -48,6 +50,13 @@ class BollingerRevert(Strategy):
         veto = None
         if self.trend_veto_window:
             veto = (close < close.rolling(self.trend_veto_window).mean()).to_numpy()
+        vol_ok = None
+        if self.vol_confirm:
+            # Capitulation filter: reversion entries only on expanded activity
+            # (1d dollar volume above `vol_confirm` x its 10d mean).
+            dv = bars["volume"] * close
+            ratio = dv.rolling(24).mean() / dv.rolling(240).mean()
+            vol_ok = (ratio > self.vol_confirm).to_numpy()
         # Regime alignment: buy dips only in an uptrend, fade pumps only in a
         # downtrend. NaN regime (warm-up) blocks both entries.
         long_ok = short_ok = None
@@ -73,6 +82,8 @@ class BollingerRevert(Strategy):
             if state == 0.0:
                 if locked:
                     continue
+                if vol_ok is not None and not vol_ok[i]:
+                    continue  # activity confirmation failed: no entries this bar
                 if (
                     self.side in ("both", "long")
                     and zv[i] <= -self.entry_z
