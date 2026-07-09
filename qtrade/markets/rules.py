@@ -15,8 +15,9 @@ class MarketRules:
     market: str
     fee_rate: float        # per-side, as fraction of notional
     slippage: float        # per-side, as fraction of price
-    min_hold_bars: int = 0  # e.g. A-share T+1 expressed in bars at the strategy timeframe
     allow_short: bool = False
+    t_plus_one: bool = False  # position opened today cannot close until next trading day
+    tz: str = "UTC"           # exchange timezone, used for trading-date boundaries
 
     def __post_init__(self):
         if self.fee_rate <= 0 or self.slippage <= 0:
@@ -29,9 +30,11 @@ CRYPTO = MarketRules(market="crypto", fee_rate=0.001, slippage=0.0005)
 # 等策略进入候选阶段再把 funding 数据接进来修正。
 CRYPTO_PERP = MarketRules(market="crypto_perp", fee_rate=0.0005, slippage=0.0005, allow_short=True)
 
-# A股: 佣金~万2.5 + 卖出印花税 0.05% (2023 调降后) → 单边近似 0.0005;
-# 涨跌停/T+1 由 min_hold_bars 与信号后处理近似, 待 A股适配器落地时细化。
-ASHARE = MarketRules(market="ashare", fee_rate=0.0008, slippage=0.001, min_hold_bars=1)
+# A股: 佣金~万2.5 双边 + 卖出印花税 0.05% → 对称化近似为单边 0.0008;
+# T+1 由引擎在执行层强制(当日开仓禁止当日平仓); 涨跌停暂未建模。
+ASHARE = MarketRules(
+    market="ashare", fee_rate=0.0008, slippage=0.001, t_plus_one=True, tz="Asia/Shanghai"
+)
 
 US = MarketRules(market="us", fee_rate=0.0005, slippage=0.0005, allow_short=True)
 

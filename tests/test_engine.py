@@ -90,6 +90,25 @@ def test_short_profits_in_downtrend():
     assert r["benchmark_return_pct"] < -40
 
 
+def test_t_plus_one_blocks_same_day_exit():
+    from qtrade.backtest.engine import _enforce_t_plus_one
+
+    # Two trading days x 4 intraday bars (Shanghai time).
+    idx = pd.DatetimeIndex(
+        [f"2026-07-0{d} {h}:00" for d in (6, 7) for h in ("09", "10", "13", "14")],
+        tz="Asia/Shanghai",
+    ).tz_convert("UTC")
+    # Execution-terms position: buy fills 09:00 day1, strategy wants out 13:00 day1.
+    pos = pd.Series([1, 1, 0, 0, 0, 0, 0, 0], index=idx, dtype=float)
+    fixed = _enforce_t_plus_one(pos, "Asia/Shanghai")
+    # Same-day exit is pushed to day 2's first bar.
+    assert fixed.tolist() == [1, 1, 1, 1, 0, 0, 0, 0]
+
+    # An exit already on the next day is untouched.
+    pos2 = pd.Series([1, 1, 1, 1, 0, 0, 0, 0], index=idx, dtype=float)
+    assert _enforce_t_plus_one(pos2, "Asia/Shanghai").tolist() == pos2.tolist()
+
+
 def test_store_roundtrip_and_dedup(tmp_path):
     store = BarStore(root=tmp_path)
     bars = normalize_ohlcv(make_bars([1.0, 2.0, 3.0]))

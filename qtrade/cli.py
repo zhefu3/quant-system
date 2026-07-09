@@ -14,6 +14,7 @@ import pandas as pd
 
 from .backtest.engine import Engine
 from .backtest.report import render_text, save_markdown
+from .data.adapters.ashare_baostock import AShareAdapter
 from .data.adapters.crypto_ccxt import CryptoAdapter
 from .data.store import BarStore
 from .markets.rules import BY_NAME
@@ -21,10 +22,11 @@ from .strategies.dual_ma import DualMA
 from .strategies.momentum import TSMomentum
 
 STRATEGIES = {"dual_ma": DualMA, "ts_momentum": TSMomentum}
+ADAPTERS = {"crypto": CryptoAdapter, "ashare": AShareAdapter}
 
 
 def cmd_fetch(args):
-    adapter = CryptoAdapter()
+    adapter = ADAPTERS[args.market]()
     store = BarStore()
     start = pd.Timestamp.now("UTC") - pd.Timedelta(days=args.days)
     df = adapter.fetch_ohlcv(args.symbol, args.timeframe, start)
@@ -110,6 +112,7 @@ def main():
     sub = p.add_subparsers(dest="cmd", required=True)
 
     f = sub.add_parser("fetch", help="download bars into the local store")
+    f.add_argument("--market", default="crypto", choices=list(ADAPTERS))
     f.add_argument("--symbol", required=True)
     f.add_argument("--timeframe", default="5m")
     f.add_argument("--days", type=int, default=180)

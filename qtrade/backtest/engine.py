@@ -55,6 +55,29 @@ class BacktestResult:
         return pd.DataFrame([seg.summary for seg in self.segments]).set_index("segment")
 
 
+def _enforce_t_plus_one(pos: pd.Series, tz: str) -> pd.Series:
+    """Delay any same-trading-day exit to the next day's first bar.
+
+    `pos` is already in execution terms (post-shift): pos[i]==1 means we hold
+    during bar i. A buy filling on date D cannot be sold until date > D.
+    """
+    dates = pos.index.tz_convert(tz).date
+    out = pos.to_numpy().copy()
+    holding = False
+    entry_date = None
+    for i in range(len(out)):
+        if not holding:
+            if out[i] == 1.0:
+                holding, entry_date = True, dates[i]
+        else:
+            if out[i] == 0.0:
+                if dates[i] == entry_date:
+                    out[i] = 1.0  # forced hold: T+1 forbids same-day exit
+                else:
+                    holding = False
+    return pd.Series(out, index=pos.index)
+
+
 class Engine:
     def __init__(self, rules: MarketRules, init_cash: float = 10_000.0):
         self.rules = rules
@@ -102,6 +125,9 @@ class Engine:
 
         # Execute on the NEXT bar: what you decide at t's close fills at t+1.
         pos = pos.shift(1).fillna(0.0)
+
+        if self.rules.t_plus_one:
+            pos = _enforce_t_plus_one(pos, self.rules.tz)
 
         split = int(len(bars) * (1 - oos_fraction))
         slices = {"full": slice(None)}
