@@ -24,6 +24,7 @@ class BollingerRevert(Strategy):
         side: str = "",              # "both" | "long" | "short"; overrides long_only if set
         trend_veto_window: int = 0,  # 0 = off; else skip longs below this MA
         regime_window: int = 0,      # 0 = off; longs only above this MA, shorts only below
+        short_regime_window: int = 0,  # 0 = off; shorts ALSO need close < this slower MA
         stop_z: float = 0.0,         # 0 = off; exit if z stretches this far AGAINST us
         max_hold: int = 0,           # 0 = off; time stop in bars
     ):
@@ -31,6 +32,7 @@ class BollingerRevert(Strategy):
         self.entry_z = entry_z
         self.side = side or ("long" if long_only else "both")
         self.regime_window = regime_window
+        self.short_regime_window = short_regime_window
         self.trend_veto_window = trend_veto_window
         self.stop_z = stop_z
         self.max_hold = max_hold
@@ -52,7 +54,12 @@ class BollingerRevert(Strategy):
         if self.regime_window:
             regime_ma = close.rolling(self.regime_window).mean()
             long_ok = (close >= regime_ma).to_numpy()
-            short_ok = (close < regime_ma).to_numpy()
+            short_series = close < regime_ma
+            if self.short_regime_window:
+                # Deep-bear confirmation: fading pumps below a fast MA gets
+                # run over in V-recoveries; require the slow MA agrees.
+                short_series &= close < close.rolling(self.short_regime_window).mean()
+            short_ok = short_series.to_numpy()
 
         w = np.zeros(n)
         state = 0.0    # current side: 0 flat, +1 long-revert, -1 short-revert
