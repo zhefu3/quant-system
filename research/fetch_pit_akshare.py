@@ -52,7 +52,21 @@ def fetch_one(code: str) -> str:
     except Exception:  # noqa: BLE001 — likely delisted: fall through to eastmoney
         pass
 
-    # Route 2: eastmoney — covers delisted; throttled, so back off politely.
+    # Route 2: tencent — covers delisted, not throttling us; no volume column
+    # (amount stored as volume placeholder; current factors are price-only).
+    try:
+        df = ak.stock_zh_a_hist_tx(symbol=f"{ex}{digits}", start_date="20140101",
+                                   end_date="20991231")
+        if df is not None and not df.empty:
+            out = df.rename(columns={"date": "ts"}).assign(
+                volume=lambda x: x.get("amount", 1.0))
+            out = out[["open", "high", "low", "close", "volume"]].assign(
+                ts=pd.to_datetime(df["date"]))
+            return _save(out, sym)
+    except Exception:  # noqa: BLE001
+        pass
+
+    # Route 3: eastmoney — throttled, last resort with backoff.
     for attempt in range(3):
         try:
             df = ak.stock_zh_a_hist(symbol=digits, period="daily",
