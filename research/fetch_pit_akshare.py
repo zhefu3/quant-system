@@ -40,32 +40,34 @@ def fetch_one(code: str) -> str:
     if store.path("ashare_pit", sym, "1d").exists():
         return f"skip {sym}"
 
-    # Route 1: eastmoney — with backoff retries (they throttle bursts).
+    # Route 1: sina — fast, but does NOT cover delisted names.
+    try:
+        df = ak.stock_zh_a_daily(symbol=f"{ex}{digits}", start_date="20140101",
+                                 end_date="20991231", adjust="hfq")
+        if df is not None and not df.empty:
+            df = df.rename(columns={"date": "ts"})
+            out = df[["open", "high", "low", "close", "volume"]].assign(
+                ts=pd.to_datetime(df["ts"]))
+            return _save(out, sym)
+    except Exception:  # noqa: BLE001 — likely delisted: fall through to eastmoney
+        pass
+
+    # Route 2: eastmoney — covers delisted; throttled, so back off politely.
     for attempt in range(3):
         try:
             df = ak.stock_zh_a_hist(symbol=digits, period="daily",
                                     start_date="20140101", end_date="20991231",
                                     adjust="hfq")
-            if df is not None and not df.empty:
-                out = df.rename(columns=COLMAP)[list(COLMAP.values())].assign(
-                    ts=pd.to_datetime(df["日期"]))
-                return _save(out, sym)
-            break
-        except Exception:  # noqa: BLE001 — throttled: back off, then try sina
-            time.sleep(20 * (attempt + 1))
-
-    # Route 2: sina daily (different host entirely).
-    try:
-        df = ak.stock_zh_a_daily(symbol=f"{ex}{digits}", start_date="20140101",
-                                 end_date="20991231", adjust="hfq")
-        if df is None or df.empty:
-            return f"EMPTY {sym}"
-        df = df.rename(columns={"date": "ts"})
-        out = df[["open", "high", "low", "close", "volume"]].assign(
-            ts=pd.to_datetime(df["ts"] if "ts" in df else df.index))
-        return _save(out, sym)
-    except Exception as e:  # noqa: BLE001
-        return f"FAIL {sym}: {str(e)[:60]}"
+            if df is None or df.empty:
+                return f"EMPTY {sym}"
+            out = df.rename(columns=COLMAP)[list(COLMAP.values())].assign(
+                ts=pd.to_datetime(df["日期"]))
+            return _save(out, sym)
+        except Exception as e:  # noqa: BLE001
+            if attempt == 2:
+                return f"FAIL {sym}: {str(e)[:60]}"
+            time.sleep(30 * (attempt + 1))
+    return f"FAIL {sym}"
 
 
 def main():
