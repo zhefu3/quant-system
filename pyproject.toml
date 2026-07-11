@@ -17,6 +17,7 @@ dependencies = [
     "yfinance>=1.5.1",
     "ib-async>=2.1.0",
     "akshare>=1.18.64",
+    "tushare>=1.4.29",
 ]
 
 [project.optional-dependencies]
