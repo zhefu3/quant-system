@@ -28,6 +28,7 @@ def backtest_topk(
     benchmark: pd.Series,          # index daily closes
     k: int = 50,
     min_history: int = 126,
+    buffer_rank: int = 0,   # 0 = off; held names keep their slot while ranked <= buffer_rank
 ) -> dict:
     """Monthly top-K selection; returns metrics + daily excess curve."""
     def to_sym(code: str) -> str:
@@ -58,7 +59,17 @@ def backtest_topk(
         if hist.shape[1] < k * 2:
             continue
         scores = score_fn(hist).dropna()
-        picks = scores.nlargest(k).index
+        scores = scores[scores.index.isin(hist.columns)]
+        if scores.empty:
+            continue  # no signal for this rebalance (e.g. model warm-up)
+        if buffer_rank and weights is not None:
+            ranks = scores.rank(ascending=False)
+            kept = [s for s in weights.index
+                    if s in ranks.index and ranks[s] <= buffer_rank][:k]
+            fresh = [s for s in scores.nlargest(k).index if s not in kept]
+            picks = pd.Index(kept + fresh[: k - len(kept)])
+        else:
+            picks = scores.nlargest(k).index
         new_w = pd.Series(1.0 / len(picks), index=picks)
 
         prev = weights if weights is not None else pd.Series(dtype=float)
@@ -80,7 +91,9 @@ def backtest_topk(
 
     port_ret = port_ret - turnover_cost
     bench_ret = benchmark.pct_change().reindex(port_ret.index).fillna(0.0)
-    start = rebal_dates[0]
+    # Metrics start at the FIRST actual holding — warm-up months with no
+    # signal (weights None) must not be scored as underperformance.
+    start = pd.Timestamp(holdings_log[0]["date"], tz="UTC") if holdings_log else rebal_dates[0]
     port_ret, bench_ret = port_ret.loc[start:], bench_ret.loc[start:]
 
     excess = port_ret - bench_ret
