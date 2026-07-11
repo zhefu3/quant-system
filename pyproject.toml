@@ -16,6 +16,7 @@ dependencies = [
     "baostock>=0.9.2",
     "yfinance>=1.5.1",
     "ib-async>=2.1.0",
+    "akshare>=1.18.64",
 ]
 
 [project.optional-dependencies]
