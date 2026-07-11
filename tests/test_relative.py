@@ -41,10 +41,14 @@ def test_pit_membership_gates_selection():
         picked_early.append(set(hist.columns))
         return s
 
-    backtest_topk(closes, membership(rows), score, bench, k=2, min_history=60)
+    # k=1 so the 3-member early universe clears the k*2 minimum and gets scored
+    backtest_topk(closes, membership(rows), score, bench, k=1, min_history=60)
+    assert len(picked_early) >= 6
     # every scoring universe before October must exclude 600004
     for cols in picked_early[:3]:
         assert "600004.SH" not in cols
+    # and it must appear once membership includes it
+    assert any("600004.SH" in cols for cols in picked_early)
 
 
 def test_costs_reduce_excess():
