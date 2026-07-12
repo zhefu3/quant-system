@@ -277,6 +277,9 @@ def main():
     wk = sub.add_parser("weekly", help="one-command weekly digest + protocol due reminders")
     wk.set_defaults(fn=lambda a: __import__("qtrade.live.weekly", fromlist=["run_weekly"]).run_weekly())
 
+    hc = sub.add_parser("health", help="data integrity + heartbeat + halt-marker check")
+    hc.set_defaults(fn=lambda a: __import__("qtrade.live.healthcheck", fromlist=["run_health"]).run_health())
+
     lv = sub.add_parser("live", help="real execution on OKX swaps (dry-run unless --send)")
     lv.add_argument("--preset", default="crypto_core")
     lv.add_argument("--capital", type=float, required=True,

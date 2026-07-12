@@ -48,3 +48,7 @@ def run_weekly():
         days = (eq["ts"].max() - eq["ts"].min()).total_seconds() / 86400
         print(f"实盘前置(模拟盘≥30天): 已积累 {days:.1f} 天 "
               f"[{'✓ 达标' if days >= 30 else '未达标'}]")
+
+    print()
+    from .healthcheck import run_health
+    run_health()

@@ -24,8 +24,19 @@ YEARS = range(2014, 2028)
 def main():
     import akshare as ak
 
+    # optional argv: product codes + year range override, e.g.
+    #   fetch_cn_contracts.py HC FG SA --years 2017 2028   (E55 expansion)
+    products, years = PRODUCTS, YEARS
+    argv = sys.argv[1:]
+    if "--years" in argv:
+        i = argv.index("--years")
+        years = range(int(argv[i + 1]), int(argv[i + 2]))
+        argv = argv[:i]
+    if argv:
+        products = argv
+
     OUT.mkdir(parents=True, exist_ok=True)
-    grid = [f"{p}{y % 100:02d}{m:02d}" for p in PRODUCTS for y in YEARS for m in range(1, 13)]
+    grid = [f"{p}{y % 100:02d}{m:02d}" for p in products for y in years for m in range(1, 13)]
     todo = [c for c in grid if not (OUT / f"{c}.parquet").exists()]
     print(f"grid {len(grid)}, todo {len(todo)}", flush=True)
     ok = fail = 0
