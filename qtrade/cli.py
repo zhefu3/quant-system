@@ -284,6 +284,10 @@ def main():
     pt.add_argument("--preset", default="crypto_core")
     pt.set_defaults(fn=lambda a: __import__("qtrade.live.parity", fromlist=["run_parity"]).run_parity(a.preset))
 
+    al = sub.add_parser("allocate", help="inverse-vol capital split across deployed books")
+    al.add_argument("--capital", type=float, required=True)
+    al.set_defaults(fn=lambda a: __import__("qtrade.live.allocate", fromlist=["run_allocate"]).run_allocate(a.capital))
+
     lv = sub.add_parser("live", help="real execution on OKX swaps (dry-run unless --send)")
     lv.add_argument("--preset", default="crypto_core")
     lv.add_argument("--capital", type=float, required=True,
