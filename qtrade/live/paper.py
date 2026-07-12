@@ -22,7 +22,8 @@ import pandas as pd
 
 from ..data.adapters import make_adapter
 from ..presets import BookPreset
-from .signals import compute_targets
+from .risk import RiskGate
+from .signals import compute_targets, fetch_live_bars
 
 DEFAULT_ROOT = Path(__file__).resolve().parents[2] / "outputs" / "paper"
 
@@ -75,11 +76,24 @@ class PaperTrader:
     def tick(self) -> dict:
         p = self.preset
         now = pd.Timestamp.now("UTC")
-        targets, closes = compute_targets(p, self.adapter)
+        gate = RiskGate(p.risk, self.dir)
+
+        bars = fetch_live_bars(p, self.adapter)
+        stale = gate.stale_symbols(bars, now, p.timeframe)
+        if stale:
+            # fail-safe: never trade on stale data — hold everything, log why
+            return {"ts": str(now), "skipped_stale": stale, "fills": []}
+        targets, closes = compute_targets(p, bars_by_symbol=bars)
 
         state = self._load_state()
         cash, positions = state["cash"], state["positions"]
         equity = cash + sum(q * closes[s] for s, q in positions.items())
+
+        peak = equity
+        if self.equity_file.exists():
+            hist = pd.read_csv(self.equity_file)["equity"]
+            peak = max(float(hist.max()), equity)
+        targets, risk_notes = gate.apply(targets, equity / peak - 1)
 
         fills = []
         for sym in p.symbols:
@@ -130,7 +144,7 @@ class PaperTrader:
             "pnl_total": round(equity_now - self.init_cash, 2),
             "gross_exposure": round(gross / equity_now, 3),
             "positions": {s: round(q, 6) for s, q in positions.items()},
-            "fills": fills,
+            "fills": fills, "risk_notes": risk_notes,
         }
 
 
@@ -140,8 +154,14 @@ def run_tick(preset_name: str, state_dir: str | None = None) -> dict:
     trader = PaperTrader(PRESETS[preset_name], state_dir=state_dir)
     summary = trader.tick()
     ts = datetime.now(timezone.utc).strftime("%H:%M")
+    if "skipped_stale" in summary:
+        print(f"[{ts} UTC] SKIP tick: stale data for {summary['skipped_stale']} "
+              "(holding positions, no trades)")
+        return summary
     print(f"[{ts} UTC] equity {summary['equity']}  pnl {summary['pnl_total']:+}  "
           f"gross {summary['gross_exposure']:.0%}  fills {len(summary['fills'])}")
+    for note in summary.get("risk_notes", []):
+        print(f"  RISK: {note}")
     for f in summary["fills"]:
         print(f"  {f['symbol']:10s} {f['prev_w']:+.3f} -> {f['target_w']:+.3f} "
               f"qty {f['qty']:+.6f} @ {f['price']}")

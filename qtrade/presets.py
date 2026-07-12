@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from .live.risk import RiskLimits
 from .markets.rules import CNFUTURES, CRYPTO_PERP, MarketRules
 from .strategies.base import Strategy
 from .strategies.composite import Composite
@@ -26,6 +27,10 @@ class BookPreset:
     rules: MarketRules
     rebalance_eps: float
     build: object = field(repr=False)  # () -> Strategy
+    # Pre-trade risk gate budget. dd_halt is sized at ~1.5x the book's
+    # validated backtest max drawdown: normal operation never touches it,
+    # beyond-backtest behavior flattens the book pending human review.
+    risk: RiskLimits = field(default_factory=RiskLimits)
 
     def strategy(self) -> Strategy:
         return self.build()
@@ -53,6 +58,7 @@ CRYPTO_CORE = BookPreset(
     rules=CRYPTO_PERP,
     rebalance_eps=0.05,
     build=_crypto_core_strategy,
+    risk=RiskLimits(max_weight=0.25, max_gross=2.0, dd_halt=0.23, max_data_age_bars=6),
 )
 
 
@@ -76,6 +82,7 @@ CRYPTO_CORE_4H = BookPreset(
     rules=CRYPTO_PERP,
     rebalance_eps=0.05,
     build=_crypto_core_4h_strategy,
+    risk=RiskLimits(max_weight=0.25, max_gross=2.0, dd_halt=0.23, max_data_age_bars=6),
 )
 
 def _crypto_core_v2_strategy() -> Strategy:
@@ -103,6 +110,7 @@ CRYPTO_CORE_V2 = BookPreset(
     rules=CRYPTO_PERP,
     rebalance_eps=0.05,
     build=_crypto_core_v2_strategy,
+    risk=RiskLimits(max_weight=0.25, max_gross=2.0, dd_halt=0.23, max_data_age_bars=6),
 )
 
 def _cn_futures_strategy() -> Strategy:
@@ -121,6 +129,9 @@ CN_FUTURES = BookPreset(
     rules=CNFUTURES,
     rebalance_eps=0.02,
     build=_cn_futures_strategy,
+    # 5-day age tolerates weekends/short holidays; long holidays skip ticks,
+    # which is correct (closed market, nothing to trade).
+    risk=RiskLimits(max_weight=0.25, max_gross=2.0, dd_halt=0.185, max_data_age_bars=5),
 )
 
 PRESETS = {p.name: p for p in (CRYPTO_CORE, CRYPTO_CORE_4H, CRYPTO_CORE_V2, CN_FUTURES)}
