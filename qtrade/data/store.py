@@ -64,9 +64,12 @@ class BarStore:
         rows = []
         for p in sorted(self.root.glob("*/*/*.parquet")):
             market, symbol, tf = p.parts[-3], p.parts[-2], p.stem
-            meta = duckdb.sql(
-                f"SELECT min(ts) lo, max(ts) hi, count(*) n FROM '{p}'"
-            ).fetchone()
+            try:
+                meta = duckdb.sql(
+                    f"SELECT min(ts) lo, max(ts) hi, count(*) n FROM '{p}'"
+                ).fetchone()
+            except duckdb.Error:
+                continue  # non-bar parquet living under the store root (e.g. pit aux data)
             rows.append(
                 {
                     "market": market,
