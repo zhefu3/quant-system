@@ -7,14 +7,8 @@
     <key>ProgramArguments</key>
     <array>
         <string>/bin/zsh</string>
-        <string>deploy/paper_all.sh</string>
-        
-        
-        
-        
+        <string>/Users/kelsey/.qtrade-paper.sh</string>
     </array>
-    <key>WorkingDirectory</key>
-    <string>/Users/kelsey/Desktop/量化</string>
     <key>StartCalendarInterval</key>
     <dict>
         <key>Minute</key>
