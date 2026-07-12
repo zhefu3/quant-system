@@ -87,9 +87,10 @@ def plan_orders(
 
 class OKXExecutor:
     def __init__(self, preset: BookPreset, capital: float,
-                 state_dir: Path | str | None = None):
+                 state_dir: Path | str | None = None, maker_first: bool = True):
         self.preset = preset
         self.capital = capital
+        self.maker_first = maker_first
         self.dir = Path(state_dir) if state_dir else DEFAULT_ROOT / preset.name
         self.dir.mkdir(parents=True, exist_ok=True)
         self.halt_flag = self.dir / "HALTED"
@@ -141,6 +142,25 @@ class OKXExecutor:
             notionals[sym] = sign * contracts * csize * mark
         return usdt, notionals
 
+    def _place(self, p: dict):
+        """Maker-first execution (E49: ~98% of our orders fill as post-only
+        limits at the last close within the next bar, turning taker costs
+        into rebates). Post-only at the current mid; the NEXT hourly run's
+        reconciliation converts any unfilled remainder to market."""
+        sym = _swap_symbol(p["symbol"])
+        if self.maker_first:
+            try:
+                ticker = self.ex.fetch_ticker(sym)
+                px = float(ticker.get("last") or ticker["close"])
+                return self.ex.create_order(
+                    sym, "limit", p["side"], p["contracts"], px,
+                    params={"tdMode": "cross", "postOnly": True},
+                )
+            except Exception:  # noqa: BLE001 — post-only rejected: fall through
+                pass
+        return self.ex.create_order(sym, "market", p["side"], p["contracts"],
+                                    params={"tdMode": "cross"})
+
     # -- one run -------------------------------------------------------------
     def run(self, send: bool = False, flatten: bool = False) -> None:
         now = datetime.now(timezone.utc).isoformat(timespec="seconds")
@@ -186,10 +206,7 @@ class OKXExecutor:
             print(line)
             if not send or p["contracts"] == 0:
                 continue
-            order = self.ex.create_order(
-                _swap_symbol(p["symbol"]), "market", p["side"], p["contracts"],
-                params={"tdMode": "cross"},
-            )
+            order = self._place(p)
             pd.DataFrame([{**p, "ts": now, "order_id": order.get("id"),
                            "status": order.get("status")}]).to_csv(
                 self.orders_file, mode="a",
