@@ -21,6 +21,8 @@ def run_weekly():
 
     run_report("crypto_core")
     print()
+    run_report("cn_futures")
+    print()
     run_ab("crypto_core", "crypto_core_v2")
 
     print("\n--- 制度到期提醒 ---")

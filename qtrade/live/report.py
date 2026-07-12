@@ -17,14 +17,20 @@ import pandas as pd
 from ..presets import PRESETS
 from .paper import DEFAULT_ROOT
 
-# crypto_core full-cycle backtest reference (E15/E16, research/log.md).
+# Full-cycle backtest references (crypto_core: E15/E16; cn_futures: E50b).
 BACKTEST_REF = {
     "crypto_core": {
         "ann_return": 0.14,     # ~14%/yr over the 3y cycle
         "ann_vol": 0.12,        # implied by sharpe ~1.16
         "max_dd": 0.152,        # full-cycle max drawdown
         "target_gross": 1.0,    # weights are vol-targeted; gross rarely near 1
-    }
+    },
+    "cn_futures": {
+        "ann_return": 0.025,    # +22.5% over 8.1y stitched audit
+        "ann_vol": 0.053,       # implied by sharpe 0.48
+        "max_dd": 0.123,        # audit max drawdown
+        "target_gross": 1.0,
+    },
 }
 
 
@@ -54,15 +60,19 @@ def run_report(preset_name: str, state_dir: str | None = None):
     print(f"gross    : now {eq['gross_exposure'].iloc[-1]:.0%}, avg {eq['gross_exposure'].mean():.0%}")
     print(f"positions: {state.get('positions', {})}")
     fills = eq["n_fills"].sum()
-    print(f"fills    : {int(fills)} total ({fills / days:.1f}/day)")
+    rate = f" ({fills / days:.1f}/day)" if days >= 1 else ""
+    print(f"fills    : {int(fills)} total{rate}")
 
     if len(equity) >= 48:
-        hourly_ret = equity.pct_change().dropna()
-        ann_vol = float(hourly_ret.std() * np.sqrt(8760))
-        print(f"ann vol  : {ann_vol:.1%} (realized, hourly marks)")
+        mark_ret = equity.pct_change().dropna()
+        spacing_s = float(equity.index.to_series().diff().median().total_seconds())
+        marks_per_year = 365 * 86400 / max(spacing_s, 1.0)
+        ann_vol = float(mark_ret.std() * np.sqrt(marks_per_year))
+        print(f"ann vol  : {ann_vol:.1%} (realized, {len(equity)} marks, "
+              f"median spacing {spacing_s / 3600:.1f}h)")
     else:
         ann_vol = None
-        print("ann vol  : n/a (need >= 48 hourly marks)")
+        print("ann vol  : n/a (need >= 48 marks)")
 
     if not ref:
         return
@@ -123,12 +133,14 @@ def _print_regime_context(preset):
 
     try:
         store = BarStore()
+        # stitched continuous series live under their own store market name
+        data_market = "cnfutures_adj" if preset.market == "cnfutures" else preset.market
         closes = {}
         for sym in preset.symbols:
-            closes[sym] = store.load(preset.market, sym, preset.timeframe)["close"]
+            closes[sym] = store.load(data_market, sym, preset.timeframe)["close"]
         df = pd.DataFrame(closes).dropna()
         basket = df.div(df.iloc[0]).mean(axis=1)
-        win = 90 * 24
+        win = int(90 * pd.Timedelta("1D") / pd.Timedelta(preset.timeframe))
         r90 = basket.pct_change(win).dropna()
         cur = float(r90.iloc[-1])
         pct = float((r90 <= cur).mean()) * 100
@@ -139,6 +151,6 @@ def _print_regime_context(preset):
         else:
             zone = "常态区间 — 策略的主场"
         print(f"\n--- regime context (as of stored data {df.index[-1]:%Y-%m-%d %H:%M}) ---")
-        print(f"basket 90d return {cur:+.1%}, percentile {pct:.0f}% of 7y history -> {zone}")
+        print(f"basket 90d return {cur:+.1%}, percentile {pct:.0f}% of stored history -> {zone}")
     except Exception as e:  # noqa: BLE001 — context is best-effort, never block the report
         print(f"\n(regime context unavailable: {e})")
