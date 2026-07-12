@@ -20,7 +20,7 @@
 | E42 A股防守 ETF | ⚠️ E54降级：指数层结论 | 真实ETF价格上"债性防守"不成立(DD 5.9%>4%门槛)，是代理伪影 |
 | 期货趋势（美国，IBKR） | 构造健康，等数据终审 | E41: 干净0.31+危机alpha；差距=品种广度+杠杆 |
 | **E51b 组合层** | ✅ 已刷新（真实CTA账本） | 今日可部署3账本逆vol Sharpe 0.96/maxDD-2.4%；4账本1.07 |
-| E55 品种池 14→30 | 🔄 下载中（预注册已冻结） | 门槛: Sharpe≥0.58 且 DD≤原+2pp 才扩池 |
+| E55 品种池 14→30 | ❌ 判决：保持14池 | 新16品种自身无信号(-0.01)，扩池只稀释；数据资产保留(2643合约) |
 
 ## 三、已关闭方向（勿重开，除非条件变化，各自重开条件在 log）
 
@@ -31,13 +31,11 @@
 
 ## 四、恢复运行清单（新会话第一件事）
 
-1. **模拟盘心跳**（会话断了就停了）: `zsh deploy/paper_all.sh`（每小时，含4本；
-   cn_futures 数据刷新有当日标记文件，每小时调零网络成本；
-   或让用户装 launchd: deploy/ 模板）
+1. **心跳已交给 launchd**（2026-07-12 装好，每小时:05 自动跑，关会话/重启都在）:
+   `launchctl list | grep qtrade` 验证；日志 `outputs/paper/launchd.log`；
+   手动补跑: `zsh ~/.qtrade-paper.sh`
 2. **体检**: `.venv/bin/python -m qtrade.cli health`（数据完整性+心跳新鲜度+HALTED标记）
-3. E55 若未完成: `.venv/bin/python research/fetch_cn_contracts.py HC FG SA PP L V EG BU NI SN ZN PB C RM P JD --years 2017 2028`（可续传）；
-   完成后按预注册跑扩池审计（stitch 现成，30品种 vs 14品种同协议对比）
-4. 检查 `qtrade.cli weekly` 制度到期提醒
+3. 检查 `qtrade.cli weekly` 制度到期提醒
 
 ## 五、关键架构（今晚新增）
 
