@@ -280,6 +280,10 @@ def main():
     hc = sub.add_parser("health", help="data integrity + heartbeat + halt-marker check")
     hc.set_defaults(fn=lambda a: __import__("qtrade.live.healthcheck", fromlist=["run_health"]).run_health())
 
+    pt = sub.add_parser("parity", help="recompute the last recorded tick's signals from data")
+    pt.add_argument("--preset", default="crypto_core")
+    pt.set_defaults(fn=lambda a: __import__("qtrade.live.parity", fromlist=["run_parity"]).run_parity(a.preset))
+
     lv = sub.add_parser("live", help="real execution on OKX swaps (dry-run unless --send)")
     lv.add_argument("--preset", default="crypto_core")
     lv.add_argument("--capital", type=float, required=True,
