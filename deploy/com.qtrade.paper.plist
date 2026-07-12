@@ -15,8 +15,8 @@
         <integer>5</integer>
     </dict>
     <key>StandardOutPath</key>
-    <string>/Users/kelsey/Desktop/量化/outputs/paper/launchd.log</string>
+    <string>/Users/kelsey/qtrade/outputs/paper/launchd.log</string>
     <key>StandardErrorPath</key>
-    <string>/Users/kelsey/Desktop/量化/outputs/paper/launchd.err</string>
+    <string>/Users/kelsey/qtrade/outputs/paper/launchd.err</string>
 </dict>
 </plist>

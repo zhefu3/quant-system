@@ -1,6 +1,6 @@
 # qtrade 会话交接文档（2026-07-12 深夜刷新）
 
-> 新会话必读。项目在 `~/Desktop/量化`，命令用 `.venv/bin/python -m qtrade.cli ...`。
+> 新会话必读。项目在 `~/qtrade`（桌面 `量化` 是符号链接；2026-07-12 因 launchd/TCC 移出桌面），命令用 `.venv/bin/python -m qtrade.cli ...`。
 > 完整实验记录（E1-E55，含全部失败）在 `research/log.md`；本文件只给现状和待办。
 
 ## 一、项目一句话
@@ -55,7 +55,6 @@
    → 重跑 E40 26年终审 → 过关即模拟账户自动跑
 2. **OKX 实盘 key**（3000U 小额已同意）→ 环境变量（勿经聊天）→ dry-run → 确认开跑
 3. TUSHARE_TOKEN 在 ~/.zshrc（harness shell 要先 `source ~/.zshrc`）
-4. 建议装 launchd 心跳（deploy/ 模板），会话断开心跳不停
 
 ## 七、纪律（硬约束）
 
