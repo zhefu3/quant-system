@@ -38,4 +38,9 @@ ASHARE = MarketRules(
 
 US = MarketRules(market="us", fee_rate=0.0005, slippage=0.0005, allow_short=True)
 
-BY_NAME = {r.market: r for r in (CRYPTO, CRYPTO_PERP, ASHARE, US)}
+# 国内商品期货: 手续费 ~0.02% + 滑点 0.04%/边(保守), 可双向。E50/E50b 同款。
+CNFUTURES = MarketRules(
+    market="cnfutures", fee_rate=0.0002, slippage=0.0004, allow_short=True, tz="Asia/Shanghai"
+)
+
+BY_NAME = {r.market: r for r in (CRYPTO, CRYPTO_PERP, ASHARE, US, CNFUTURES)}

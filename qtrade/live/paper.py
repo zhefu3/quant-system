@@ -20,7 +20,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from ..data.adapters.crypto_ccxt import CryptoAdapter
+from ..data.adapters import make_adapter
 from ..presets import BookPreset
 from .signals import compute_targets
 
@@ -37,7 +37,7 @@ class PaperTrader:
         self.trades_file = self.dir / "trades.csv"
         self.equity_file = self.dir / "equity.csv"
         self.init_cash = init_cash
-        self.adapter = CryptoAdapter()
+        self.adapter = make_adapter(preset.market)
 
     # -- state ---------------------------------------------------------------
     def _load_state(self) -> dict:
@@ -55,7 +55,7 @@ class PaperTrader:
     def _log_funding(self, now, positions: dict):
         """Best-effort: record current funding rates for held symbols so the
         paper record can later be reconciled against live funding flows."""
-        if not positions:
+        if not positions or self.preset.market != "crypto":
             return
         try:
             ex = self.adapter.exchange

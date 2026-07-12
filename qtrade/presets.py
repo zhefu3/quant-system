@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from .markets.rules import CRYPTO_PERP, MarketRules
+from .markets.rules import CNFUTURES, CRYPTO_PERP, MarketRules
 from .strategies.base import Strategy
 from .strategies.composite import Composite
 from .strategies.cta import CTATrend
@@ -105,4 +105,22 @@ CRYPTO_CORE_V2 = BookPreset(
     build=_crypto_core_v2_strategy,
 )
 
-PRESETS = {p.name: p for p in (CRYPTO_CORE, CRYPTO_CORE_4H, CRYPTO_CORE_V2)}
+def _cn_futures_strategy() -> Strategy:
+    # E50b-approved book (2026-07-12): stitched-data audit Sharpe 0.48 over
+    # 8.1y, OOS 0.67, worst year -2.3%. Parameters frozen since E50 — the
+    # trend horizons and vol target below are exactly what the audit ran.
+    return VolTarget(CTATrend(h1=21, h2=63, h3=252), target_vol=0.30,
+                     vol_window=63, bars_per_year=252)
+
+
+CN_FUTURES = BookPreset(
+    name="cn_futures",
+    market="cnfutures",
+    timeframe="1d",
+    symbols=["RB", "I", "J", "M", "Y", "CF", "SR", "TA", "MA", "CU", "AL", "AU", "AG", "RU"],
+    rules=CNFUTURES,
+    rebalance_eps=0.02,
+    build=_cn_futures_strategy,
+)
+
+PRESETS = {p.name: p for p in (CRYPTO_CORE, CRYPTO_CORE_4H, CRYPTO_CORE_V2, CN_FUTURES)}

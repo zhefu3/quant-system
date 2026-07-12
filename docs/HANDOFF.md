@@ -18,7 +18,7 @@
 | **E47 A股 ML 指增**（LightGBM 18特征） | ⚠️ 边缘档存档 | 毛超额+6.3%/年真实；净+2.5%/IR 0.22 不达标；低佣通道(万一免五)可复活 |
 | E42 A股防守 ETF 配置 | ✅ 可用（管闲钱） | 15年逐年全正，DD 1.2%，债性~3.6%/年 |
 | 期货趋势（美国，IBKR） | 构造健康，等数据终审 | E41 ETF代理: Sharpe 0.31+危机alpha(2008 +16.7)；差距=品种广度+杠杆 |
-| E50 国内商品 CTA | 存疑待 E50b 数据升级 | 主力连续拼接污染；逐合约网格下载中(可续传) |
+| **E50b 国内商品 CTA** | ✅ 已立项，模拟盘运行中(07-12起) | 逐合约后复权拼接后 Sharpe 0.48/OOS 0.67/最差年-2.3%；拼接污染实证(RB差37pp)；换月成本估算后~0.41 压线过 |
 | **E51 组合层** | ✅ 蓝图完成 | 三账本相关≈0，组合 Sharpe 1.01；三档分配方案在 log |
 
 ## 三、已关闭方向（勿重开，除非条件变化）
@@ -29,12 +29,11 @@ E48换手缓冲。重开条件各自记录在 log.md。
 
 ## 四、恢复运行清单（新会话第一件事）
 
-1. **模拟盘心跳**（会话断了就停了）:
-   `for p in crypto_core crypto_core_v2 crypto_core_4h; do .venv/bin/python -m qtrade.cli paper --preset $p; done`
-   （每小时一次；或让用户装 launchd: deploy/ 下模板+两条命令，见 README）
-2. **E50b 合约下载续传**（可续传, ~2300网格）:
-   `.venv/bin/python research/fetch_cn_contracts.py`（后台，之后写拼接器+终审，
-   预注册门槛: 拼接修正后 Sharpe≥0.4 才立项）
+1. **模拟盘心跳**（会话断了就停了）: `zsh deploy/paper_all.sh`（每小时一次，
+   现含 cn_futures，其数据刷新有当日标记文件、每小时调用零网络成本；
+   或让用户装 launchd: deploy/ 下模板+两条命令，见 README）
+2. cn_futures 数据链: qtrade/data/cn_futures.py（E50b 冻结拼接规则的唯一实现，
+   research 与 live 共用）；逐合约仓库 data_store/cn_contracts/ 每日增量自刷新
 3. 检查 `qtrade.cli weekly` 制度到期提醒
 
 ## 五、等用户的事（周一 2026-07-14 承诺）
