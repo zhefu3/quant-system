@@ -29,7 +29,12 @@ class CryptoAdapter:
     market = "crypto"
 
     def __init__(self, exchanges: list[str] | None = None):
-        self._exchange_ids = exchanges or ["binance", "okx"]
+        # okx first: the effective venue for this deployment (binance is
+        # geo-blocked here and 451s every load_markets attempt). gate/kucoin
+        # are outage fallbacks — spot candles for these liquid pairs track okx
+        # at bp level and only engage when okx itself is unreachable
+        # (2026-07-13 incident: two failed ticks in 3h of okx network wobble).
+        self._exchange_ids = exchanges or ["okx", "binance", "gate", "kucoin"]
         self._exchange: ccxt.Exchange | None = None
 
     @property
