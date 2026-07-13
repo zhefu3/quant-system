@@ -72,10 +72,13 @@ class IbkrFuturesAdapter:
         ib.qualifyContracts(contract)
         days = max(1, (pd.Timestamp.now("UTC") - pd.Timestamp(start)).days)
         years = min(10, days // 365 + 1)
+        # useRTH=True verified bar-identical to the E40b research archive
+        # (2026-07-13, 750-bar ES overlap, zero diff) — research and live
+        # must consume the same series.
         raw = ib.reqHistoricalData(
             contract, endDateTime="", durationStr=f"{years} Y",
             barSizeSetting="1 day", whatToShow="ADJUSTED_LAST",
-            useRTH=False, formatDate=2,
+            useRTH=True, formatDate=2,
         )
         if not raw:
             raise RuntimeError(f"IBKR returned no CONTFUT bars for {symbol}")

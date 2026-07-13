@@ -640,7 +640,8 @@ E25 均值回归参数集成、E26 组合级vol target、E27 基差carry腿、E2
   按预注册标准再议; 中途任何窗口的好看收益不构成升级理由
 - 构造: E40/E40b 零改动冻结参数 CTATrend(21/63/252)+VolTarget(0.30/63/252), 9品种
   CONTFUT, FUTURES_RULES(0.01%+0.02%), eps 0.02; 内部模拟成交(同 cn_futures 路径, 不下单)
-- 新基建: qtrade/data/adapters/futures_ib.py(Gateway 4002 只读, ADJUSTED_LAST 日线,
+- 新基建: qtrade/data/adapters/futures_ib.py(Gateway 4002 只读, ADJUSTED_LAST **RTH** 日线
+  —— 已与 E40b 档案核对: ES 750根重叠零差异, 研究与live同一序列,
   美东午夜戳+17h收盘完成判定); preset futures_ibkr; dd_halt 0.37=1.5×窗口回测maxDD 24.6%
 - 后复权序列每次换月整条平移 → live 每 tick 全量重拉, **永不增量写入 data_store**
 - 运维: 心跳已加账本; IB Gateway 掉线=跳 tick 持仓冻结(同 OKX 故障降级); health 30h 容忍
