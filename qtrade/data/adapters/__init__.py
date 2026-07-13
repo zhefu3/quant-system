@@ -10,6 +10,10 @@ def make_adapter(market: str):
         from .cn_futures_ak import CnFuturesAdapter
 
         return CnFuturesAdapter()
+    if market == "futures_ibkr":
+        from .futures_ib import IbkrFuturesAdapter
+
+        return IbkrFuturesAdapter()
     from .crypto_ccxt import CryptoAdapter
 
     return CryptoAdapter()

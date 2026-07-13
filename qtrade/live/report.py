@@ -31,6 +31,15 @@ BACKTEST_REF = {
         "max_dd": 0.123,        # audit max drawdown
         "target_gross": 1.0,
     },
+    # E40b IBKR window (2019-08 → 2026-07). OBSERVATION book: the gate FAILED
+    # (Sharpe -0.15); these numbers exist so drift vs the weak-window backtest
+    # is visible, not as a deployment reference.
+    "futures_ibkr": {
+        "ann_return": -0.011,   # -7.65% over the ~6.9y window
+        "ann_vol": 0.074,       # implied by sharpe -0.15
+        "max_dd": 0.246,        # window max drawdown
+        "target_gross": 1.0,
+    },
 }
 
 

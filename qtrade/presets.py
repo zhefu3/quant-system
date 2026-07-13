@@ -10,7 +10,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from .live.risk import RiskLimits
-from .markets.rules import CNFUTURES, CRYPTO_PERP, MarketRules
+from .markets.rules import CNFUTURES, CRYPTO_PERP, FUTURES_IBKR as FUTURES_IBKR_RULES, MarketRules
 from .strategies.base import Strategy
 from .strategies.composite import Composite
 from .strategies.cta import CTATrend
@@ -134,4 +134,29 @@ CN_FUTURES = BookPreset(
     risk=RiskLimits(max_weight=0.25, max_gross=2.0, dd_halt=0.185, max_data_age_bars=5),
 )
 
-PRESETS = {p.name: p for p in (CRYPTO_CORE, CRYPTO_CORE_4H, CRYPTO_CORE_V2, CN_FUTURES)}
+def _futures_ibkr_strategy() -> Strategy:
+    # E40/E40b frozen construction, identical to the cn_futures book but on
+    # US futures. OBSERVATION BOOK ONLY (prereg 2026-07-13): E40b failed the
+    # deployment gate (window Sharpe -0.15), so this paper record exists to
+    # build the multi-year forward track envisioned as unlock path (2) in the
+    # E40b verdict. It must NOT enter the portfolio layer (allocate.py) or be
+    # cited as capital-allocation evidence.
+    return VolTarget(CTATrend(h1=21, h2=63, h3=252), target_vol=0.30,
+                     vol_window=63, bars_per_year=252)
+
+
+FUTURES_IBKR = BookPreset(
+    name="futures_ibkr",
+    market="futures_ibkr",
+    timeframe="1d",
+    symbols=["ES", "NQ", "ZN", "GC", "CL", "HG", "NG", "ZC", "SI"],
+    rules=FUTURES_IBKR_RULES,
+    rebalance_eps=0.02,
+    build=_futures_ibkr_strategy,
+    # dd_halt = 1.5x the E40b IBKR-window backtest maxDD (24.6%); 5-bar age
+    # tolerates weekends/holidays, and an offline IB Gateway simply skips ticks.
+    risk=RiskLimits(max_weight=0.25, max_gross=2.0, dd_halt=0.37, max_data_age_bars=5),
+)
+
+PRESETS = {p.name: p for p in (CRYPTO_CORE, CRYPTO_CORE_4H, CRYPTO_CORE_V2, CN_FUTURES,
+                               FUTURES_IBKR)}

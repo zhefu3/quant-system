@@ -632,3 +632,15 @@ E25 均值回归参数集成、E26 组合级vol target、E27 基差carry腿、E2
   (2)多年前瞻纸面记录穿越一次真实危机(周期太长)。**现阶段: 期货停在研究层, crypto+
   国内商品维持双活账本; E41的0.31/0.35入档为"危机对冲sleeve, 现有数据下不可前瞻验证"**
 - 资产保留: futures_ibkr 9品种CONTFUT已入库; IBKR连通链路建成可复用(将来付费数据或真危机时)
+
+### 观察账本立项: futures_ibkr 前瞻纸面记录（2026-07-13, 用户拍板）
+- 依据: E40b 判决解锁路径(2)——"多年前瞻纸面记录穿越一次真实危机"。时钟今天启动
+- **定位(硬约束): observation-only**。不进组合层(allocate.py SLEEVES 排除, 有测试锁定)、
+  不作为任何资金分配证据、不改 E40b"研究未部署"判决。评估条件: 穿越一次真实危机年后
+  按预注册标准再议; 中途任何窗口的好看收益不构成升级理由
+- 构造: E40/E40b 零改动冻结参数 CTATrend(21/63/252)+VolTarget(0.30/63/252), 9品种
+  CONTFUT, FUTURES_RULES(0.01%+0.02%), eps 0.02; 内部模拟成交(同 cn_futures 路径, 不下单)
+- 新基建: qtrade/data/adapters/futures_ib.py(Gateway 4002 只读, ADJUSTED_LAST 日线,
+  美东午夜戳+17h收盘完成判定); preset futures_ibkr; dd_halt 0.37=1.5×窗口回测maxDD 24.6%
+- 后复权序列每次换月整条平移 → live 每 tick 全量重拉, **永不增量写入 data_store**
+- 运维: 心跳已加账本; IB Gateway 掉线=跳 tick 持仓冻结(同 OKX 故障降级); health 30h 容忍
