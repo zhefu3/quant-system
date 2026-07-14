@@ -20,6 +20,9 @@ class FakeExchange:
     def market(self, sym):
         return self._markets[sym]
 
+    def privateGetAccountConfig(self):  # noqa: N802 — ccxt naming
+        return {"data": [{"uid": "424242"}]}
+
     def fetch_balance(self):
         return {"USDT": {"total": 5000.0}}
 
@@ -36,10 +39,20 @@ class FakeExchange:
 
 
 @pytest.fixture
-def executor(tmp_path):
+def executor(tmp_path, monkeypatch):
+    # send paths require the structural UID pin (fail-closed guard)
+    monkeypatch.setenv("QTRADE_OKX_ACCOUNT_UID", "424242")
     ex = OKXExecutor(CRYPTO_CORE, capital=3000.0, state_dir=tmp_path)
     ex._ex = FakeExchange()
     return ex
+
+
+def test_send_to_wrong_account_refuses(tmp_path, monkeypatch):
+    monkeypatch.setenv("QTRADE_OKX_ACCOUNT_UID", "111111")  # pinned != reported
+    ex = OKXExecutor(CRYPTO_CORE, capital=3000.0, state_dir=tmp_path)
+    ex._ex = FakeExchange()
+    with pytest.raises(RuntimeError, match="mismatch"):
+        ex.run(send=True, flatten=True)
 
 
 def test_account_state_parses_positions(executor):
@@ -67,7 +80,12 @@ def test_halted_flag_blocks_run(executor, capsys):
     assert executor._ex.orders == []
 
 
-def test_kill_switch_flattens_and_halts(executor):
+def test_kill_switch_flattens_and_halts(executor, monkeypatch):
+    # compute_targets would hit live exchanges (socket-blocked in tests);
+    # the kill switch must trip before targets matter anyway
+    monkeypatch.setattr("qtrade.live.broker.compute_targets",
+                        lambda preset: ({s: 0.1 for s in preset.symbols},
+                                        {s: 100.0 for s in preset.symbols}))
     # High-water mark far above current managed equity -> breach on next run
     executor.hwm_file.write_text(json.dumps({"hwm": 50_000.0, "ts": "x"}))
     executor.run(send=True)  # managed = min(3000, 5000) < 80% of hwm

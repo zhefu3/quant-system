@@ -13,6 +13,10 @@ Rails (hard-coded, not options):
     flattens the book and writes a HALTED flag; runs refuse to start while
     the flag exists (delete it manually after investigating)
   - dry-run by default; orders are only sent with send=True
+  - structural account guard: sending requires QTRADE_OKX_ACCOUNT_UID and the
+    exchange-reported UID must match it (fail-closed). A mode flag can be
+    forgotten; the UID pin makes "wrong account" structurally impossible —
+    demo and real keys belong to different UIDs.
 """
 
 from __future__ import annotations
@@ -37,6 +41,29 @@ MAX_DD_STOP = 0.20    # kill switch: flatten + halt at -20% from high water
 
 def _swap_symbol(sym: str) -> str:
     return f"{sym}:USDT"  # BTC/USDT -> BTC/USDT:USDT (USDT-margined swap)
+
+
+def check_account_uid(expected: str | None, actual: str | None, send: bool) -> str:
+    """Structural live-account guard (pure logic, unit-tested).
+
+    Sending with no pinned UID, an unreadable UID, or a mismatch raises —
+    fail closed. Dry-runs are allowed unpinned so the guard never blocks
+    inspection, only order flow. Returns a note for the audit log."""
+    if not actual:
+        if send:
+            raise RuntimeError("exchange did not report an account UID — refusing to send")
+        return "UID unreadable (dry-run allowed)"
+    if not expected:
+        if send:
+            raise RuntimeError(
+                "QTRADE_OKX_ACCOUNT_UID is not set — refusing to send orders. Pin the "
+                "intended account: export QTRADE_OKX_ACCOUNT_UID=<uid from OKX console>")
+        return f"UID {actual} unpinned (dry-run allowed; pin before send)"
+    if str(expected) != str(actual):
+        raise RuntimeError(
+            f"account UID mismatch: pinned {expected}, exchange reports {actual} — "
+            "wrong account/key, refusing to send")
+    return f"UID verified ({actual})"
 
 
 def plan_orders(
@@ -173,6 +200,15 @@ class OKXExecutor:
         print(f"[{now}] account USDT {usdt_equity:.2f} | managed sleeve {managed:.2f} "
               f"| mode {'DEMO' if os.environ.get('QTRADE_OKX_DEMO') == '1' else 'REAL'}"
               f" | {'SEND' if send else 'DRY-RUN'}")
+
+        # Structural guard before ANY order path (including flatten): the
+        # account we are about to trade must be the account we pinned.
+        try:
+            cfg = self.ex.privateGetAccountConfig()
+            actual_uid = str((cfg.get("data") or [{}])[0].get("uid") or "")
+        except Exception:  # noqa: BLE001 — unreadable config = unverifiable account
+            actual_uid = ""
+        print(f"  guard: {check_account_uid(os.environ.get('QTRADE_OKX_ACCOUNT_UID'), actual_uid, send)}")
 
         if flatten:
             targets = {s: 0.0 for s in self.preset.symbols}
