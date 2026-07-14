@@ -53,7 +53,8 @@ def test_small_rebalance_suppressed_but_full_exit_allowed():
 
 def test_insane_order_flow_refused():
     markets = {"BTC/USDT:USDT": {"contractSize": 0.01}}
-    with pytest.raises(RuntimeError, match="sanity"):
-        # current position wildly off from target -> order gross > 1.5x capital
+    # current position wildly off from target — now caught by the per-order
+    # 3x-capital check (an earlier, stricter layer than the gross sanity bound)
+    with pytest.raises(RuntimeError, match="refusing"):
         plan_orders({"BTC/USDT": 0.10}, CLOSES, {"BTC/USDT": -200_000.0},
                     capital=10_000.0, markets=markets, eps=0.02)

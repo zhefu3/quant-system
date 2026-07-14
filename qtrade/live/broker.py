@@ -17,6 +17,14 @@ Rails (hard-coded, not options):
     exchange-reported UID must match it (fail-closed). A mode flag can be
     forgotten; the UID pin makes "wrong account" structurally impossible —
     demo and real keys belong to different UIDs.
+  - order-level checks (nautilus_trader RiskEngine idea): any single order
+    above MAX_ORDER_NOTIONAL x capital, or more real orders than symbols,
+    refuses the whole run — catches bad marks/prices before they hit the book
+  - reconciliation (nautilus_trader idea): each send records pre-trade and
+    target notionals; the next run verifies the venue state lies between them
+    (fills may be partial). A violation means manual trading, liquidation, or
+    a missed fill — a RECONCILE flag blocks ALL sending (flatten included:
+    acting on wrong beliefs is worse than waiting) until a human removes it.
 """
 
 from __future__ import annotations
@@ -37,6 +45,10 @@ DEFAULT_ROOT = Path(__file__).resolve().parents[2] / "outputs" / "live"
 MAX_SINGLE_W = 0.15   # no symbol may exceed 15% of managed capital
 MAX_GROSS = 1.0       # no leverage on the managed sleeve
 MAX_DD_STOP = 0.20    # kill switch: flatten + halt at -20% from high water
+# A legitimate rebalance never moves one symbol by more than 2 x MAX_SINGLE_W
+# (full flip); anything bigger means a corrupted mark/price or venue state.
+MAX_ORDER_NOTIONAL = 0.35  # per-order |notional| cap, fraction of capital
+RECON_TOL = 0.02           # reconciliation tolerance, fraction of capital
 
 
 def _swap_symbol(sym: str) -> str:
@@ -87,6 +99,17 @@ def plan_orders(
         cur = current_notional.get(sym, 0.0)
         desired = tgt_w * capital
         delta = desired - cur
+        # Exposure-INCREASING orders are capped; risk-reducing orders (incl.
+        # kill-switch flatten of an oversized book) must never be blocked by
+        # their own guard — but beyond 3x capital even a "close" is corrupt data.
+        if abs(desired) > abs(cur) and abs(delta) > MAX_ORDER_NOTIONAL * capital:
+            raise RuntimeError(
+                f"{sym}: exposure-increasing order notional {abs(delta):.0f} exceeds "
+                f"{MAX_ORDER_NOTIONAL:.0%} of capital — corrupted mark/price; refusing run")
+        if abs(delta) > 3.0 * capital:
+            raise RuntimeError(
+                f"{sym}: order notional {abs(delta):.0f} exceeds 3x capital — "
+                "venue state or marks are corrupt; refusing run")
         if abs(delta) < eps * capital and not (desired == 0.0 and cur != 0.0):
             continue
         m = markets[_swap_symbol(sym)]
@@ -106,10 +129,39 @@ def plan_orders(
             "notional": round(math.copysign(contracts * contract_notional, delta), 2),
             "note": f"w {cur / capital:+.3f} -> {tgt_w:+.3f}",
         })
-    gross = sum(abs(p["notional"]) for p in plans if p["contracts"])
+    real = [p for p in plans if p["contracts"]]
+    if len(real) > len(targets):  # structurally impossible: 1 order per symbol
+        raise RuntimeError(f"{len(real)} real orders for {len(targets)} symbols; refusing")
+    gross = sum(abs(p["notional"]) for p in real)
     if gross > MAX_GROSS * capital * 1.5:  # sanity: order flow itself absurd
         raise RuntimeError(f"planned order gross {gross:.0f} exceeds sanity bound; refusing")
     return plans
+
+
+def check_reconciliation(current: dict[str, float], expected: dict,
+                         capital: float, tol_frac: float = RECON_TOL) -> list[str]:
+    """Venue positions must lie between last run's pre-trade state and its
+    target (post-only fills may be partial). Pure logic, unit-tested.
+
+    Returns violation notes; empty list = reconciled."""
+    notes = []
+    tol = tol_frac * capital
+    pre_map = expected.get("pre", {})
+    tgt_map = expected.get("target", {})
+    for sym, tgt in tgt_map.items():
+        pre = float(pre_map.get(sym, 0.0))
+        lo, hi = min(pre, float(tgt)), max(pre, float(tgt))
+        cur = float(current.get(sym, 0.0))
+        if cur < lo - tol or cur > hi + tol:
+            notes.append(
+                f"{sym}: venue notional {cur:.2f} outside [{lo:.2f}, {hi:.2f}] ±{tol:.0f} "
+                f"(pre {pre:.2f} -> target {tgt:.2f}) — manual trade, liquidation, "
+                "or missed fill?")
+    for sym, cur in current.items():
+        if sym not in tgt_map and abs(float(cur)) > tol:
+            notes.append(f"{sym}: unexpected venue position {float(cur):.2f} "
+                         "(not in last run's book)")
+    return notes
 
 
 class OKXExecutor:
@@ -121,7 +173,9 @@ class OKXExecutor:
         self.dir = Path(state_dir) if state_dir else DEFAULT_ROOT / preset.name
         self.dir.mkdir(parents=True, exist_ok=True)
         self.halt_flag = self.dir / "HALTED"
+        self.recon_flag = self.dir / "RECONCILE"
         self.hwm_file = self.dir / "hwm.json"
+        self.expected_file = self.dir / "expected.json"
         self.orders_file = self.dir / "orders.csv"
         self.equity_file = self.dir / "equity.csv"
         self._ex = None
@@ -210,6 +264,23 @@ class OKXExecutor:
             actual_uid = ""
         print(f"  guard: {check_account_uid(os.environ.get('QTRADE_OKX_ACCOUNT_UID'), actual_uid, send)}")
 
+        # Reconciliation: the venue's book must be explainable by our last run.
+        if self.expected_file.exists():
+            recon_notes = check_reconciliation(
+                current, json.loads(self.expected_file.read_text()), managed)
+            for n in recon_notes:
+                print(f"  RECON WARN: {n}")
+            if recon_notes and not self.recon_flag.exists():
+                self.recon_flag.write_text(
+                    f"{now}\n" + "\n".join(recon_notes) +
+                    "\nVenue state is not explainable by the last run. Investigate "
+                    "(manual trades? liquidation? missed fill?), then remove this "
+                    "file to re-enable sending.\n")
+        if self.recon_flag.exists() and send:
+            print(f"  RECONCILE flag present ({self.recon_flag}) — sending disabled "
+                  "(flatten included) until a human reviews and removes it")
+            send = False
+
         if flatten:
             targets = {s: 0.0 for s in self.preset.symbols}
             closes = {s: abs(current.get(s, 0.0)) or 1.0 for s in self.preset.symbols}
@@ -247,6 +318,15 @@ class OKXExecutor:
                            "status": order.get("status")}]).to_csv(
                 self.orders_file, mode="a",
                 header=not self.orders_file.exists(), index=False)
+
+        if send and any(p["contracts"] for p in plans):
+            # snapshot for next run's reconciliation: fills may be partial, so
+            # the venue book must land between `pre` and `target`
+            self.expected_file.write_text(json.dumps({
+                "ts": now,
+                "pre": {s: round(current.get(s, 0.0), 2) for s in self.preset.symbols},
+                "target": {s: round(targets[s] * managed, 2) for s in self.preset.symbols},
+            }, indent=2))
 
         pd.DataFrame([{"ts": now, "usdt_equity": usdt_equity, "managed": managed,
                        "sent": send, "n_orders": sum(1 for p in plans if p["contracts"])}]
