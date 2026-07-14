@@ -10,7 +10,13 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 from .live.risk import RiskLimits
-from .markets.rules import CNFUTURES, CRYPTO_PERP, FUTURES_IBKR as FUTURES_IBKR_RULES, MarketRules
+from .markets.rules import (
+    ASHARE as ASHARE_RULES,
+    CNFUTURES,
+    CRYPTO_PERP,
+    FUTURES_IBKR as FUTURES_IBKR_RULES,
+    MarketRules,
+)
 from .strategies.base import Strategy
 from .strategies.composite import Composite
 from .strategies.cta import CTATrend
@@ -181,5 +187,20 @@ LLM_AGENTS = BookPreset(
     risk=RiskLimits(max_weight=0.10, max_gross=1.0, dd_halt=0.15, max_data_age_bars=2),
 )
 
+# E61 OBSERVATION book: E47's LightGBM index-enhancement, forward paper record.
+# Universe is ~300 point-in-time HS300 members (dynamic), so symbols is empty
+# and the book bypasses PaperTrader (see live/ashare_ml.py). dd_halt sized for
+# a long-only equity book (market-level drawdowns are normal, not a bug).
+ASHARE_ML = BookPreset(
+    name="ashare_ml",
+    market="ashare",
+    timeframe="1d",
+    symbols=[],
+    rules=ASHARE_RULES,
+    rebalance_eps=0.0,  # monthly full rebalance, no eps band
+    build=None,  # targets come from qtrade/live/ashare_ml.py
+    risk=RiskLimits(max_weight=0.03, max_gross=1.0, dd_halt=0.35, max_data_age_bars=5),
+)
+
 PRESETS = {p.name: p for p in (CRYPTO_CORE, CRYPTO_CORE_4H, CRYPTO_CORE_V2, CN_FUTURES,
-                               FUTURES_IBKR, LLM_AGENTS)}
+                               FUTURES_IBKR, LLM_AGENTS, ASHARE_ML)}

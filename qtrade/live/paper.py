@@ -158,6 +158,11 @@ class PaperTrader:
 def run_tick(preset_name: str, state_dir: str | None = None) -> dict:
     from ..presets import PRESETS
 
+    if preset_name == "ashare_ml":  # dynamic universe: dedicated book class
+        from .ashare_ml import run_tick as ashare_tick
+
+        return ashare_tick(state_dir=state_dir)
+
     targets_fn = None
     if preset_name == "llm_agents":
         from .llm_agents import make_targets_fn
