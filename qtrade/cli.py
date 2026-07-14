@@ -166,8 +166,14 @@ def cmd_portfolio(args):
 
 
 def cmd_paper(args):
+    import socket
+
     from .live.paper import run_tick
 
+    # A single stalled network read must fail the tick, not hang it: launchd
+    # runs one instance per label, so a hung tick silences ALL books' hourly
+    # heartbeats (2026-07-14 incident: akshare stall blocked the loop for 9h).
+    socket.setdefaulttimeout(120)
     run_tick(args.preset, state_dir=args.state_dir)
 
 
