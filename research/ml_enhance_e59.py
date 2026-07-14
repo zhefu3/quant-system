@@ -1,11 +1,11 @@
-"""E56: E47 feature expansion with prescreened zoo factors (prereg 2026-07-14).
+"""E59: E47 feature expansion with prescreened zoo factors (prereg 2026-07-14).
 
 Everything except the feature set is inherited verbatim from ml_enhance.py
 (E47): universe, PIT data, monthly top-50, cost model, LGB hyperparameters,
 expanding-window training with quarterly refits, backtest_topk metrics.
 
 Feature set = E47's 17 base features
-            + zoo prescreen survivors (outputs/e56_prescreen.csv, passed=True)
+            + zoo prescreen survivors (outputs/e59_prescreen.csv, passed=True)
               after the frozen redundancy filter:
                 rank survivors by |ic_mean| desc; greedily keep those whose
                 train-window month-end-value correlation with every kept zoo
@@ -37,7 +37,7 @@ from qtrade.factors import FactorRegistry  # noqa: E402
 CUTOFF = pd.Timestamp("2018-07-01", tz="UTC")  # frozen, = prescreen train window end
 MAX_ZOO_FEATS = 30
 CORR_MAX = 0.8
-PRESCREEN_CSV = Path(__file__).resolve().parents[1] / "outputs" / "e56_prescreen.csv"
+PRESCREEN_CSV = Path(__file__).resolve().parents[1] / "outputs" / "e59_prescreen.csv"
 
 
 def select_zoo_features(prescreen: pd.DataFrame, zoo_monthly: dict[str, pd.DataFrame],
@@ -79,7 +79,7 @@ def main():
     n_pass = int(prescreen["passed"].sum())
     print(f"prescreen: {n_pass}/{len(prescreen)} passed")
     if n_pass == 0:
-        print("E56 verdict path: no zoo survivors -> experiment ends, "
+        print("E59 verdict path: no zoo survivors -> experiment ends, "
               "zoo archived as '已检验无增量' (prereg branch 3)")
         return
 
@@ -175,7 +175,7 @@ def main():
     r = backtest_topk(closes_bt, membership_bt, score_fn, bench, k=50, buffer_rank=0)
     curve = r.pop("excess_curve")
     half = len(curve) // 2
-    print("\n=== E56 LightGBM 指增（E47 + zoo 特征）===")
+    print("\n=== E59 LightGBM 指增（E47 + zoo 特征）===")
     print({k: v for k, v in r.items()})
     print(f"前半段超额 {float(curve.iloc[half]/curve.iloc[0]-1)*100:+.1f}% / "
           f"后半段超额 {float(curve.iloc[-1]/curve.iloc[half]-1)*100:+.1f}%")

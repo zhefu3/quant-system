@@ -1,6 +1,6 @@
-"""E56 step 1: train-window factor prescreen with same-universe random control.
+"""E59 step 1: train-window factor prescreen with same-universe random control.
 
-Method (frozen in the E56 prereg; changing anything here after the freeze
+Method (frozen in the E59 prereg; changing anything here after the freeze
 invalidates the run):
 
   - window: month-ends strictly BEFORE 2018-07-01 (E47's first prediction
@@ -24,7 +24,7 @@ invalidates the run):
     factor AND with each of E47's 17 base features is < 0.8, stop at 30.
 
 Run `--selftest` for a synthetic-data mechanics check (planted signal must
-pass, pure noise must fail). The real run happens only after the E56
+pass, pure noise must fail). The real run happens only after the E59
 prereg is frozen.
 """
 
@@ -49,7 +49,7 @@ POS_RATIO = 0.55
 T_MIN = 3.5  # Harvey-Liu-Zhu (2016) multiple-testing bar
 SEED = 42
 
-OUT = Path(__file__).resolve().parents[1] / "outputs" / "e56_prescreen.csv"
+OUT = Path(__file__).resolve().parents[1] / "outputs" / "e59_prescreen.csv"
 
 
 def month_end_frames(panel_close: pd.DataFrame) -> tuple[pd.DatetimeIndex, pd.DataFrame]:
