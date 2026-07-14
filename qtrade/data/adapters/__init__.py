@@ -14,6 +14,10 @@ def make_adapter(market: str):
         from .futures_ib import IbkrFuturesAdapter
 
         return IbkrFuturesAdapter()
+    if market in ("us", "us_etf"):
+        from .us_yfinance import USAdapter
+
+        return USAdapter()
     from .crypto_ccxt import CryptoAdapter
 
     return CryptoAdapter()

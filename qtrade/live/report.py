@@ -31,6 +31,14 @@ BACKTEST_REF = {
         "max_dd": 0.123,        # audit max drawdown
         "target_gross": 1.0,
     },
+    # E62 33y backtest (1993 → 2026, ETFs enter as listed). OBSERVATION book:
+    # long-flat trend, the crisis-insurance sleeve.
+    "etf_trend": {
+        "ann_return": 0.023,
+        "ann_vol": 0.040,       # implied by sharpe 0.58
+        "max_dd": 0.090,
+        "target_gross": 1.0,
+    },
     # E40b IBKR window (2019-08 → 2026-07). OBSERVATION book: the gate FAILED
     # (Sharpe -0.15); these numbers exist so drift vs the weak-window backtest
     # is visible, not as a deployment reference.

@@ -76,3 +76,25 @@ def with_vol_target(base_cls, **vt_kwargs):
             return self._impl.describe()
 
     return Wrapped
+
+
+class LongOnly(Strategy):
+    """Clip a strategy's targets at zero — the E62-selected long-flat variant.
+
+    Shorting ETFs pays borrow and, on E41's universe, DRAGS (E62: L/S net
+    sharpe 0.32 vs long-flat 0.58 over 33y with crisis years still positive:
+    the crisis alpha comes from rotating INTO bonds/gold, not from shorts)."""
+
+    def __init__(self, base: Strategy):
+        self.base = base
+
+    def target_position(self, bars: pd.DataFrame) -> pd.Series:
+        return self.base.target_position(bars).clip(lower=0.0)
+
+    def describe(self) -> str:
+        return f"long_only({self.base.describe()})"
+
+    def explain(self, bars: pd.DataFrame) -> dict:
+        inner = self.base.explain(bars)
+        return {"name": "long_only", "base": inner,
+                "target": round(float(self.target_position(bars).iloc[-1]), 4)}

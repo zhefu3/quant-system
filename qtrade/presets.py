@@ -15,6 +15,7 @@ from .markets.rules import (
     CNFUTURES,
     CRYPTO_PERP,
     FUTURES_IBKR as FUTURES_IBKR_RULES,
+    US_ETF as US_ETF_RULES,
     MarketRules,
 )
 from .strategies.base import Strategy
@@ -202,5 +203,27 @@ ASHARE_ML = BookPreset(
     risk=RiskLimits(max_weight=0.03, max_gross=1.0, dd_halt=0.35, max_data_age_bars=5),
 )
 
+def _etf_trend_strategy() -> Strategy:
+    # E62-selected variant (2026-07-14): E41's frozen trend construction with
+    # targets clipped long-only — net sharpe 0.58 over 33y, crisis years all
+    # positive (rotation into bonds/gold), maxDD -9%. OBSERVATION book.
+    from .strategies.overlays import LongOnly
+
+    return LongOnly(VolTarget(CTATrend(h1=21, h2=63, h3=252), target_vol=0.30,
+                              vol_window=63, bars_per_year=252))
+
+
+ETF_TREND = BookPreset(
+    name="etf_trend",
+    market="us_etf",
+    timeframe="1d",
+    symbols=["SPY", "QQQ", "TLT", "IEF", "GLD", "SLV", "USO", "UNG", "DBC", "FXE"],
+    rules=US_ETF_RULES,
+    rebalance_eps=0.02,
+    build=_etf_trend_strategy,
+    # dd_halt = 1.5x the E62 33y backtest maxDD (9.0%)
+    risk=RiskLimits(max_weight=0.25, max_gross=1.0, dd_halt=0.135, max_data_age_bars=5),
+)
+
 PRESETS = {p.name: p for p in (CRYPTO_CORE, CRYPTO_CORE_4H, CRYPTO_CORE_V2, CN_FUTURES,
-                               FUTURES_IBKR, LLM_AGENTS, ASHARE_ML)}
+                               FUTURES_IBKR, LLM_AGENTS, ASHARE_ML, ETF_TREND)}
