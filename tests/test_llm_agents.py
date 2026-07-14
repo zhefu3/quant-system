@@ -67,3 +67,40 @@ def test_observation_book_not_in_allocation_sleeves():
     from qtrade.live.allocate import SLEEVES
 
     assert "llm_agents" not in SLEEVES
+
+
+def test_book_outcome_from_equity_record(tmp_path):
+    eq = tmp_path / "equity.csv"
+    eq.write_text("ts,equity\n"
+                  "2026-07-01 00:05:00+00:00,10000\n"
+                  "2026-07-08 00:05:00+00:00,10200\n"
+                  "2026-07-15 00:05:00+00:00,9900\n")
+    r = llm_agents.book_outcome("2026-07-01", equity_file=eq)
+    assert r == pytest.approx(0.02)
+    assert llm_agents.book_outcome("2026-07-10", equity_file=eq) is None  # not matured
+
+
+def test_reflection_written_back_and_shown_in_memory(bars, tmp_path, monkeypatch):
+    monkeypatch.setattr(llm_agents, "DECISIONS", tmp_path)
+    old = tmp_path / "2026-07-01.json"
+    old.write_text(json.dumps({"date": "2026-07-01", "rationale": "short everything",
+                               "weights": {"BTC/USDT": -0.05}}))
+    monkeypatch.setattr(llm_agents, "book_outcome", lambda date, **k: 0.031)
+
+    class FakeMsg:
+        content = [type("B", (), {"type": "text",
+                                  "text": "Call was right. Thesis held. Lesson: X."})]
+
+    class FakeClient:
+        class messages:  # noqa: N801
+            @staticmethod
+            def create(**kw):
+                return FakeMsg()
+
+    n = llm_agents.reflect_matured(FakeClient(), bars)
+    assert n == 1
+    d = json.loads(old.read_text())
+    assert d["reflection"].startswith("Call was right")
+    assert d["outcome"]["book_ret"] == 0.031
+    mem = llm_agents.recent_memory()
+    assert "lesson: Call was right" in mem
