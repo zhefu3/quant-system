@@ -166,15 +166,27 @@ def cmd_portfolio(args):
 
 
 def cmd_paper(args):
+    import signal
     import socket
 
     from .live.paper import run_tick
 
-    # A single stalled network read must fail the tick, not hang it: launchd
-    # runs one instance per label, so a hung tick silences ALL books' hourly
-    # heartbeats (2026-07-14 incident: akshare stall blocked the loop for 9h).
+    # A single stalled tick must fail, not hang: launchd runs one instance
+    # per label, so a hung tick silences ALL books' hourly heartbeats
+    # (2026-07-14: akshare stall blocked the loop 9h; socket timeout alone
+    # proved insufficient — getaddrinfo/DNS hangs bypass it, so a SIGALRM
+    # wall-clock deadline backstops everything).
     socket.setdefaulttimeout(120)
-    run_tick(args.preset, state_dir=args.state_dir)
+
+    def _deadline(signum, frame):
+        raise TimeoutError("tick exceeded 900s wall-clock budget — aborted")
+
+    signal.signal(signal.SIGALRM, _deadline)
+    signal.alarm(900)
+    try:
+        run_tick(args.preset, state_dir=args.state_dir)
+    finally:
+        signal.alarm(0)
 
 
 def cmd_paper_report(args):
