@@ -53,7 +53,9 @@
 1. **IB Gateway 保持在线**：futures_ibkr 观察账本每小时 tick 需要 4002 端口活着；
    Gateway 掉线=跳 tick 持仓冻结（launchd.log 会记 "futures_ibkr tick failed"）。
    Gateway 每日会话到期需重登（或配自动重启）
-2. **OKX 实盘 key**（3000U 小额已同意）→ 环境变量（勿经聊天）→ dry-run → 确认开跑
+2. **OKX 实盘 key**（3000U 小额已同意）→ 环境变量（勿经聊天）→ **另加
+   QTRADE_OKX_ACCOUNT_UID=<OKX 后台的账户 UID>**（结构性守卫：UID 不匹配拒发单，
+   07-14 上线）→ dry-run（会显示 guard 行）→ 确认开跑
 3. TUSHARE_TOKEN 在 ~/.zshrc（harness shell 要先 `source ~/.zshrc`）
 
 ## 七、纪律（硬约束）
