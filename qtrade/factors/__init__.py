@@ -12,10 +12,11 @@ and ``compute(panel) -> DataFrame``, where ``panel`` maps column name to a
 wide frame (index=date, columns=codes). Discovery goes through
 :class:`~qtrade.factors.registry.FactorRegistry`.
 
-Sole sanctioned use (E56 prereg): feature candidates for the E47 LightGBM
-pipeline, gated by train-window prescreen with same-universe random controls.
-These are public, heavily-arbitraged formulas — per E45's verdict they are
-NOT tradeable as standalone signals at retail costs.
+E59 verdict (2026-07-14): tested as E47 feature expansion — no increment
+(net excess -0.45%/yr vs baseline +2.54%). Kept as prescreen infrastructure
+for future cross-sectional experiments. These are public, heavily-arbitraged
+formulas — per E45's verdict they are NOT tradeable as standalone signals
+at retail costs, and per E59 they add nothing as ML features either.
 """
 
 from .registry import FactorRegistry
