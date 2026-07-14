@@ -25,6 +25,11 @@ def run_weekly():
     print()
     run_ab("crypto_core", "crypto_core_v2")
 
+    print()
+    from .decay import run_decay
+
+    run_decay()
+
     print("\n--- 制度到期提醒 ---")
     if REVAL_HISTORY.exists():
         hist = pd.read_csv(REVAL_HISTORY, parse_dates=["run_at"])

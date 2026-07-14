@@ -109,6 +109,18 @@ def run_report(preset_name: str, state_dir: str | None = None):
 
     _print_regime_context(p)
 
+    # "is this record luck?" — refuses below 30 daily marks
+    from .stats import daily_returns, dd_pvalue, sharpe_ci
+
+    rets = daily_returns(eq_file)
+    ci, ddp = sharpe_ci(rets), dd_pvalue(rets)
+    if ci:
+        print(f"统计: sharpe {ci['sharpe']:.2f} [90%CI {ci['ci_lo']:.2f}, {ci['ci_hi']:.2f}] "
+              f"P(>0)={ci['p_positive']:.0%}; maxDD 排列 p={ddp['p_ordering']:.2f} "
+              f"({ci['n_days']}天)")
+    else:
+        print(f"统计: 记录不足 30 个交易日（现 {len(rets)}），检验拒绝出数")
+
 
 def run_ab(name_a: str, name_b: str):
     """Side-by-side paper records — the arbiter for parallel-preset promotion."""
@@ -129,6 +141,18 @@ def run_ab(name_a: str, name_b: str):
         print(pd.DataFrame(rows).set_index("preset").to_string())
         if len(rows) == 2 and min(r["days"] for r in rows) < 60:
             print("\n提示: 晋升裁决需要 ≥1 个季度的并行记录, 现在的差异只是噪声。")
+        # statistical arbiter (>=30 common daily marks; refuses below that)
+        from .stats import ab_test, daily_returns
+
+        fa, fb = (DEFAULT_ROOT / name_a / "equity.csv",
+                  DEFAULT_ROOT / name_b / "equity.csv")
+        if fa.exists() and fb.exists():
+            res = ab_test(daily_returns(fa), daily_returns(fb))
+            if res:
+                print(f"\n统计裁决: {name_b} 日均差 {res['mean_daily_diff_bps']:+.1f}bps, "
+                      f"P({name_b}更优)={res['p_b_better']:.0%} "
+                      f"[sharpe {res['sharpe_a']:.2f} vs {res['sharpe_b']:.2f}, "
+                      f"{res['n_days']}天] — 裁决线: P≥90% 且非劣回撤")
 
 
 def _print_regime_context(preset):
