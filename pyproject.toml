@@ -19,6 +19,7 @@ dependencies = [
     "akshare>=1.18.64",
     "tushare>=1.4.29",
     "lightgbm>=4.6.0",
+    "bottleneck>=1.6.0",
 ]
 
 [project.optional-dependencies]
