@@ -31,6 +31,8 @@ def _bars(preset, n=1400, seed=3):
 @pytest.mark.parametrize("name", list(PRESETS))
 def test_strategy_prefix_invariance(name):
     p = PRESETS[name]
+    if p.build is None:  # llm_agents has no Strategy; it cannot be backtested at all
+        pytest.skip(f"{name} has no Strategy (targets_fn book)")
     bars = _bars(p)
     w_full = p.strategy().target_position(bars)
     for t in TRUNCS:

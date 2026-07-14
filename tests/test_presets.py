@@ -10,6 +10,8 @@ from qtrade.presets import PRESETS
 @pytest.mark.parametrize("name", list(PRESETS))
 def test_preset_builds_and_emits_valid_weights(name):
     p = PRESETS[name]
+    if p.build is None:  # llm_agents: targets come from an agent chain, not a Strategy
+        pytest.skip(f"{name} has no Strategy (targets_fn book)")
     rng = np.random.RandomState(0)
     n = 1500
     idx = pd.date_range("2024-01-01", periods=n, freq=p.timeframe, tz="UTC")

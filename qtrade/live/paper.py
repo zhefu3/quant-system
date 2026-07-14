@@ -30,7 +30,7 @@ DEFAULT_ROOT = Path(__file__).resolve().parents[2] / "outputs" / "paper"
 
 class PaperTrader:
     def __init__(self, preset: BookPreset, state_dir: Path | str | None = None,
-                 init_cash: float = 10_000.0):
+                 init_cash: float = 10_000.0, targets_fn=None):
         self.preset = preset
         self.dir = Path(state_dir) if state_dir else DEFAULT_ROOT / preset.name
         self.dir.mkdir(parents=True, exist_ok=True)
@@ -39,6 +39,10 @@ class PaperTrader:
         self.equity_file = self.dir / "equity.csv"
         self.init_cash = init_cash
         self.adapter = make_adapter(preset.market)
+        # Books whose targets don't come from a Strategy (e.g. the E60 LLM
+        # committee) inject targets_fn(bars_by_symbol) -> (targets, closes).
+        # Everything downstream (risk gate, fills, records) stays identical.
+        self.targets_fn = targets_fn
 
     # -- state ---------------------------------------------------------------
     def _load_state(self) -> dict:
@@ -83,7 +87,10 @@ class PaperTrader:
         if stale:
             # fail-safe: never trade on stale data — hold everything, log why
             return {"ts": str(now), "skipped_stale": stale, "fills": []}
-        targets, closes = compute_targets(p, bars_by_symbol=bars)
+        if self.targets_fn is not None:
+            targets, closes = self.targets_fn(bars)
+        else:
+            targets, closes = compute_targets(p, bars_by_symbol=bars)
 
         state = self._load_state()
         cash, positions = state["cash"], state["positions"]
@@ -151,7 +158,12 @@ class PaperTrader:
 def run_tick(preset_name: str, state_dir: str | None = None) -> dict:
     from ..presets import PRESETS
 
-    trader = PaperTrader(PRESETS[preset_name], state_dir=state_dir)
+    targets_fn = None
+    if preset_name == "llm_agents":
+        from .llm_agents import make_targets_fn
+
+        targets_fn = make_targets_fn(PRESETS[preset_name])
+    trader = PaperTrader(PRESETS[preset_name], state_dir=state_dir, targets_fn=targets_fn)
     summary = trader.tick()
     ts = datetime.now(timezone.utc).strftime("%H:%M")
     if "skipped_stale" in summary:

@@ -26,13 +26,18 @@ class BookPreset:
     symbols: list[str]
     rules: MarketRules
     rebalance_eps: float
-    build: object = field(repr=False)  # () -> Strategy
+    # () -> Strategy; None for books whose targets don't come from a Strategy
+    # (e.g. llm_agents, whose weights come from an agent chain via targets_fn)
+    build: object | None = field(default=None, repr=False)
     # Pre-trade risk gate budget. dd_halt is sized at ~1.5x the book's
     # validated backtest max drawdown: normal operation never touches it,
     # beyond-backtest behavior flattens the book pending human review.
     risk: RiskLimits = field(default_factory=RiskLimits)
 
     def strategy(self) -> Strategy:
+        if self.build is None:
+            raise TypeError(f"preset {self.name} has no Strategy — targets come "
+                            "from an injected targets_fn (see live/paper.py)")
         return self.build()
 
 
@@ -158,5 +163,23 @@ FUTURES_IBKR = BookPreset(
     risk=RiskLimits(max_weight=0.25, max_gross=2.0, dd_halt=0.37, max_data_age_bars=5),
 )
 
+# E60 OBSERVATION book (prereg 2026-07-14): an LLM committee (bull/bear debate
+# -> trader decision, TradingAgents-style) trades crypto_core's exact universe
+# and cost model — the honest A/B: LLM judgment vs a frozen mechanical system
+# on identical assets. LLM systems cannot be backtested (knowledge-cutoff
+# contamination = look-ahead), so this book is forward-record-only: not in the
+# portfolio layer, never capital-allocation evidence. Tighter risk than
+# crypto_core because there is NO validated backtest to size dd_halt from.
+LLM_AGENTS = BookPreset(
+    name="llm_agents",
+    market="crypto",
+    timeframe="1d",
+    symbols=list(_UNIVERSE),
+    rules=CRYPTO_PERP,
+    rebalance_eps=0.02,
+    build=None,  # targets come from qtrade/live/llm_agents.py
+    risk=RiskLimits(max_weight=0.10, max_gross=1.0, dd_halt=0.15, max_data_age_bars=2),
+)
+
 PRESETS = {p.name: p for p in (CRYPTO_CORE, CRYPTO_CORE_4H, CRYPTO_CORE_V2, CN_FUTURES,
-                               FUTURES_IBKR)}
+                               FUTURES_IBKR, LLM_AGENTS)}

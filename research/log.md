@@ -692,3 +692,23 @@ E25 均值回归参数集成、E26 组合级vol target、E27 基差carry腿、E2
   低佣通道 / 分钟线(¥2000)→E49
 - 资产保留: qtrade/factors 461 因子+registry+prescreen 工具留库(将来任何截面
   实验的预筛基建); outputs/e59_prescreen.csv 全表入档
+
+### E60 预注册: llm_agents 观察账本——LLM 委员会 vs 机械系统（2026-07-14, 冻结于首 tick 前）
+- 动机: TradingAgents(TauricResearch) 架构评估后的本地极简重构。LLM 系统**结构性无法
+  诚实回测**(训练数据含历史=终极前视), 唯一诚实评估=前瞻纸面记录 → 观察账本机制
+- **实验设计核心: 与 crypto_core 同宇宙(10币)、同成本(CRYPTO_PERP)、同 RiskGate 路径
+  的 A/B** —— 六个月后可定量回答"LLM 判断力能否打过冻结参数的机械趋势系统"
+- 架构(qtrade/live/llm_agents.py): Haiku+web_search 新闻简报 → Sonnet 多空对抗辩论
+  (强制双向, 结构性抑制单边叙事) → Sonnet 结构化 JSON 决策(含近5日决策记忆) →
+  parse_decision 硬夹断 → 同一 RiskGate → 内部模拟成交
+- 模型钉死(改动须预注册修正): deep=claude-sonnet-5, quick=claude-haiku-4-5;
+  Sonnet 5 无温度参数, 决策固有不可复现 → 以**全文档案**代替(decisions/日期.md:
+  新闻/多空全文/决策理由/token 用量)
+- 节奏与成本: 每 UTC 日一次委员会决策(缓存), 小时 tick 仅按缓存权重 mark-to-market
+  零 API 成本; 预估 <$0.5/天; 若月成本>$30 → 降频或停(记录后执行, 不算移动球门)
+- 风控(比 crypto_core 紧, 因无回测可定标): |w|≤0.10/币, gross≤1.0, dd_halt 0.15,
+  数据新鲜度 2 bar
+- **定位: observation-only**。不进组合层(测试锁定)、不作资金分配证据。评估: 2027-01-14
+  (六个月)对比 crypto_core paper 与 BTC buy-hold 的 Sharpe/maxDD; 任何升级须新预注册
+- 判决预告(诚实预期): 文献与 E59 教训都指向"大概率打不过"; 本实验价值在于它测试的是
+  我们无法以其他方式接触的信息类别(非结构化新闻/叙事), 且成本封顶、真钱为零
