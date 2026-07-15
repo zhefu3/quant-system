@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>quant-system — a solo quant research program run like a lab</title>
 <meta name="description" content="Pre-registered experiments, published failures, nine paper-trading books across five asset classes.">
+<meta property="og:title" content="quant-system — a solo quant research program run like a lab">
+<meta property="og:description" content="65 pre-registered experiments, most of them documented failures — by design. Nine survivors trade in parallel on paper across five asset classes.">
+<meta property="og:url" content="https://zhefu3.github.io/quant-system/">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect x='1' y='1' width='13' height='13' rx='3' fill='%230ca30c'/%3E%3Crect x='18' y='1' width='13' height='13' rx='3' fill='%23d03b3b'/%3E%3Crect x='1' y='18' width='13' height='13' rx='3' fill='%23d03b3b'/%3E%3Crect x='18' y='18' width='13' height='13' rx='3' fill='%23fab219'/%3E%3C/svg%3E">
 <style>
 :root {
   color-scheme: light;
@@ -15,6 +21,7 @@
   --muted:       #898781;
   --hairline:    #e1e0d9;
   --border:      rgba(11,11,11,0.10);
+  --grid:        rgba(11,11,11,0.045);
   --good:        #0ca30c;
   --good-text:   #006300;
   --warning:     #fab219;
@@ -24,177 +31,313 @@
   --critical:    #d03b3b;
   --critical-text:#b02525;
   --accent:      #2a78d6;
+  --accent-soft: rgba(42,120,214,0.10);
+  --shadow:      0 1px 2px rgba(11,11,11,0.04), 0 8px 28px rgba(11,11,11,0.05);
+  --shadow-lift: 0 2px 4px rgba(11,11,11,0.06), 0 14px 40px rgba(11,11,11,0.10);
+  --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
 }
 @media (prefers-color-scheme: dark) {
   :root:where(:not([data-theme="light"])) {
     color-scheme: dark;
     --page:        #0d0d0d;
-    --surface:     #1a1a19;
+    --surface:     #161615;
     --ink:         #ffffff;
     --ink-2:       #c3c2b7;
-    --muted:       #898781;
+    --muted:       #8f8d86;
     --hairline:    #2c2c2a;
     --border:      rgba(255,255,255,0.10);
-    --good-text:   #0ca30c;
+    --grid:        rgba(255,255,255,0.05);
+    --good-text:   #2fbe2f;
     --warning-text:#fab219;
     --serious-text:#ec835a;
     --critical-text:#e66767;
     --accent:      #3987e5;
+    --accent-soft: rgba(57,135,229,0.14);
+    --shadow:      0 1px 2px rgba(0,0,0,0.3), 0 8px 28px rgba(0,0,0,0.35);
+    --shadow-lift: 0 2px 4px rgba(0,0,0,0.4), 0 14px 40px rgba(0,0,0,0.5);
   }
 }
 :root[data-theme="dark"] {
   color-scheme: dark;
   --page:        #0d0d0d;
-  --surface:     #1a1a19;
+  --surface:     #161615;
   --ink:         #ffffff;
   --ink-2:       #c3c2b7;
-  --muted:       #898781;
+  --muted:       #8f8d86;
   --hairline:    #2c2c2a;
   --border:      rgba(255,255,255,0.10);
-  --good-text:   #0ca30c;
+  --grid:        rgba(255,255,255,0.05);
+  --good-text:   #2fbe2f;
   --warning-text:#fab219;
   --serious-text:#ec835a;
   --critical-text:#e66767;
   --accent:      #3987e5;
+  --accent-soft: rgba(57,135,229,0.14);
+  --shadow:      0 1px 2px rgba(0,0,0,0.3), 0 8px 28px rgba(0,0,0,0.35);
+  --shadow-lift: 0 2px 4px rgba(0,0,0,0.4), 0 14px 40px rgba(0,0,0,0.5);
 }
 * { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 html, body { margin: 0; padding: 0; }
 body {
   background: var(--page);
   color: var(--ink);
   font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
-.wrap { max-width: 860px; margin: 0 auto; padding: 0 24px 96px; }
+.wrap { max-width: 920px; margin: 0 auto; padding: 0 28px 100px; }
 a { color: var(--accent); text-decoration: none; }
 a:hover { text-decoration: underline; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 
+/* ---------- header ---------- */
 header.top {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 20px 0; border-bottom: 1px solid var(--hairline); margin-bottom: 56px;
+  position: sticky; top: 0; z-index: 5;
+  background: color-mix(in srgb, var(--page) 86%, transparent);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--hairline);
 }
-.brand { font-weight: 650; letter-spacing: -0.01em; }
-.top-links { display: flex; gap: 18px; align-items: center; font-size: 14.5px; }
+.top-inner {
+  max-width: 920px; margin: 0 auto; padding: 14px 28px;
+  display: flex; justify-content: space-between; align-items: center; gap: 12px;
+}
+.brand { font-family: var(--mono); font-size: 15px; font-weight: 700; letter-spacing: -0.01em; color: var(--ink); }
+.brand .dollar { color: var(--accent); }
+.top-links { display: flex; gap: 20px; align-items: center; font-size: 14px; flex-wrap: wrap; }
+.top-links a.sec { color: var(--ink-2); }
+.top-links a.sec:hover { color: var(--ink); text-decoration: none; }
 #theme-btn {
-  background: none; border: 1px solid var(--border); border-radius: 8px;
-  color: var(--ink-2); cursor: pointer; font: inherit; font-size: 13px;
-  padding: 4px 10px;
+  background: var(--surface); border: 1px solid var(--border); border-radius: 999px;
+  color: var(--ink-2); cursor: pointer; font: inherit; font-size: 12.5px;
+  padding: 5px 12px; line-height: 1;
 }
+#theme-btn:hover { color: var(--ink); border-color: var(--muted); }
 
+/* ---------- hero ---------- */
+.hero {
+  position: relative; padding: 92px 0 72px;
+}
+.hero::before {
+  content: ""; position: absolute; inset: 0 -100vw 0 -100vw; z-index: -1;
+  background:
+    linear-gradient(to bottom, transparent 0%, var(--page) 96%),
+    repeating-linear-gradient(to right, var(--grid) 0 1px, transparent 1px 44px),
+    repeating-linear-gradient(to bottom, var(--grid) 0 1px, transparent 1px 44px);
+}
+.hero .overline {
+  font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin: 0 0 20px;
+}
 .hero h1 {
-  font-size: clamp(30px, 5.4vw, 44px); line-height: 1.14;
-  letter-spacing: -0.022em; margin: 0 0 18px; font-weight: 700;
+  font-size: clamp(34px, 6vw, 56px); line-height: 1.06;
+  letter-spacing: -0.028em; margin: 0 0 24px; font-weight: 750;
 }
-.hero p.lede { font-size: 18.5px; color: var(--ink-2); max-width: 640px; margin: 0 0 14px; }
-.hero .disclaimer { font-size: 13.5px; color: var(--muted); margin: 0 0 34px; }
-.cta { display: inline-block; border: 1px solid var(--border); border-radius: 10px;
-  padding: 9px 16px; font-weight: 600; font-size: 15px; background: var(--surface); }
-.cta:hover { text-decoration: none; border-color: var(--accent); }
+.hero h1 em { font-style: normal; color: var(--muted); }
+.hero p.lede { font-size: 19px; line-height: 1.6; color: var(--ink-2); max-width: 660px; margin: 0 0 12px; }
+.hero .disclaimer {
+  display: inline-flex; align-items: center; gap: 7px;
+  font-size: 13px; color: var(--muted); margin: 6px 0 36px;
+  border: 1px dashed var(--hairline); border-radius: 999px; padding: 5px 14px;
+}
+.cta-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.cta {
+  display: inline-block; border-radius: 10px; padding: 11px 20px;
+  font-weight: 650; font-size: 15px;
+  background: var(--ink); color: var(--page); border: 1px solid var(--ink);
+}
+.cta:hover { text-decoration: none; opacity: 0.85; }
+.cta.ghost { background: transparent; color: var(--ink); border: 1px solid var(--border); }
+.cta.ghost:hover { border-color: var(--ink); opacity: 1; }
 
-.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  gap: 12px; margin: 44px 0 0; }
-.tile { background: var(--surface); border: 1px solid var(--border);
-  border-radius: 12px; padding: 16px 18px; }
-.tile .n { font-size: 27px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
-.tile .l { font-size: 13px; color: var(--ink-2); margin-top: 4px; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px; margin: 52px 0 0; }
+.tile {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 18px 18px 15px; box-shadow: var(--shadow);
+}
+.tile .n { font-family: var(--mono); font-size: 30px; font-weight: 700; letter-spacing: -0.03em; line-height: 1.05; }
+.tile .l { font-size: 12.5px; color: var(--ink-2); margin-top: 6px; line-height: 1.4; }
 
-section { margin-top: 72px; }
-h2 { font-size: 24px; letter-spacing: -0.015em; margin: 0 0 8px; }
-.kicker { font-size: 12.5px; font-weight: 650; letter-spacing: 0.08em;
-  text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
-.sub { color: var(--ink-2); max-width: 640px; margin: 0 0 26px; }
+/* ---------- sections ---------- */
+section { margin-top: 96px; scroll-margin-top: 80px; }
+.kicker {
+  font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+  display: flex; align-items: center; gap: 10px;
+}
+.kicker::after { content: ""; height: 1px; flex: 0 0 44px; background: var(--accent); opacity: 0.45; }
+h2 { font-size: clamp(24px, 3.4vw, 30px); letter-spacing: -0.02em; margin: 0 0 10px; font-weight: 720; }
+.sub { color: var(--ink-2); max-width: 660px; margin: 0 0 30px; font-size: 16px; }
 
-/* ---- verdict strip ---- */
-.strip-card { background: var(--surface); border: 1px solid var(--border);
-  border-radius: 14px; padding: 22px 22px 18px; }
-.strip { display: flex; flex-wrap: wrap; gap: 8px; }
+/* ---------- verdict strip ---------- */
+.strip-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 18px; padding: 26px 26px 20px; box-shadow: var(--shadow);
+}
+.strip { display: flex; flex-wrap: wrap; gap: 9px; }
 .v {
-  width: 42px; height: 42px; border-radius: 8px; position: relative;
+  width: 52px; height: 52px; border-radius: 11px; position: relative;
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  cursor: default; border: 1px solid var(--border);
-  font-size: 10.5px; font-weight: 650; color: #fff; line-height: 1.15;
+  gap: 1px; cursor: default; border: 1px solid rgba(0,0,0,0.14);
+  font-family: var(--mono); font-size: 10.5px; font-weight: 700; line-height: 1.1;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
-.v .ic { font-size: 13px; }
-.v.pass     { background: var(--good); color: #062e06; }
-.v.marginal { background: var(--warning); color: #4a3200; }
+.v .ic { font-size: 14px; font-weight: 400; }
+.v.pass       { background: var(--good); color: #062e06; }
+.v.marginal   { background: var(--warning); color: #4a3200; }
 .v.gateclosed { background: var(--serious); color: #47190a; }
-.v.fail     { background: var(--critical); }
-.v:hover { outline: 2px solid var(--accent); outline-offset: 1px; }
-.legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px;
-  font-size: 13.5px; color: var(--ink-2); }
-.legend .sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px;
-  margin-right: 6px; vertical-align: -1px; }
-#tip {
-  position: fixed; z-index: 10; max-width: 300px; pointer-events: none;
-  background: var(--surface); color: var(--ink); border: 1px solid var(--border);
-  border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.45;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.18); display: none;
+.v.fail       { background: var(--critical); color: #fff; }
+.v:hover, .v:focus-visible { transform: translateY(-3px); box-shadow: var(--shadow-lift); z-index: 2; }
+.legend { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+.legend .chip {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 12.5px; color: var(--ink-2);
+  border: 1px solid var(--hairline); border-radius: 999px; padding: 5px 13px;
 }
-#tip b { display: block; margin-bottom: 2px; }
+.legend .sw { display: inline-block; width: 10px; height: 10px; border-radius: 3px; }
+.legend .cnt { font-family: var(--mono); font-weight: 700; color: var(--ink); }
+.strip-note { margin-top: 16px; font-size: 13px; color: var(--muted); }
+#tip {
+  position: fixed; z-index: 10; max-width: 320px; pointer-events: none;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 14px; font-size: 13px; line-height: 1.5;
+  box-shadow: var(--shadow-lift); display: none;
+}
+#tip b { display: block; margin-bottom: 3px; font-family: var(--mono); font-size: 12px; }
 
-/* ---- principles ---- */
-.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
-.card { background: var(--surface); border: 1px solid var(--border);
-  border-radius: 14px; padding: 20px 22px; }
-.card h3 { margin: 0 0 8px; font-size: 16.5px; }
-.card p { margin: 0; font-size: 14.5px; color: var(--ink-2); }
+/* ---------- principles ---------- */
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 16px; padding: 22px 24px; box-shadow: var(--shadow);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
+.card .num { font-family: var(--mono); font-size: 12px; color: var(--accent); font-weight: 700; letter-spacing: 0.1em; }
+.card h3 { margin: 6px 0 8px; font-size: 17px; letter-spacing: -0.01em; }
+.card p { margin: 0; font-size: 14.5px; color: var(--ink-2); line-height: 1.6; }
 
-/* ---- case study ---- */
-.case { background: var(--surface); border: 1px solid var(--border);
-  border-radius: 14px; padding: 28px 30px; }
-.case .step { display: flex; gap: 16px; margin-bottom: 18px; }
-.case .step:last-child { margin-bottom: 0; }
-.case .no { flex: none; width: 26px; height: 26px; border-radius: 50%;
-  background: var(--page); border: 1px solid var(--border);
-  font-size: 13px; font-weight: 700; display: flex; align-items: center;
-  justify-content: center; color: var(--ink-2); margin-top: 2px; }
-.case p { margin: 0; font-size: 15px; color: var(--ink-2); }
+/* ---------- machinery ---------- */
+.mach { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px; }
+.mach .m {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  padding: 18px 19px; box-shadow: var(--shadow);
+}
+.mach .m h4 { margin: 0 0 6px; font-family: var(--mono); font-size: 13px; letter-spacing: 0.02em; }
+.mach .m p { margin: 0; font-size: 13.5px; color: var(--ink-2); line-height: 1.55; }
+
+/* ---------- case study ---------- */
+.case {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 18px; padding: 30px 32px; box-shadow: var(--shadow);
+  position: relative; overflow: hidden;
+}
+.case::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  background: linear-gradient(to bottom, var(--good), var(--serious)); }
+.case .step { display: flex; gap: 18px; margin-bottom: 20px; }
+.case .step:last-of-type { margin-bottom: 0; }
+.case .no {
+  flex: none; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent-soft); color: var(--accent);
+  font-family: var(--mono); font-size: 13px; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; margin-top: 2px;
+}
+.case p { margin: 0; font-size: 15px; color: var(--ink-2); line-height: 1.65; }
 .case p b { color: var(--ink); }
-.case .verdict { border-top: 1px solid var(--hairline); margin-top: 22px;
-  padding-top: 18px; font-size: 15px; }
+.case .verdict {
+  border-top: 1px solid var(--hairline); margin-top: 26px; padding-top: 20px;
+  font-size: 15px; line-height: 1.65; color: var(--ink-2);
+}
+.case .verdict b { color: var(--ink); }
 
-/* ---- books table ---- */
+/* ---------- books ---------- */
 .tablewrap { overflow-x: auto; border: 1px solid var(--border);
-  border-radius: 14px; background: var(--surface); }
-table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 14px; }
-th, td { text-align: left; padding: 11px 16px; border-bottom: 1px solid var(--hairline); }
+  border-radius: 18px; background: var(--surface); box-shadow: var(--shadow); }
+table { border-collapse: collapse; width: 100%; min-width: 680px; font-size: 14px; }
+th, td { text-align: left; padding: 12px 18px; border-bottom: 1px solid var(--hairline); vertical-align: top; }
 tr:last-child td { border-bottom: none; }
-th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+tbody tr:hover td { background: var(--accent-soft); }
+th { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: 0.09em;
   color: var(--muted); font-weight: 650; }
-td.b { font-weight: 600; white-space: nowrap; }
-td .ev { color: var(--ink-2); }
-.badge { display: inline-block; font-size: 11.5px; font-weight: 650;
-  border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
-.badge.val { color: var(--good-text); border: 1px solid var(--good-text); }
-.badge.obs { color: var(--ink-2); border: 1px solid var(--border); }
-.badge.ab  { color: var(--accent); border: 1px solid var(--accent); }
+td.b { font-family: var(--mono); font-weight: 600; white-space: nowrap; font-size: 13px; }
+td .ev { color: var(--ink-2); font-size: 13.5px; }
+.badge { display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 700;
+  letter-spacing: 0.04em; border-radius: 999px; padding: 3px 10px; white-space: nowrap; }
+.badge.val { color: var(--good-text); border: 1px solid currentColor; }
+.badge.obs { color: var(--muted); border: 1px solid var(--border); }
+.badge.ab  { color: var(--accent); border: 1px solid currentColor; }
+.control-note {
+  margin-top: 14px; font-size: 14px; color: var(--ink-2);
+  background: var(--accent-soft); border-radius: 12px; padding: 13px 18px;
+}
+.control-note b { color: var(--ink); }
 
-/* ---- hardening ---- */
-.hard li { margin-bottom: 12px; color: var(--ink-2); font-size: 15px; }
-.hard li b { color: var(--ink); }
+/* ---------- graveyard ---------- */
+.grave { display: flex; flex-wrap: wrap; gap: 8px; }
+.grave .g {
+  font-size: 13px; color: var(--muted);
+  border: 1px solid var(--hairline); border-radius: 999px; padding: 6px 14px;
+  text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--critical) 55%, transparent);
+  text-decoration-thickness: 1.5px;
+}
+.grave-note { margin-top: 16px; font-size: 13.5px; color: var(--muted); }
 
-footer { margin-top: 88px; border-top: 1px solid var(--hairline);
-  padding-top: 22px; font-size: 13.5px; color: var(--muted); }
+/* ---------- hardening ---------- */
+.hard { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+.hard li {
+  background: var(--surface); border: 1px solid var(--border); border-radius: 14px;
+  padding: 17px 20px; color: var(--ink-2); font-size: 14.5px; line-height: 1.6;
+  box-shadow: var(--shadow);
+}
+.hard li b { color: var(--ink); display: block; margin-bottom: 3px; font-size: 15px; }
+
+/* ---------- reviewer guide ---------- */
+.guide {
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 4px solid var(--accent);
+  border-radius: 16px; padding: 26px 28px; box-shadow: var(--shadow);
+}
+.guide ol { margin: 12px 0 0; padding-left: 22px; }
+.guide li { margin-bottom: 12px; color: var(--ink-2); font-size: 15px; line-height: 1.6; }
+.guide li:last-child { margin-bottom: 0; }
+.guide li b { color: var(--ink); }
+.guide code { font-family: var(--mono); font-size: 13px; background: var(--accent-soft);
+  border-radius: 6px; padding: 2px 7px; }
+
+footer { margin-top: 100px; border-top: 1px solid var(--hairline);
+  padding-top: 26px; font-size: 13.5px; color: var(--muted); line-height: 1.8; }
+footer .mono { font-family: var(--mono); font-size: 12.5px; }
 </style>
 </head>
 <body>
-<div class="wrap">
 
 <header class="top">
-  <div class="brand">quant-system</div>
-  <nav class="top-links">
-    <a href="https://github.com/zhefu3/quant-system">GitHub</a>
-    <a href="https://github.com/zhefu3/quant-system/blob/main/research/log.md">Lab log</a>
-    <button id="theme-btn" aria-label="Toggle color theme">◐ theme</button>
-  </nav>
+  <div class="top-inner">
+    <div class="brand"><span class="dollar">$</span> quant-system</div>
+    <nav class="top-links">
+      <a class="sec" href="#record">Record</a>
+      <a class="sec" href="#method">Method</a>
+      <a class="sec" href="#case">Case study</a>
+      <a class="sec" href="#books">Books</a>
+      <a href="https://github.com/zhefu3/quant-system">GitHub ↗</a>
+      <button id="theme-btn" aria-label="Toggle color theme">◐ theme</button>
+    </nav>
+  </div>
 </header>
 
+<div class="wrap">
+
 <section class="hero" style="margin-top:0">
-  <h1>A solo quant research program,<br>run like a lab.</h1>
+  <p class="overline">research/log.md · E1 – E65</p>
+  <h1>A solo quant research program,<br>run like a <em>lab</em>.</h1>
   <p class="lede">Every strategy idea is pre-registered with frozen success criteria
   <em>before</em> the backtest runs. Every failure is published. Nine survivors trade
   in parallel on paper across five asset classes.</p>
-  <p class="disclaimer">⚠︎ Research project — not investment advice; no real money deployed.</p>
-  <a class="cta" href="https://github.com/zhefu3/quant-system">View the code & lab log →</a>
+  <p class="disclaimer">⚠︎ Research project — not investment advice · no real money deployed</p>
+  <div class="cta-row">
+    <a class="cta" href="https://github.com/zhefu3/quant-system">View the code →</a>
+    <a class="cta ghost" href="https://github.com/zhefu3/quant-system/blob/main/research/log.md">Read the lab log</a>
+  </div>
   <div class="stats">
     <div class="tile"><div class="n">65</div><div class="l">pre-registered experiments</div></div>
     <div class="tile"><div class="n">16</div><div class="l">formal verdicts recorded</div></div>
@@ -204,42 +347,60 @@ footer { margin-top: 88px; border-top: 1px solid var(--hairline);
   </div>
 </section>
 
-<section>
+<section id="record">
   <div class="kicker">The record</div>
   <h2>Verdicts, as they landed</h2>
   <p class="sub">The 16 formal verdicts in the lab log, in the order they were decided.
-  Most experiments die — that is the point of the gate. Hover any square.</p>
+  Most experiments die — that is the point of the gate. Hover or tab onto any square.</p>
   <div class="strip-card">
     <div class="strip" id="strip" role="list"></div>
     <div class="legend" id="legend"></div>
+    <div class="strip-note">Every square links to a pre-registration written before its
+    result existed — hypothesis, frozen spec, cost model, and pass/fail gate, with the
+    verdict branches decided in advance.</div>
   </div>
 </section>
 
-<section>
+<section id="method">
   <div class="kicker">The method</div>
   <h2>Process, enforced by code</h2>
   <p class="sub">Retail strategies mostly die of self-deception — lookahead, cost amnesia,
-  moving goalposts. The defense is procedural:</p>
+  moving goalposts. The defense is procedural, not aspirational:</p>
   <div class="grid2">
-    <div class="card"><h3>1 · Pre-registration</h3>
+    <div class="card"><div class="num">01</div><h3>Pre-registration</h3>
       <p>Hypothesis, exact spec (one variant — no parameter fishing), cost model, and
       pass/fail gate are frozen into the log before any result exists. The verdict
       branches are written down in advance.</p></div>
-    <div class="card"><h3>2 · Honest engine invariants</h3>
+    <div class="card"><div class="num">02</div><h3>Honest engine invariants</h3>
       <p>The backtest engine refuses zero costs, executes at t+1 (lookahead structurally
       impossible, regression-tested), and auto-splits out-of-sample.</p></div>
-    <div class="card"><h3>3 · Negative results are first-class</h3>
+    <div class="card"><div class="num">03</div><h3>Negative results are first-class</h3>
       <p>Closures are published with explicit reopen conditions, so dead ideas stay dead
       until the world actually changes. Two data-corruption incidents are documented as
       full postmortems.</p></div>
-    <div class="card"><h3>4 · Forward records over backtests</h3>
+    <div class="card"><div class="num">04</div><h3>Forward records over backtests</h3>
       <p>Passing a gate earns a <em>paper</em> book only. Promotion requires the forward
-      record itself to clear bootstrap/permutation adjudication — a backtest is never
-      the final word.</p></div>
+      record itself to clear statistical adjudication — a backtest is never the final
+      word.</p></div>
+  </div>
+
+  <div style="margin-top:36px">
+    <p class="sub" style="margin-bottom:16px">Forward records are short and noisy, so the
+    inference layer is explicit and frozen ahead of time:</p>
+    <div class="mach">
+      <div class="m"><h4>bootstrap CI</h4><p>Confidence intervals on live Sharpe — a
+        6-day record is never quoted as if it were evidence.</p></div>
+      <div class="m"><h4>permutation test</h4><p>"Is this drawdown luck?" — answered by
+        resampling, not by feel.</p></div>
+      <div class="m"><h4>A/B adjudicator</h4><p>Strategy variants run a full quarter in
+        parallel; promotion is decided by a pre-committed rule.</p></div>
+      <div class="m"><h4>decay state machine</h4><p>Frozen alpha-decay thresholds; two
+        consecutive warning weeks force a formal review.</p></div>
+    </div>
   </div>
 </section>
 
-<section>
+<section id="case">
   <div class="kicker">Case study · E65</div>
   <h2>Passing the gate is necessary, not sufficient</h2>
   <p class="sub">The most recent experiment shows the discipline working end-to-end.</p>
@@ -264,7 +425,7 @@ footer { margin-top: 88px; border-top: 1px solid var(--hairline);
   </div>
 </section>
 
-<section>
+<section id="books">
   <div class="kicker">The survivors</div>
   <h2>Nine paper books</h2>
   <p class="sub">Hourly ticks via launchd, one shared risk/accounting layer. Observation
@@ -275,7 +436,7 @@ footer { margin-top: 88px; border-top: 1px solid var(--hairline);
       <tbody>
         <tr><td class="b">crypto_core</td><td>Crypto perp ×10</td><td>CTA trend + regime-gated mean-reversion</td>
             <td><span class="badge val">validated</span></td>
-            <td class="ev">7y pure-OOS: Sharpe 1.11, maxDD 10.5%; +3.4% in the 2022 crash (benchmark −76%)</td></tr>
+            <td class="ev">7y pure-OOS audit: Sharpe 1.11, maxDD 10.5%; +3.4% in the 2022 crash (benchmark −76%)</td></tr>
         <tr><td class="b">crypto_core_v2</td><td>Crypto perp</td><td>Variant of core</td>
             <td><span class="badge ab">parallel A/B</span></td>
             <td class="ev">90-day adjudication vs v1 by a frozen statistical decision rule</td></tr>
@@ -303,6 +464,35 @@ footer { margin-top: 88px; border-top: 1px solid var(--hairline);
       </tbody>
     </table>
   </div>
+  <div class="control-note"><b>Plus a control:</b> the human's own discretionary account
+  runs as a permanent eighth curve against the machines — same reporting cadence, same
+  honesty rules.</div>
+</section>
+
+<section>
+  <div class="kicker">The graveyard</div>
+  <h2>Closed directions stay closed</h2>
+  <p class="sub">Ideas that failed their gates, in the log with full verdicts. Each has
+  an explicit reopen condition — none may be quietly retried.</p>
+  <div class="grave">
+    <span class="g">cross-sectional equity momentum ×3 universes</span>
+    <span class="g">A-share price factors</span>
+    <span class="g">A-share linear fundamental factors</span>
+    <span class="g">crypto basis carry</span>
+    <span class="g">parameter ensembles</span>
+    <span class="g">portfolio-level vol targeting</span>
+    <span class="g">universe expansion to 16 coins</span>
+    <span class="g">low-beta tilt</span>
+    <span class="g">turnover buffering</span>
+    <span class="g">commodity carry</span>
+    <span class="g">commodity cross-sectional momentum</span>
+    <span class="g">defensive ETF book on real prices</span>
+    <span class="g">461-factor public library</span>
+    <span class="g">breadth expansion 300→800 names</span>
+    <span class="g">convertible downward-revision game</span>
+  </div>
+  <p class="grave-note">The 461-factor library survives as screening infrastructure —
+  the verdict was "no incremental alpha," not "useless code."</p>
 </section>
 
 <section>
@@ -311,26 +501,44 @@ footer { margin-top: 88px; border-top: 1px solid var(--hairline);
   <p class="sub">Free data sources fail in creative ways. Incidents become permanent,
   mechanical defenses — never just a manual fix:</p>
   <ul class="hard">
-    <li><b>Write-time circuit breaker.</b> After an adjusted-price convention violation
+    <li><b>Write-time circuit breaker</b> After an adjusted-price convention violation
       created fake −99% cliffs: any refresh implying >50% single-day moves across >10%
       of names is rejected before it touches disk. Contaminated rows were quarantined,
       never deleted.</li>
-    <li><b>No fill at a non-finite price.</b> After NaN OHLC rows cascaded into a book:
+    <li><b>No fill at a non-finite price</b> After NaN OHLC rows cascaded into a book:
       adapters drop close-less bars, and the paper trader freezes positions on any
       non-finite price — a fail-safe shared by all nine books, locked in by a sentinel test.</li>
-    <li><b>Hard wall-clock timeouts on every external call</b>, after a silent API hang
-      froze a book for hours.</li>
-    <li><b>Five-layer execution safety</b> on the live broker path: account pinning →
-      per-order caps → exchange reconciliation flags → weight/gross clamps → a drawdown
-      circuit breaker requiring human review to clear. Real-money switches belong to the
-      human; none have been flipped.</li>
+    <li><b>Hard wall-clock timeouts on every external call</b> After a silent API hang
+      froze a book for hours — no network call runs unbounded.</li>
+    <li><b>Five-layer execution safety</b> Account pinning → per-order caps →
+      exchange reconciliation flags → weight/gross clamps → a drawdown circuit breaker
+      requiring human review to clear. Real-money switches belong to the human; none
+      have been flipped.</li>
   </ul>
 </section>
 
+<section>
+  <div class="kicker">For reviewers</div>
+  <h2>Evaluating this in ten minutes?</h2>
+  <div class="guide">
+    <ol>
+      <li><b>Open the lab log</b> — <code>research/log.md</code>. Pick any pre-registration
+        and read forward to its verdict. Note what was frozen before the result existed,
+        and how failures are written up.</li>
+      <li><b>Read the inference layer</b> — <code>qtrade/live/stats.py</code> and
+        <code>decay.py</code>: bootstrap CIs, permutation tests, the A/B adjudicator,
+        the decay state machine.</li>
+      <li><b>Check the honesty invariants</b> — <code>qtrade/backtest/engine.py</code>
+        and the test suite that enforces t+1 execution, nonzero costs, and NaN-fill
+        sentinels.</li>
+    </ol>
+  </div>
+</section>
+
 <footer>
-  <div>Built in Python (~35k LOC) · vectorbt, LightGBM, DuckDB · single CLI ·
-    <a href="https://github.com/zhefu3/quant-system">github.com/zhefu3/quant-system</a></div>
-  <div style="margin-top:6px">Research project. Nothing here is investment advice.</div>
+  <div class="mono">Python ~35k LOC · vectorbt · LightGBM · DuckDB · 7 data adapters · single CLI</div>
+  <div><a href="https://github.com/zhefu3/quant-system">github.com/zhefu3/quant-system</a> ·
+    research project — nothing here is investment advice.</div>
 </footer>
 
 </div>
@@ -376,35 +584,40 @@ const VERDICTS = [
 ];
 const strip = document.getElementById('strip');
 const tip = document.getElementById('tip');
+function showTip(v, x, y) {
+  tip.innerHTML = '<b>' + v.id + ' — ' + OUTCOMES[v.o].label + '</b>' + v.t;
+  tip.style.display = 'block';
+  const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+  let tx = x + pad, ty = y + pad;
+  if (tx + w > innerWidth - 8) tx = x - w - pad;
+  if (ty + h > innerHeight - 8) ty = y - h - pad;
+  tip.style.left = Math.max(8, tx) + 'px'; tip.style.top = Math.max(8, ty) + 'px';
+}
 for (const v of VERDICTS) {
   const el = document.createElement('div');
   el.className = 'v ' + v.o;
   el.setAttribute('role', 'listitem');
+  el.setAttribute('tabindex', '0');
   el.setAttribute('aria-label', v.id + ': ' + OUTCOMES[v.o].label + '. ' + v.t);
   el.innerHTML = '<span class="ic">' + OUTCOMES[v.o].ic + '</span><span>' + v.id + '</span>';
-  el.addEventListener('mouseenter', () => {
-    tip.innerHTML = '<b>' + v.id + ' — ' + OUTCOMES[v.o].label + '</b>' + v.t;
-    tip.style.display = 'block';
-  });
-  el.addEventListener('mousemove', (e) => {
-    const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
-    let x = e.clientX + pad, y = e.clientY + pad;
-    if (x + w > innerWidth - 8) x = e.clientX - w - pad;
-    if (y + h > innerHeight - 8) y = e.clientY - h - pad;
-    tip.style.left = x + 'px'; tip.style.top = y + 'px';
-  });
+  el.addEventListener('mouseenter', (e) => showTip(v, e.clientX, e.clientY));
+  el.addEventListener('mousemove', (e) => showTip(v, e.clientX, e.clientY));
   el.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+  el.addEventListener('focus', () => {
+    const r = el.getBoundingClientRect(); showTip(v, r.right, r.top);
+  });
+  el.addEventListener('blur', () => { tip.style.display = 'none'; });
   strip.appendChild(el);
 }
-// legend with counts
 const counts = {};
 for (const v of VERDICTS) counts[v.o] = (counts[v.o] || 0) + 1;
 const legend = document.getElementById('legend');
 const swatch = {pass:'var(--good)', marginal:'var(--warning)', fail:'var(--critical)', gateclosed:'var(--serious)'};
 for (const k of ['pass','marginal','fail','gateclosed']) {
   const s = document.createElement('span');
+  s.className = 'chip';
   s.innerHTML = '<span class="sw" style="background:' + swatch[k] + '"></span>' +
-    OUTCOMES[k].ic + ' ' + OUTCOMES[k].label + ' · ' + (counts[k] || 0);
+    OUTCOMES[k].ic + ' ' + OUTCOMES[k].label + ' <span class="cnt">' + (counts[k] || 0) + '</span>';
   legend.appendChild(s);
 }
 </script>
