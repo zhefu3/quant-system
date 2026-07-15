@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>quant-system — a solo quant research program run like a lab</title>
+<meta name="description" content="Pre-registered experiments, published failures, nine paper-trading books across five asset classes.">
+<style>
+:root {
+  color-scheme: light;
+  --page:        #f9f9f7;
+  --surface:     #fcfcfb;
+  --ink:         #0b0b0b;
+  --ink-2:       #52514e;
+  --muted:       #898781;
+  --hairline:    #e1e0d9;
+  --border:      rgba(11,11,11,0.10);
+  --good:        #0ca30c;
+  --good-text:   #006300;
+  --warning:     #fab219;
+  --warning-text:#8a5a00;
+  --serious:     #ec835a;
+  --serious-text:#9c3d16;
+  --critical:    #d03b3b;
+  --critical-text:#b02525;
+  --accent:      #2a78d6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:where(:not([data-theme="light"])) {
+    color-scheme: dark;
+    --page:        #0d0d0d;
+    --surface:     #1a1a19;
+    --ink:         #ffffff;
+    --ink-2:       #c3c2b7;
+    --muted:       #898781;
+    --hairline:    #2c2c2a;
+    --border:      rgba(255,255,255,0.10);
+    --good-text:   #0ca30c;
+    --warning-text:#fab219;
+    --serious-text:#ec835a;
+    --critical-text:#e66767;
+    --accent:      #3987e5;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --page:        #0d0d0d;
+  --surface:     #1a1a19;
+  --ink:         #ffffff;
+  --ink-2:       #c3c2b7;
+  --muted:       #898781;
+  --hairline:    #2c2c2a;
+  --border:      rgba(255,255,255,0.10);
+  --good-text:   #0ca30c;
+  --warning-text:#fab219;
+  --serious-text:#ec835a;
+  --critical-text:#e66767;
+  --accent:      #3987e5;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body {
+  background: var(--page);
+  color: var(--ink);
+  font: 16px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+.wrap { max-width: 860px; margin: 0 auto; padding: 0 24px 96px; }
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+header.top {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 0; border-bottom: 1px solid var(--hairline); margin-bottom: 56px;
+}
+.brand { font-weight: 650; letter-spacing: -0.01em; }
+.top-links { display: flex; gap: 18px; align-items: center; font-size: 14.5px; }
+#theme-btn {
+  background: none; border: 1px solid var(--border); border-radius: 8px;
+  color: var(--ink-2); cursor: pointer; font: inherit; font-size: 13px;
+  padding: 4px 10px;
+}
+
+.hero h1 {
+  font-size: clamp(30px, 5.4vw, 44px); line-height: 1.14;
+  letter-spacing: -0.022em; margin: 0 0 18px; font-weight: 700;
+}
+.hero p.lede { font-size: 18.5px; color: var(--ink-2); max-width: 640px; margin: 0 0 14px; }
+.hero .disclaimer { font-size: 13.5px; color: var(--muted); margin: 0 0 34px; }
+.cta { display: inline-block; border: 1px solid var(--border); border-radius: 10px;
+  padding: 9px 16px; font-weight: 600; font-size: 15px; background: var(--surface); }
+.cta:hover { text-decoration: none; border-color: var(--accent); }
+
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 12px; margin: 44px 0 0; }
+.tile { background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: 16px 18px; }
+.tile .n { font-size: 27px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.1; }
+.tile .l { font-size: 13px; color: var(--ink-2); margin-top: 4px; }
+
+section { margin-top: 72px; }
+h2 { font-size: 24px; letter-spacing: -0.015em; margin: 0 0 8px; }
+.kicker { font-size: 12.5px; font-weight: 650; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+.sub { color: var(--ink-2); max-width: 640px; margin: 0 0 26px; }
+
+/* ---- verdict strip ---- */
+.strip-card { background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 22px 22px 18px; }
+.strip { display: flex; flex-wrap: wrap; gap: 8px; }
+.v {
+  width: 42px; height: 42px; border-radius: 8px; position: relative;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  cursor: default; border: 1px solid var(--border);
+  font-size: 10.5px; font-weight: 650; color: #fff; line-height: 1.15;
+}
+.v .ic { font-size: 13px; }
+.v.pass     { background: var(--good); color: #062e06; }
+.v.marginal { background: var(--warning); color: #4a3200; }
+.v.gateclosed { background: var(--serious); color: #47190a; }
+.v.fail     { background: var(--critical); }
+.v:hover { outline: 2px solid var(--accent); outline-offset: 1px; }
+.legend { display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px;
+  font-size: 13.5px; color: var(--ink-2); }
+.legend .sw { display: inline-block; width: 11px; height: 11px; border-radius: 3px;
+  margin-right: 6px; vertical-align: -1px; }
+#tip {
+  position: fixed; z-index: 10; max-width: 300px; pointer-events: none;
+  background: var(--surface); color: var(--ink); border: 1px solid var(--border);
+  border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 1.45;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.18); display: none;
+}
+#tip b { display: block; margin-bottom: 2px; }
+
+/* ---- principles ---- */
+.grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.card { background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 20px 22px; }
+.card h3 { margin: 0 0 8px; font-size: 16.5px; }
+.card p { margin: 0; font-size: 14.5px; color: var(--ink-2); }
+
+/* ---- case study ---- */
+.case { background: var(--surface); border: 1px solid var(--border);
+  border-radius: 14px; padding: 28px 30px; }
+.case .step { display: flex; gap: 16px; margin-bottom: 18px; }
+.case .step:last-child { margin-bottom: 0; }
+.case .no { flex: none; width: 26px; height: 26px; border-radius: 50%;
+  background: var(--page); border: 1px solid var(--border);
+  font-size: 13px; font-weight: 700; display: flex; align-items: center;
+  justify-content: center; color: var(--ink-2); margin-top: 2px; }
+.case p { margin: 0; font-size: 15px; color: var(--ink-2); }
+.case p b { color: var(--ink); }
+.case .verdict { border-top: 1px solid var(--hairline); margin-top: 22px;
+  padding-top: 18px; font-size: 15px; }
+
+/* ---- books table ---- */
+.tablewrap { overflow-x: auto; border: 1px solid var(--border);
+  border-radius: 14px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; min-width: 640px; font-size: 14px; }
+th, td { text-align: left; padding: 11px 16px; border-bottom: 1px solid var(--hairline); }
+tr:last-child td { border-bottom: none; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--muted); font-weight: 650; }
+td.b { font-weight: 600; white-space: nowrap; }
+td .ev { color: var(--ink-2); }
+.badge { display: inline-block; font-size: 11.5px; font-weight: 650;
+  border-radius: 999px; padding: 2px 9px; white-space: nowrap; }
+.badge.val { color: var(--good-text); border: 1px solid var(--good-text); }
+.badge.obs { color: var(--ink-2); border: 1px solid var(--border); }
+.badge.ab  { color: var(--accent); border: 1px solid var(--accent); }
+
+/* ---- hardening ---- */
+.hard li { margin-bottom: 12px; color: var(--ink-2); font-size: 15px; }
+.hard li b { color: var(--ink); }
+
+footer { margin-top: 88px; border-top: 1px solid var(--hairline);
+  padding-top: 22px; font-size: 13.5px; color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="top">
+  <div class="brand">quant-system</div>
+  <nav class="top-links">
+    <a href="https://github.com/zhefu3/quant-system">GitHub</a>
+    <a href="https://github.com/zhefu3/quant-system/blob/main/research/log.md">Lab log</a>
+    <button id="theme-btn" aria-label="Toggle color theme">◐ theme</button>
+  </nav>
+</header>
+
+<section class="hero" style="margin-top:0">
+  <h1>A solo quant research program,<br>run like a lab.</h1>
+  <p class="lede">Every strategy idea is pre-registered with frozen success criteria
+  <em>before</em> the backtest runs. Every failure is published. Nine survivors trade
+  in parallel on paper across five asset classes.</p>
+  <p class="disclaimer">⚠︎ Research project — not investment advice; no real money deployed.</p>
+  <a class="cta" href="https://github.com/zhefu3/quant-system">View the code & lab log →</a>
+  <div class="stats">
+    <div class="tile"><div class="n">65</div><div class="l">pre-registered experiments</div></div>
+    <div class="tile"><div class="n">16</div><div class="l">formal verdicts recorded</div></div>
+    <div class="tile"><div class="n">9</div><div class="l">paper books live</div></div>
+    <div class="tile"><div class="n">5</div><div class="l">asset classes</div></div>
+    <div class="tile"><div class="n">86</div><div class="l">anti-self-deception tests</div></div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">The record</div>
+  <h2>Verdicts, as they landed</h2>
+  <p class="sub">The 16 formal verdicts in the lab log, in the order they were decided.
+  Most experiments die — that is the point of the gate. Hover any square.</p>
+  <div class="strip-card">
+    <div class="strip" id="strip" role="list"></div>
+    <div class="legend" id="legend"></div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">The method</div>
+  <h2>Process, enforced by code</h2>
+  <p class="sub">Retail strategies mostly die of self-deception — lookahead, cost amnesia,
+  moving goalposts. The defense is procedural:</p>
+  <div class="grid2">
+    <div class="card"><h3>1 · Pre-registration</h3>
+      <p>Hypothesis, exact spec (one variant — no parameter fishing), cost model, and
+      pass/fail gate are frozen into the log before any result exists. The verdict
+      branches are written down in advance.</p></div>
+    <div class="card"><h3>2 · Honest engine invariants</h3>
+      <p>The backtest engine refuses zero costs, executes at t+1 (lookahead structurally
+      impossible, regression-tested), and auto-splits out-of-sample.</p></div>
+    <div class="card"><h3>3 · Negative results are first-class</h3>
+      <p>Closures are published with explicit reopen conditions, so dead ideas stay dead
+      until the world actually changes. Two data-corruption incidents are documented as
+      full postmortems.</p></div>
+    <div class="card"><h3>4 · Forward records over backtests</h3>
+      <p>Passing a gate earns a <em>paper</em> book only. Promotion requires the forward
+      record itself to clear bootstrap/permutation adjudication — a backtest is never
+      the final word.</p></div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">Case study · E65</div>
+  <h2>Passing the gate is necessary, not sufficient</h2>
+  <p class="sub">The most recent experiment shows the discipline working end-to-end.</p>
+  <div class="case">
+    <div class="step"><div class="no">1</div>
+      <p><b>Hypothesis, frozen first.</b> Deep-discount convertible bonds embed a
+      "downward-revision" option — issuers cut the conversion price to dodge the put.
+      Spec, costs, gate, and an attribution plan were pre-registered before the
+      backtest ran.</p></div>
+    <div class="step"><div class="no">2</div>
+      <p><b>The gate passed cleanly.</b> Post-2021: net <b>+10.7%/yr, Sharpe 1.31,
+      maxDD −8.3%</b> — robust to doubled slippage and to excluding the best year.
+      A weaker process would have shipped it here.</p></div>
+    <div class="step"><div class="no">3</div>
+      <p><b>Then the pre-committed attribution ran.</b> Only <b>16% of returns</b> came
+      from actual revision events; 84% was generic deep-discount beta. And the monthly
+      returns correlated <b>0.77</b> with an existing book — despite ~0% holdings overlap.</p></div>
+    <div class="verdict">
+      <b>Verdict:</b> gate recorded as <i>passed</i> — no retroactive goalpost-moving —
+      but the direction was <b>closed as redundant</b> rather than funded, with reopen
+      conditions on record.</div>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">The survivors</div>
+  <h2>Nine paper books</h2>
+  <p class="sub">Hourly ticks via launchd, one shared risk/accounting layer. Observation
+  books are firewalled: they can never enter the portfolio layer or justify allocation.</p>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th>Book</th><th>Assets</th><th>Signal</th><th>Status</th><th>Evidence</th></tr></thead>
+      <tbody>
+        <tr><td class="b">crypto_core</td><td>Crypto perp ×10</td><td>CTA trend + regime-gated mean-reversion</td>
+            <td><span class="badge val">validated</span></td>
+            <td class="ev">7y pure-OOS: Sharpe 1.11, maxDD 10.5%; +3.4% in the 2022 crash (benchmark −76%)</td></tr>
+        <tr><td class="b">crypto_core_v2</td><td>Crypto perp</td><td>Variant of core</td>
+            <td><span class="badge ab">parallel A/B</span></td>
+            <td class="ev">90-day adjudication vs v1 by a frozen statistical decision rule</td></tr>
+        <tr><td class="b">crypto_core_4h</td><td>Crypto perp</td><td>Same, 4h bars</td>
+            <td><span class="badge ab">parallel</span></td>
+            <td class="ev">Matches 1h performance at −25% fees</td></tr>
+        <tr><td class="b">cn_futures</td><td>CN commodities ×13</td><td>Mechanical trend/carry</td>
+            <td><span class="badge val">validated</span></td>
+            <td class="ev">8y audit: Sharpe 0.48; −0.10 correlation to the crypto book</td></tr>
+        <tr><td class="b">futures_ibkr</td><td>US futures</td><td>Mechanical</td>
+            <td><span class="badge obs">observation</span></td>
+            <td class="ev">Failed its gate — building the forward record required to unlock</td></tr>
+        <tr><td class="b">llm_agents</td><td>Crypto perp</td><td>LLM committee vs mechanical twin</td>
+            <td><span class="badge obs">observation A/B</span></td>
+            <td class="ev">Does LLM judgment add anything? Hard $30/mo budget, enforced automatically</td></tr>
+        <tr><td class="b">ashare_ml</td><td>A-shares (CSI 300)</td><td>LightGBM cross-section</td>
+            <td><span class="badge obs">observation</span></td>
+            <td class="ev">Dual-track accounting measures live alpha decay vs frozen backtest</td></tr>
+        <tr><td class="b">etf_trend</td><td>US ETFs ×10</td><td>Long-only trend rotation</td>
+            <td><span class="badge obs">observation</span></td>
+            <td class="ev">33y backtest: net Sharpe 0.58, positive in every crisis year</td></tr>
+        <tr><td class="b">cb_double_low</td><td>CN convertibles</td><td>Double-low rotation</td>
+            <td><span class="badge obs">observation</span></td>
+            <td class="ev">Passed with a recorded sensitivity warning — the warning ships with the book</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="kicker">Engineering</div>
+  <h2>Hardened against hostile data</h2>
+  <p class="sub">Free data sources fail in creative ways. Incidents become permanent,
+  mechanical defenses — never just a manual fix:</p>
+  <ul class="hard">
+    <li><b>Write-time circuit breaker.</b> After an adjusted-price convention violation
+      created fake −99% cliffs: any refresh implying >50% single-day moves across >10%
+      of names is rejected before it touches disk. Contaminated rows were quarantined,
+      never deleted.</li>
+    <li><b>No fill at a non-finite price.</b> After NaN OHLC rows cascaded into a book:
+      adapters drop close-less bars, and the paper trader freezes positions on any
+      non-finite price — a fail-safe shared by all nine books, locked in by a sentinel test.</li>
+    <li><b>Hard wall-clock timeouts on every external call</b>, after a silent API hang
+      froze a book for hours.</li>
+    <li><b>Five-layer execution safety</b> on the live broker path: account pinning →
+      per-order caps → exchange reconciliation flags → weight/gross clamps → a drawdown
+      circuit breaker requiring human review to clear. Real-money switches belong to the
+      human; none have been flipped.</li>
+  </ul>
+</section>
+
+<footer>
+  <div>Built in Python (~35k LOC) · vectorbt, LightGBM, DuckDB · single CLI ·
+    <a href="https://github.com/zhefu3/quant-system">github.com/zhefu3/quant-system</a></div>
+  <div style="margin-top:6px">Research project. Nothing here is investment advice.</div>
+</footer>
+
+</div>
+<div id="tip" role="tooltip"></div>
+
+<script>
+// ---- theme toggle (OS default, explicit override wins) ----
+const btn = document.getElementById('theme-btn');
+const saved = localStorage.getItem('theme');
+if (saved) document.documentElement.dataset.theme = saved;
+btn.addEventListener('click', () => {
+  const cur = document.documentElement.dataset.theme ||
+    (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  document.documentElement.dataset.theme = next;
+  localStorage.setItem('theme', next);
+});
+
+// ---- verdict strip (data verified against research/log.md) ----
+const OUTCOMES = {
+  pass:      {label: 'Passed / established', ic: '✓'},
+  marginal:  {label: 'Marginal — archived',  ic: '~'},
+  fail:      {label: 'Failed — closed',      ic: '✕'},
+  gateclosed:{label: 'Passed gate, closed anyway', ic: '⊘'},
+};
+const VERDICTS = [
+  {id:'E46',  o:'pass',     t:'PIT data upgrade — institutional-grade point-in-time fundamentals validated as the A-share base layer'},
+  {id:'E47',  o:'marginal', t:'LightGBM index-enhancement: first surviving offensive A-share signal, archived as marginal'},
+  {id:'E48',  o:'fail',     t:'Turnover buffering failed to save costs — E47 stays archived as-is'},
+  {id:'E50b', o:'pass',     t:'CN commodity CTA on per-contract back-adjusted splices: Sharpe 0.48 ≥ 0.4 — line established'},
+  {id:'E52',  o:'marginal', t:'Commodity term-structure carry: passes the letter of the gate, real decay recorded honestly'},
+  {id:'E53',  o:'fail',     t:'Commodity cross-sectional momentum — rejected'},
+  {id:'E54',  o:'fail',     t:'Defensive ETF book re-tested on real ETF prices: 2/3 gates failed, index-based conclusion downgraded'},
+  {id:'E55',  o:'fail',     t:'Universe expansion 14→30 futures: sanity gate failed outright, pool stays at 14'},
+  {id:'E57',  o:'pass',     t:'Settlement-price robustness: sensitivity flag raised, then benignly resolved — all three price bases pass'},
+  {id:'E58',  o:'pass',     t:'Limit-lock execution robustness: zero measurable impact'},
+  {id:'E40b', o:'fail',     t:'US futures on real IBKR data: below deployment gate — line stays research-only, honest record kept'},
+  {id:'E59',  o:'fail',     t:'461-factor public library adds nothing over 17 hand-built features — free A-share route ends'},
+  {id:'E62',  o:'pass',     t:'ETF trend tradability: passed — but the winner is the long-only variant; etf_trend book established'},
+  {id:'E63',  o:'pass',     t:'Convertible double-low: passed with a recorded 2021-dependency warning that ships with the book'},
+  {id:'E64',  o:'fail',     t:'Breadth 300→800 names: no increment at monthly frequency, dilutes the signal — closed'},
+  {id:'E65',  o:'gateclosed', t:'Downward-revision game: gate passed (+10.7%/yr, Sharpe 1.31) but attribution showed 84% generic beta and 0.77 correlation to an existing book — closed as redundant'},
+];
+const strip = document.getElementById('strip');
+const tip = document.getElementById('tip');
+for (const v of VERDICTS) {
+  const el = document.createElement('div');
+  el.className = 'v ' + v.o;
+  el.setAttribute('role', 'listitem');
+  el.setAttribute('aria-label', v.id + ': ' + OUTCOMES[v.o].label + '. ' + v.t);
+  el.innerHTML = '<span class="ic">' + OUTCOMES[v.o].ic + '</span><span>' + v.id + '</span>';
+  el.addEventListener('mouseenter', () => {
+    tip.innerHTML = '<b>' + v.id + ' — ' + OUTCOMES[v.o].label + '</b>' + v.t;
+    tip.style.display = 'block';
+  });
+  el.addEventListener('mousemove', (e) => {
+    const pad = 14, w = tip.offsetWidth, h = tip.offsetHeight;
+    let x = e.clientX + pad, y = e.clientY + pad;
+    if (x + w > innerWidth - 8) x = e.clientX - w - pad;
+    if (y + h > innerHeight - 8) y = e.clientY - h - pad;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  });
+  el.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+  strip.appendChild(el);
+}
+// legend with counts
+const counts = {};
+for (const v of VERDICTS) counts[v.o] = (counts[v.o] || 0) + 1;
+const legend = document.getElementById('legend');
+const swatch = {pass:'var(--good)', marginal:'var(--warning)', fail:'var(--critical)', gateclosed:'var(--serious)'};
+for (const k of ['pass','marginal','fail','gateclosed']) {
+  const s = document.createElement('span');
+  s.innerHTML = '<span class="sw" style="background:' + swatch[k] + '"></span>' +
+    OUTCOMES[k].ic + ' ' + OUTCOMES[k].label + ' · ' + (counts[k] || 0);
+  legend.appendChild(s);
+}
+</script>
+</body>
+</html>
