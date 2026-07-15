@@ -25,6 +25,11 @@ from qtrade.data.store import BarStore  # noqa: E402
 PIT = Path(__file__).resolve().parents[1] / "data_store" / "pit_ts"
 SLEEP = 0.12
 
+# series written raw by the buggy first version — must be overwritten with hfq
+_Q = Path(__file__).resolve().parents[1] / "data_store" / "_quarantine_20260715"
+FORCE_OVERWRITE = set((_Q / "raw_only_codes.txt").read_text().split()) \
+    if (_Q / "raw_only_codes.txt").exists() else set()
+
 
 def pro_api():
     import tushare as ts
@@ -63,20 +68,25 @@ def fetch_members(pro, codes: list[str]):
     n_bars = n_db = n_fi = 0
     for i, code in enumerate(codes):
         sym = code.replace(".", "_")
-        try:
-            store.load("ashare_ts", code, "1d")
-        except FileNotFoundError:
+        # hfq bars via ts.pro_bar (store convention: 后复权 + Asia/Shanghai
+        # midnight stamps -> UTC, matching fetch_tushare_pit exactly).
+        # 2026-07-15 incident: the first version used raw pro.daily and UTC
+        # stamps — both HANDOFF conventions violated; OVERWRITE, never merge.
+        bar_file = store.path("ashare_ts", code, "1d")
+        needs = (not bar_file.exists()) or code in FORCE_OVERWRITE
+        if needs:
             try:
-                d = pro.daily(ts_code=code, start_date="20130101")
+                import tushare as ts
+
+                d = ts.pro_bar(ts_code=code, adj="hfq", start_date="20130101")
                 if d is not None and len(d):
-                    d = d.sort_values("trade_date")
-                    idx = pd.to_datetime(d["trade_date"]).dt.tz_localize("UTC")
-                    bars = pd.DataFrame(
-                        {"open": d["open"].values, "high": d["high"].values,
-                         "low": d["low"].values, "close": d["close"].values,
-                         "volume": d["vol"].values},
-                        index=pd.DatetimeIndex(idx, name="ts"))
-                    store.save(bars, "ashare_ts", code, "1d")
+                    d = d.sort_values("trade_date").rename(columns={"vol": "volume"})
+                    d["ts"] = pd.to_datetime(d["trade_date"])
+                    d = d.set_index("ts").sort_index()
+                    d.index = d.index.tz_localize("Asia/Shanghai").tz_convert("UTC")
+                    bar_file.parent.mkdir(parents=True, exist_ok=True)
+                    d[["open", "high", "low", "close", "volume"]].astype(
+                        "float64").to_parquet(bar_file)
                     n_bars += 1
             except Exception:  # noqa: BLE001
                 pass

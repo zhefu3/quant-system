@@ -132,8 +132,13 @@ def _pro():
 
 
 def refresh_daily(pro, store, union: list[str], last: pd.Timestamp) -> int:
-    """One pro.daily / pro.daily_basic call per missing trade date (batch API:
-    each call returns the whole market). Idempotent via BarStore merge."""
+    """One batch call set per missing trade date. Prices are converted to 后复权
+    (raw x adj_factor — tushare's hfq definition) and stamped with the store's
+    Asia/Shanghai-midnight->UTC convention, matching fetch_tushare_pit exactly.
+
+    Circuit breaker (2026-07-15 incident): if a refreshed day implies a >50%
+    move for >10% of stocks vs the stored series, the convention is broken —
+    abort the refresh instead of appending garbage."""
     added = 0
     day = last + pd.Timedelta(days=1)
     today = pd.Timestamp.now(tz="Asia/Shanghai").normalize().tz_localize(None)
@@ -142,11 +147,38 @@ def refresh_daily(pro, store, union: list[str], last: pd.Timestamp) -> int:
         ds = day.strftime("%Y%m%d")
         bars = pro.daily(trade_date=ds)
         if bars is not None and len(bars):
+            adj = pro.adj_factor(trade_date=ds)
+            factor = dict(zip(adj["ts_code"], pd.to_numeric(adj["adj_factor"],
+                                                            errors="coerce"))) if adj is not None else {}
             bars = bars[bars["ts_code"].isin(uni)]
+            # circuit breaker before any write
+            jumps = 0
+            checked = 0
+            for _, r in bars.iterrows():
+                f = factor.get(r["ts_code"])
+                if not f:
+                    continue
+                try:
+                    prev = store.load("ashare_ts", r["ts_code"], "1d")["close"].iloc[-1]
+                except (FileNotFoundError, IndexError):
+                    continue
+                checked += 1
+                if abs(r["close"] * f / prev - 1) > 0.5:
+                    jumps += 1
+            if checked and jumps / checked > 0.10:
+                raise RuntimeError(
+                    f"refresh_daily {ds}: {jumps}/{checked} stocks jump >50% — "
+                    "adjustment convention mismatch, refusing to write")
             for code, g in bars.groupby("ts_code"):
-                idx = pd.to_datetime(g["trade_date"]).dt.tz_localize("UTC")
-                df = pd.DataFrame({"open": g["open"].values, "high": g["high"].values,
-                                   "low": g["low"].values, "close": g["close"].values,
+                f = factor.get(code)
+                if not f:
+                    continue
+                idx = pd.to_datetime(g["trade_date"]).dt.tz_localize(
+                    "Asia/Shanghai").dt.tz_convert("UTC")
+                df = pd.DataFrame({"open": g["open"].values * f,
+                                   "high": g["high"].values * f,
+                                   "low": g["low"].values * f,
+                                   "close": g["close"].values * f,
                                    "volume": g["vol"].values},
                                   index=pd.DatetimeIndex(idx, name="ts"))
                 store.save(df, "ashare_ts", code, "1d")
