@@ -292,6 +292,16 @@ def main():
     ab.add_argument("--b", default="crypto_core_v2")
     ab.set_defaults(fn=lambda a: __import__("qtrade.live.report", fromlist=["run_ab"]).run_ab(a.a, a.b))
 
+    ml = sub.add_parser("manual-log", help="record the manual account's period return "
+                                           "(the eighth curve, from the broker statement)")
+    ml.add_argument("--period", required=True, help="e.g. 2026-07 or 2026-05-01..2026-07-14")
+    ml.add_argument("--pnl-pct", type=float, required=True)
+    ml.add_argument("--bench-pct", type=float, default=None, help="benchmark %% (上证)")
+    ml.add_argument("--note", default="")
+    ml.set_defaults(fn=lambda a: __import__(
+        "qtrade.live.manual", fromlist=["log_period"]).log_period(
+        a.period, a.pnl_pct, a.bench_pct, a.note))
+
     wk = sub.add_parser("weekly", help="one-command weekly digest + protocol due reminders")
     wk.set_defaults(fn=lambda a: __import__("qtrade.live.weekly", fromlist=["run_weekly"]).run_weekly())
 

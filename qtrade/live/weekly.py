@@ -30,6 +30,14 @@ def run_weekly():
 
     run_decay()
 
+    print()
+    from .manual import weekly_section
+
+    weekly_section()
+
+    print()
+    _llm_cost_section()
+
     print("\n--- 制度到期提醒 ---")
     if REVAL_HISTORY.exists():
         hist = pd.read_csv(REVAL_HISTORY, parse_dates=["run_at"])
@@ -57,3 +65,20 @@ def run_weekly():
     print()
     from .healthcheck import run_health
     run_health()
+
+
+def _llm_cost_section():
+    """E60 prereg guard: monthly llm_agents API spend vs the frozen $30 cap."""
+    import json
+
+    ddir = DEFAULT_ROOT / "llm_agents" / "decisions"
+    if not ddir.exists():
+        return
+    month = datetime.now(timezone.utc).strftime("%Y-%m")
+    cost = 0.0
+    for f in ddir.glob(f"{month}-*.json"):
+        for u in json.loads(f.read_text()).get("usage", []):
+            haiku = "haiku" in u.get("model", "")
+            cost += u["in"] * (1 if haiku else 3) / 1e6 + u["out"] * (5 if haiku else 15) / 1e6
+    flag = "⚠ 超预注册上限$30 → 降频或停(E60)" if cost > 30 else "ok"
+    print(f"--- llm_agents API 成本 ---\n{month} 月累计 ~${cost:.2f} / $30 上限 [{flag}]")
