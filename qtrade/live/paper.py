@@ -91,6 +91,13 @@ class PaperTrader:
             targets, closes = self.targets_fn(bars)
         else:
             targets, closes = compute_targets(p, bars_by_symbol=bars)
+        # fail-safe: a non-finite price must skip the tick, never trade
+        # (2026-07-15: a yahoo NaN row walked straight into positions)
+        import math
+
+        bad = [s for s, c in closes.items() if not math.isfinite(c)]
+        if bad:
+            return {"ts": str(now), "skipped_nonfinite": bad, "fills": []}
 
         state = self._load_state()
         cash, positions = state["cash"], state["positions"]
@@ -177,6 +184,10 @@ def run_tick(preset_name: str, state_dir: str | None = None) -> dict:
     ts = datetime.now(timezone.utc).strftime("%H:%M")
     if "skipped_stale" in summary:
         print(f"[{ts} UTC] SKIP tick: stale data for {summary['skipped_stale']} "
+              "(holding positions, no trades)")
+        return summary
+    if "skipped_nonfinite" in summary:
+        print(f"[{ts} UTC] SKIP tick: non-finite close for {summary['skipped_nonfinite']} "
               "(holding positions, no trades)")
         return summary
     print(f"[{ts} UTC] equity {summary['equity']}  pnl {summary['pnl_total']:+}  "

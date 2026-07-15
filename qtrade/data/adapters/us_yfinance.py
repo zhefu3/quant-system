@@ -42,6 +42,10 @@ class USAdapter:
         if isinstance(df.columns, pd.MultiIndex):
             df.columns = df.columns.get_level_values(0)
         df = df.rename(columns=str.lower)
+        # yahoo sometimes emits volume-only rows (NaN OHLC) for today or even
+        # completed days (2026-07-15 incident: NaN close cascaded into paper
+        # positions). A bar without a close is not a bar.
+        df = df.dropna(subset=["close"])
         # Daily bars come back tz-naive (session dates): pin them to UTC;
         # intraday bars are already tz-aware.
         return normalize_ohlcv(df)
