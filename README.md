@@ -1,154 +1,110 @@
-# qtrade — 多市场量化研究与回测系统
+# qtrade
 
-研究回测优先的量化系统：加密货币先行（数据免费全量），A股/美股适配器随后加入。
-架构按「统一数据模型 + 市场适配器 + 引擎无关策略层」设计，策略代码不依赖任何引擎/交易所。
+**A solo quantitative research program run like a lab: every strategy idea is pre-registered with frozen success criteria *before* the backtest runs, every failure is published in the lab log, and nine surviving strategies trade in parallel on paper across five asset classes.**
 
-## 诚实回测三原则（引擎内置强制，非自觉遵守）
+65 experiments so far. Most of them are documented failures — by design. The [lab log](research/log.md) (900+ lines, E1–E65) is the primary artifact of this project; the code is the instrument.
 
-1. **无未来函数**：bar t 收盘算出的信号，t+1 才成交（引擎自动 shift，测试 `test_no_lookahead_next_bar_execution` 把关）
-2. **无免费午餐**：手续费+滑点必须 > 0，零成本配置直接抛异常
-3. **样本外优先**：每次回测自动做时间切分，以样本外(默认后 30%)对比 buy&hold 下结论
+> ⚠️ Research project. Nothing here is investment advice, and no real money is deployed.
 
-## 快速开始
+---
 
-```bash
-uv sync --extra dev          # 依赖 (Python 3.12, uv 管理)
+## Why this exists
 
-# 拉数据 (全部免费公开源, 无需任何 API key)
-python -m qtrade.cli fetch --market crypto --symbol BTC/USDT   --timeframe 5m --days 180
-python -m qtrade.cli fetch --market ashare --symbol 600519.SH  --timeframe 5m --days 365
-python -m qtrade.cli fetch --market us     --symbol SPY        --timeframe 1d --days 3650
-python -m qtrade.cli coverage
+Retail quant strategies mostly die from self-deception: lookahead bias, cost amnesia, cherry-picked backtest windows, and quietly moving the goalposts after seeing results. This project attacks that problem with **process, enforced by code**:
 
-# 回测 (报告落盘到 outputs/; --rules 可切换成本/约束包, 如现货数据+永续规则)
-python -m qtrade.cli backtest --market crypto --rules crypto_perp --symbol BTC/USDT \
-    --timeframe 1h --strategy ts_momentum --param lookback=168 --param allow_short=true
+1. **Pre-registration.** Before any backtest runs, the hypothesis, the exact spec (one variant — no parameter fishing), the cost model, and the pass/fail gate are frozen into the lab log. The verdict branch is written down *before* the result exists.
+2. **Honest engine invariants.** The backtest engine refuses to run with zero costs, executes signals at t+1 (lookahead structurally impossible, regression-tested), and auto-splits out-of-sample.
+3. **Negative results are first-class.** 16 formal verdicts are recorded; most closed the direction. Each closure includes explicit *reopen conditions* so dead ideas stay dead until the world actually changes.
+4. **Forward paper records over backtests.** Anything that passes a gate earns only a *paper* book. Promotion requires the forward record itself to clear statistical adjudication — a backtest is never the final word.
 
-# 参数网格 + 敏感性热力图 (看平原还是孤峰)
-python -m qtrade.cli scan --symbol BTC/USDT --timeframe 1h --strategy dual_ma \
-    --grid fast=10,20,50,100 --grid slow=50,100,200,400
+### A worked example of the discipline (E65)
 
-# walk-forward: 训练窗选参 -> 未见测试窗验证, 逐折报告
-python -m qtrade.cli walkforward --symbol BTC/USDT --timeframe 1h --rules crypto_perp \
-    --strategy ts_momentum --grid lookback=24,72,168,336 --grid vol_filter=true,false \
-    --param allow_short=true --folds 5
+The last experiment is the best illustration. Hypothesis: deep-discount convertible bonds embed a "downward revision" option worth harvesting. The frozen gate **passed** cleanly (post-2021: net +10.7%/yr, Sharpe 1.31, maxDD −8.3%, robust to 2× slippage and to excluding the best year). A weaker process would have shipped it.
 
-# 组合回测: 多品种共享资金 (equal / inv_vol 分配)
-python -m qtrade.cli portfolio --rules crypto_perp --strategy boll_revert \
-    --param window=96 --param entry_z=2.0 --param side=both --param regime_window=720 \
-    --allocation equal --vol-target 0.4
+Then the pre-committed attribution ran: only **16% of returns** came from actual revision events — 84% was generic deep-discount beta — and the monthly returns correlated **0.77** with an existing book despite ~0% holdings overlap. Verdict recorded: *gate passed* (no retroactive goalpost-moving), but the direction was **closed as redundant** rather than funded. Passing a frozen gate is necessary, not sufficient.
 
-# 模拟盘: 每小时跑一个 tick, 状态在 outputs/paper/<preset>/
-python -m qtrade.cli paper --preset crypto_core
-# 自动化(可选, 每小时第5分钟自动跑; 卸载用 bootout):
-#   cp deploy/com.qtrade.paper.plist ~/Library/LaunchAgents/
-#   launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.qtrade.paper.plist
+---
 
-# 决策解释: 每个品种此刻的完整决策链 (趋势票/z值/regime/波动率缩放/节流)
-python -m qtrade.cli explain
+## The nine paper books
 
-# 模拟盘体检: 实时表现 vs 回测预期, 带 PASS/WARN 判定 + regime 上下文
-python -m qtrade.cli paper-report
+All books run live on paper (hourly launchd ticks), share one risk/accounting layer, and are strictly firewalled: observation books can never enter the portfolio layer or be cited as evidence for allocation.
 
-# 品种池评分: 边际贡献 (leave-one-out / add-one-in), 季度重评
-python research/universe_score.py
+| Book | Asset class | Signal source | Status | Headline evidence |
+|---|---|---|---|---|
+| `crypto_core` | Crypto perp (10 coins) | Mechanical: slow CTA trend + regime-gated mean-reversion | **Validated** | 7y pure-OOS audit: Sharpe 1.11, maxDD 10.5%, +3.4% in the 2022 crash (benchmark −76%) |
+| `crypto_core_v2` | Crypto perp | Variant of core | Parallel A/B | 90-day statistical adjudication vs v1, decided by a frozen adjudicator, not vibes |
+| `crypto_core_4h` | Crypto perp | Same, 4h bars | Parallel | Matches 1h performance at −25% fees |
+| `cn_futures` | CN commodity futures (13) | Mechanical trend/carry | **Validated** | 8y audit: Sharpe 0.48, **−0.10 correlation** to crypto book |
+| `futures_ibkr` | US futures | Mechanical | Observation | Failed its gate (E40b) — building the forward record required to unlock |
+| `llm_agents` | Crypto perp | **LLM committee** vs mechanical twin, same universe | Observation A/B | Tests whether LLM judgment adds anything; hard $30/mo API budget with automated enforcement |
+| `ashare_ml` | A-shares (CSI 300) | LightGBM cross-section, quarterly retrain | Observation | Dual-track accounting measures live alpha decay vs frozen backtest |
+| `etf_trend` | US ETFs (10) | Long-only trend rotation | Observation | 33y backtest: net Sharpe 0.58, positive in every crisis year |
+| `cb_double_low` | CN convertible bonds | Double-low rotation | Observation | Passed its gate **with a recorded sensitivity warning** (result concentrates in 2021) — the warning ships with the book |
 
-# 每周看这一条就够: 健康检查 + v1/v2 A/B + 制度到期提醒
-python -m qtrade.cli weekly
+An eighth curve — the human's own discretionary account — runs as a permanent control against the machines.
 
-# 月度重校验(制度): 补数据->重跑组合->追加历史->对照审计带
-python research/revalidate.py
+### Closed directions (partial list)
 
-# 实盘执行 (OKX 永续): 默认 dry-run 只打印计划订单; --send 才真下单
-python -m qtrade.cli live --preset crypto_core --capital 3000
-python -m qtrade.cli live --preset crypto_core --capital 3000 --send
-python -m qtrade.cli live --preset crypto_core --capital 3000 --flatten --send  # 一键清仓
-```
+Cross-sectional equity momentum (3 universes) · A-share price & linear fundamental factors · crypto basis carry · parameter ensembles · portfolio-level vol targeting · universe expansion to 16 coins · low-beta tilt · commodity carry & cross-sectional momentum · a 461-factor public factor library (no incremental alpha over 17 hand-built features) · breadth expansion 300→800 names (dilutes signal at monthly frequency) · convertible downward-revision game (see E65 above)
 
-## 实盘接入指南（先 DEMO，后小钱）
+Every closure lives in [research/log.md](research/log.md) with its reopen condition.
 
-**第一步（免费）：OKX 模拟交易。** okx.com 登录后 → 交易 → 模拟交易 → 创建模拟盘 API key。
-模拟环境走真实 API 全流程，资金是假的，用它跑通至少两周。
+---
 
-**第二步（真钱）：现货账户开 API key 时只勾"交易"权限，绝不开"提币"；建议绑定 IP 白名单。**
-本组合的忠实执行需要 **≥3000 USDT**（合约最小粒度决定，更小的资金凑不齐一张 ETH/SOL 合约）。
+## Statistical machinery
 
-**密钥只放环境变量**（加到 ~/.zshrc，永远不要写进命令或代码）：
+Forward records are short and noisy, so inference is explicit and frozen ahead of time (`qtrade/live/stats.py`, `decay.py`):
 
-```bash
-export OKX_API_KEY=...
-export OKX_API_SECRET=...
-export OKX_API_PASSPHRASE=...
-export QTRADE_OKX_DEMO=1     # 模拟环境; 真实环境删掉这行
-```
+- **Bootstrap confidence intervals** on live Sharpe; **drawdown permutation tests** ("is this drawdown luck?")
+- **A/B adjudicator** for strategy variants — promotion requires a full quarter of parallel records and a pre-committed decision rule
+- **Alpha-decay state machine** with frozen thresholds; two consecutive warning weeks force a formal review
+- **Luck-vs-skill checks** in every weekly report: realized vol and drawdown continuously reconciled against backtest expectations
 
-**内置护栏（硬编码）**：只管理 `--capital` 指定的额度；单品种权重 ≤15%；总敞口 ≤100%（不加杠杆）；
-回撤 -20% 触发熔断（自动清仓 + 写 HALTED 标志，人工排查删除标志后才能重启）。
+## Engineering for hostile data
 
-```bash
+Free data sources fail in creative ways. Two incidents in one week (both fully documented as postmortems in the log) turned into permanent, mechanical defenses:
 
-pytest tests/                # 跑防自欺测试
-```
+- **Adjusted-price convention violation** (raw prices appended to adjusted series → fake −99% cliffs): repaired via quarantine-not-delete, then a **write-time circuit breaker** — a refresh implying >50% single-day moves on >10% of names is rejected before it can touch disk.
+- **NaN OHLC rows from Yahoo** cascading into paper books: three-layer fix — adapter drops close-less bars, the trader **refuses to fill at any non-finite price** (fail-safe shared by all nine books), sentinel test locks the behavior in.
+- All external calls carry **hard wall-clock timeouts** (a silent API hang once froze a book for hours; never again).
 
-## 当前候选组合 "crypto_core"（定义在 qtrade/presets.py）
+## Execution safety (five layers)
 
-慢 CTA 趋势 (EWMA 96/288/720) + regime 对齐布林回归 (96, z=2, MA720)，
-各腿 vol target 40%，风险 50/50，10 币种等权，eps=0.05。
+The live broker path (crypto exchange adapter; dry-run by default) stacks: account UID pinning → per-order caps with reduce-only semantics → exchange-side reconciliation that raises a `RECONCILE` flag on any mismatch → weight/gross clamps → a drawdown circuit breaker that flattens and writes a `HALTED` flag requiring human review to clear. Real-money switches are owned by the human, gated behind ≥30 days of clean paper records — and none have been flipped.
 
-3 年调参样本（2023-07 → 2026-07，费用+滑点后）：
-**+47.8%（年化 ~14%），夏普 1.16，最大回撤 15.2%，牛熊两段皆正收益**。
+---
 
-**七年审判（2026-07-10）**：在参数从未见过的 2019-07→2023-07 纯净数据上
-**+75.4%，夏普 1.11，回撤 10.5%**——七年 6 年为正，2022 大熊 +3.4%（基准 -76%）。
-已知弱点：单边暴涨年（2024：-14.4%/DD 25%，基准 +105%），约每 5-7 年一遇。
-五种机构式"改进"（参数集成/组合vol目标/基差carry/扩池/换周期）全部经预注册标准
-检验后拒绝——散户费率下现构造接近局部最优。
-详细实验记录（含所有失败尝试）见 research/log.md。
-
-尚未建模：永续资金费率、极端行情滑点。**实盘前置条件：模拟盘 ≥1 个月运转正常。**
-
-## 结构
+## Architecture
 
 ```
 qtrade/
-├── data/
-│   ├── schema.py            # 统一 OHLCV 模型: UTC 索引, 去重升序
-│   ├── store.py             # Parquet 落盘(增量合并) + DuckDB 查询
-│   └── adapters/
-│       ├── crypto_ccxt.py   # ccxt 分页拉取, binance→okx 兜底
-│       ├── ashare_baostock.py # A股 5m+ (后复权, 沪深代码归一, 停牌行剔除)
-│       └── us_yfinance.py   # 美股 (日线优先; intraday 受 Yahoo 深度限制)
-├── markets/rules.py         # 市场规则包: 费率/滑点/做空/T+1/时区 (成本强制非零)
-├── backtest/
-│   ├── engine.py            # vectorbt 封装: shift(1) + 成本 + T+1 + IS/OOS 切分
-│   └── report.py            # 控制台 + markdown 报告, 一句话诚实结论
-├── strategies/
-│   ├── base.py              # Strategy 接口: bars -> 目标仓位 {-1,0,1}
-│   ├── dual_ma.py           # 双均线基线
-│   └── momentum.py          # 时序动量 (可多空) + 波动率过滤基线
-└── research/
-    ├── grid.py              # 参数网格扫描 + 敏感性热力图
-    └── walkforward.py       # 滚动训练/测试验证 + 逐折诚实结论
+├── data/          # unified OHLCV schema (UTC, deduped) + Parquet/DuckDB store
+│   └── adapters/  # 7 sources: ccxt, baostock, tushare, akshare, IB, yfinance
+├── markets/       # per-market rule packs: fees, slippage, shorting, T+1 — costs must be nonzero
+├── backtest/      # vectorbt engine: t+1 execution, enforced costs, auto IS/OOS split
+├── strategies/    # CTA trend, mean-reversion, momentum, cross-section, composites, overlays
+├── live/          # 9 paper books, risk gate, bootstrap/permutation stats, decay state
+│                  # machine, LLM committee, weekly digest, health checks
+├── factors/       # 461-factor library (verdict: no increment — kept as screening infra)
+└── research/      # one frozen script per experiment + log.md, the lab notebook
 ```
 
-## 现状与路线
+~35k lines of Python, 86 tests (self-deception guards included: lookahead, zero-cost, NaN-fill sentinels). Single CLI: `python -m qtrade.cli {fetch,backtest,scan,walkforward,portfolio,paper,explain,weekly,health,live}`.
 
-- [x] 三市场数据层全通：crypto (OKX)、A股 (baostock)、美股 (yfinance, 日线优先)
-- [x] 回测闭环 + 做空 (crypto_perp) + T+1 (ashare)
-- [x] 研究工具：参数网格 + 敏感性热力图 + walk-forward
-- [x] 基线策略结论（诚实版）：
-  - 双均线/动量在 5m 级别被成本碾压；1h 级别与基准打平
-  - 多空动量 BTC walk-forward 5 折 3 胜 (+13pp)，但 **ETH 迁移失败 (-1.4pp) → 判定行情运气**
-  - SPY 日线金叉 10 年样本外跑输 buy&hold 27pp（著名结果，系统如实复现）
-- [x] 组合层：多品种共享资金、equal/inv_vol 分配、Composite 多策略组合
-- [x] 策略族：均值回归（regime 对齐）/ CTA 趋势 / 截面轮动（已淘汰）/ vol target
-- [x] 3 年全周期验证 + 过拟合审计 → crypto_core 候选
-- [x] 模拟盘 paper 命令（已启动记录）
-- [ ] 永续资金费率建模；极端行情滑点模型；A股涨跌停约束
-- [ ] A股/美股方向的策略研究（当前策略均为 crypto 验证）
-- [ ] （远期）实盘执行 —— 前置条件：模拟盘 ≥1 个月正常且结果与回测一致
+## Quickstart
 
-## 提醒
+```bash
+uv sync --extra dev
+python -m qtrade.cli fetch --market crypto --symbol BTC/USDT --timeframe 1h --days 365
+python -m qtrade.cli backtest --market crypto --rules crypto_perp --symbol BTC/USDT \
+    --timeframe 1h --strategy ts_momentum --param lookback=168
+python -m qtrade.cli weekly   # the one command: health + stats + A/B + decay + cost caps
+pytest tests/                 # the anti-self-deception suite
+```
 
-回测跑输就是跑输，报告会直说。任何策略在接真钱之前至少要过三关：
-样本外为正、参数敏感性平缓（不是孤峰）、多品种可迁移。
+## Where to look if you're evaluating this project
+
+1. **[research/log.md](research/log.md)** — the lab notebook. Read any pre-registration and its verdict; note the frozen gates, the failures, and the two incident postmortems.
+2. **`qtrade/live/stats.py` + `decay.py`** — inference on live records: bootstrap CIs, permutation tests, the A/B adjudicator, the decay state machine.
+3. **`qtrade/backtest/engine.py` + `tests/`** — the honesty invariants and the tests that enforce them.
+4. **`qtrade/live/cb_book.py`** — a full observation book: the research script *is* the frozen protocol, imported directly so live and research cannot drift.
