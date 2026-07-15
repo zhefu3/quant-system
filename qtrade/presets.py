@@ -16,6 +16,7 @@ from .markets.rules import (
     CRYPTO_PERP,
     FUTURES_IBKR as FUTURES_IBKR_RULES,
     US_ETF as US_ETF_RULES,
+    CN_CB as CN_CB_RULES,
     MarketRules,
 )
 from .strategies.base import Strategy
@@ -225,5 +226,22 @@ ETF_TREND = BookPreset(
     risk=RiskLimits(max_weight=0.25, max_gross=1.0, dd_halt=0.135, max_data_age_bars=5),
 )
 
+# E63 OBSERVATION book: convertible-bond double-low rotation (monthly top-20).
+# Gate passed on the frozen post-2021 segment WITH a recorded sensitivity
+# warning (2021-dependency) — the forward record must speak for itself before
+# any real-money conversation. Dynamic universe -> dedicated book class.
+CB_DOUBLE_LOW = BookPreset(
+    name="cb_double_low",
+    market="cn_cb",
+    timeframe="1d",
+    symbols=[],
+    rules=CN_CB_RULES,
+    rebalance_eps=0.0,
+    build=None,  # targets come from qtrade/live/cb_book.py
+    # dd_halt = ~1.5x the E63 post-2021 maxDD (8.7%)
+    risk=RiskLimits(max_weight=0.06, max_gross=1.0, dd_halt=0.13, max_data_age_bars=5),
+)
+
 PRESETS = {p.name: p for p in (CRYPTO_CORE, CRYPTO_CORE_4H, CRYPTO_CORE_V2, CN_FUTURES,
-                               FUTURES_IBKR, LLM_AGENTS, ASHARE_ML, ETF_TREND)}
+                               FUTURES_IBKR, LLM_AGENTS, ASHARE_ML, ETF_TREND,
+                               CB_DOUBLE_LOW)}

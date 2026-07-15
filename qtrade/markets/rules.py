@@ -43,6 +43,10 @@ CNFUTURES = MarketRules(
     market="cnfutures", fee_rate=0.0002, slippage=0.0004, allow_short=True, tz="Asia/Shanghai"
 )
 
+# 可转债: T+0、免印花税; 佣金 0.01% + 滑点 0.05%/边, E63 冻结(保守值)。
+CN_CB = MarketRules(market="cn_cb", fee_rate=0.0001, slippage=0.0005,
+                    allow_short=False, tz="Asia/Shanghai")
+
 # 美股 ETF: 佣金 0.01% + 点差滑点 0.03%/边, E62 冻结(保守值); 长多账本禁做空。
 US_ETF = MarketRules(market="us_etf", fee_rate=0.0001, slippage=0.0003,
                      allow_short=False, tz="America/New_York")
@@ -54,4 +58,4 @@ FUTURES_IBKR = MarketRules(
 )
 
 BY_NAME = {r.market: r for r in (CRYPTO, CRYPTO_PERP, ASHARE, US, CNFUTURES, FUTURES_IBKR,
-                                 US_ETF)}
+                                 US_ETF, CN_CB)}

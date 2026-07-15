@@ -162,6 +162,10 @@ def run_tick(preset_name: str, state_dir: str | None = None) -> dict:
         from .ashare_ml import run_tick as ashare_tick
 
         return ashare_tick(state_dir=state_dir)
+    if preset_name == "cb_double_low":  # dynamic universe: dedicated book class
+        from .cb_book import run_tick as cb_tick
+
+        return cb_tick(state_dir=state_dir)
 
     targets_fn = None
     if preset_name == "llm_agents":
