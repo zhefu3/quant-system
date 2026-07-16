@@ -902,3 +902,20 @@ E25 均值回归参数集成、E26 组合级vol target、E27 基差carry腿、E2
   收益相关 0.77/下修仅 16% 驱动/84% 深折价 beta", **E65 方向关闭**。九本账维持不变
 - 重开条件: 公告日历史数据可得(能测纯事件套利, 而非折价持有代理) 或 现有 cb_double_low
   前瞻记录显示需要一条深折价腿分散时; 研究脚本 research/cb_downward_revision.py 留档可复跑
+
+### 运维事件: 900s 墙钟被逐券 except 吞掉, cb 账 tick 裸挂 10 小时（2026-07-16）
+- 现象: paper_all 循环进程存活 10h25m 不退出; crypto 三本 heartbeat 10.4h 停摆
+  (launchd 单实例, 一个挂死 tick 饿死全部账本——与 07-14 事故同一放大机制);
+  调用栈采样: 卡死在无超时 SSL read(akshare 转债数据, requests 未传 timeout 时
+  会 settimeout(None) 覆盖 socket.setdefaulttimeout)
+- **根因(防线组合失效)**: SIGALRM 一次性 + handler 抛的 TimeoutError 是 Exception
+  子类 + cb_book._refresh_values 逐券 `except Exception: pass`(单券失败不杀 tick
+  的合理设计)——闹钟第一响被吞掉即解除, 之后的停滞裸奔。上午 llm_agents 前
+  6.7h 无日志空洞为同类
+- 修复: cli.TickDeadline 改为 **BaseException 派生**——任何逐项 except Exception
+  都吞不掉; cmd_paper 顶层捕获后 exit(3) 单行报错; 哨兵测试
+  tests/test_tick_deadline.py 锁死"deadline 不可为 Exception 子类"+"宽 except
+  循环中必须穿透"两条
+- 教训: "有硬超时"不等于"超时不可吞"——超时异常的类型与它要穿透的 except 层级
+  必须一起设计; 一次性闹钟被吞即永久解除, 这是静默的
+- 处置: 挂死进程终止, launchd kickstart 追点; 未动任何账本状态文件

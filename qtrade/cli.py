@@ -165,9 +165,19 @@ def cmd_portfolio(args):
     print(res.to_string())
 
 
+class TickDeadline(BaseException):
+    # BaseException, NOT Exception: book ticks legitimately wrap per-item work
+    # in `except Exception` (one bond/symbol must not kill the tick), and the
+    # one-shot SIGALRM must never be swallowed by those handlers — once it is,
+    # the process runs with no deadline at all (2026-07-16: cb_double_low hung
+    # 10h on an SSL read after exactly that).
+    pass
+
+
 def cmd_paper(args):
     import signal
     import socket
+    import sys
 
     from .live.paper import run_tick
 
@@ -179,12 +189,15 @@ def cmd_paper(args):
     socket.setdefaulttimeout(120)
 
     def _deadline(signum, frame):
-        raise TimeoutError("tick exceeded 900s wall-clock budget — aborted")
+        raise TickDeadline("tick exceeded 900s wall-clock budget — aborted")
 
     signal.signal(signal.SIGALRM, _deadline)
     signal.alarm(900)
     try:
         run_tick(args.preset, state_dir=args.state_dir)
+    except TickDeadline as e:
+        print(f"[deadline] {args.preset}: {e}", file=sys.stderr)
+        sys.exit(3)
     finally:
         signal.alarm(0)
 
