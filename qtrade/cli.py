@@ -318,8 +318,13 @@ def main():
     wk = sub.add_parser("weekly", help="one-command weekly digest + protocol due reminders")
     wk.set_defaults(fn=lambda a: __import__("qtrade.live.weekly", fromlist=["run_weekly"]).run_weekly())
 
+    tca = sub.add_parser("tca", help="realized vs assumed execution cost (live fills)")
+    tca.set_defaults(fn=lambda a: __import__("qtrade.live.tca", fromlist=["run_tca"]).run_tca())
+
     hc = sub.add_parser("health", help="data integrity + heartbeat + halt-marker check")
-    hc.set_defaults(fn=lambda a: __import__("qtrade.live.healthcheck", fromlist=["run_health"]).run_health())
+    hc.add_argument("--alert", action="store_true",
+                    help="push a macOS notification on WARNs (de-duplicated)")
+    hc.set_defaults(fn=lambda a: __import__("qtrade.live.healthcheck", fromlist=["run_health"]).run_health(alert=a.alert))
 
     pt = sub.add_parser("parity", help="recompute the last recorded tick's signals from data")
     pt.add_argument("--preset", default="crypto_core")

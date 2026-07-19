@@ -9,6 +9,11 @@ for p in crypto_core crypto_core_v2 crypto_core_4h futures_ibkr llm_agents etf_t
   .venv/bin/python -m qtrade.cli paper --preset "$p" || echo "[paper_all] $p tick failed"
 done
 
+# Hourly health with push alerting (2026-07-19): a WARN interrupts the human
+# via macOS notification instead of waiting for a manual check. De-dup state
+# in outputs/alerts_state.json keeps a standing WARN from spamming.
+.venv/bin/python -m qtrade.cli health --alert || echo "[paper_all] health check failed"
+
 # Monthly revalidation, institutionalized (2026-07-19; was a manual script).
 # Runs AFTER all book ticks so books never wait on it. One attempt per month
 # (marker written before the run): a failure surfaces via `cli weekly`'s

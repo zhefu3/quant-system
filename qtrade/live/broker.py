@@ -318,6 +318,9 @@ class OKXExecutor:
                            "status": order.get("status")}]).to_csv(
                 self.orders_file, mode="a",
                 header=not self.orders_file.exists(), index=False)
+            from .tca import record_fill
+            record_fill(self.dir, now, p["symbol"], p["side"], p["contracts"],
+                        closes.get(p["symbol"]), order)
 
         if send and any(p["contracts"] for p in plans):
             # snapshot for next run's reconciliation: fills may be partial, so

@@ -24,6 +24,7 @@ import pandas as pd
 
 from .ashare_ml import mark, rebalance
 from .risk import RiskGate
+from .timeouts import call_with_timeout as _call_with_timeout
 
 REPO = Path(__file__).resolve().parents[2]
 CB = REPO / "data_store" / "cn_cb"
@@ -35,35 +36,6 @@ spec = importlib.util.spec_from_file_location("cb_double_low",
 R = importlib.util.module_from_spec(spec)
 sys.modules.setdefault("cb_double_low", R)
 spec.loader.exec_module(R)
-
-
-def _call_with_timeout(fn, timeout: float, /, *args, **kwargs):
-    """Run a flaky-endpoint call in a daemon thread with a join timeout.
-
-    akshare's requests carry no timeout, and requests overrides
-    socket.setdefaulttimeout — a stalled TLS read otherwise blocks until the
-    tick's 900s wall-clock kills everything (2026-07-16 incident). This makes
-    the failure cost one item, not the tick. A timed-out worker thread is
-    abandoned (daemon); the per-book process exits after the tick anyway.
-    """
-    import threading
-
-    out: dict = {}
-
-    def _run():
-        try:
-            out["v"] = fn(*args, **kwargs)
-        except Exception as e:  # noqa: BLE001 — surfaced to the caller below
-            out["e"] = e
-
-    t = threading.Thread(target=_run, daemon=True)
-    t.start()
-    t.join(timeout)
-    if t.is_alive():
-        raise TimeoutError(f"{getattr(fn, '__name__', fn)} timed out after {timeout}s")
-    if "e" in out:
-        raise out["e"]
-    return out.get("v")
 
 
 def _refresh_values(codes: list[str], quiet: bool = True) -> int:

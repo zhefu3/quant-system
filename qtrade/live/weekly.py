@@ -36,6 +36,11 @@ def run_weekly():
     weekly_section()
 
     print()
+    from .exposure import cross_book_section
+
+    cross_book_section()
+
+    print()
     _llm_cost_section()
 
     print("\n--- 制度到期提醒 ---")
