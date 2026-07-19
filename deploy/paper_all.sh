@@ -8,3 +8,19 @@ cd /Users/kelsey/qtrade
 for p in crypto_core crypto_core_v2 crypto_core_4h futures_ibkr llm_agents etf_trend cn_futures ashare_ml cb_double_low; do
   .venv/bin/python -m qtrade.cli paper --preset "$p" || echo "[paper_all] $p tick failed"
 done
+
+# Monthly revalidation, institutionalized (2026-07-19; was a manual script).
+# Runs AFTER all book ticks so books never wait on it. One attempt per month
+# (marker written before the run): a failure surfaces via `cli weekly`'s
+# 制度到期提醒 going stale, never as an hourly retry hammering free APIs.
+# The subprocess timeout keeps a hung revalidate from blocking next hour's
+# launchd instance — the exact incident class of 07-14/07-16.
+month_marker="outputs/revalidate_$(date +%Y-%m).attempted"
+if [[ ! -f $month_marker ]]; then
+  touch "$month_marker"
+  .venv/bin/python - >> outputs/revalidate.log 2>&1 <<'PY' || echo "[paper_all] monthly revalidate failed (outputs/revalidate.log)"
+import subprocess, sys
+r = subprocess.run([".venv/bin/python", "research/revalidate.py"], timeout=1800)
+sys.exit(r.returncode)
+PY
+fi

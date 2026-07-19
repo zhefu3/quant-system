@@ -37,13 +37,42 @@ sys.modules.setdefault("cb_double_low", R)
 spec.loader.exec_module(R)
 
 
+def _call_with_timeout(fn, timeout: float, /, *args, **kwargs):
+    """Run a flaky-endpoint call in a daemon thread with a join timeout.
+
+    akshare's requests carry no timeout, and requests overrides
+    socket.setdefaulttimeout — a stalled TLS read otherwise blocks until the
+    tick's 900s wall-clock kills everything (2026-07-16 incident). This makes
+    the failure cost one item, not the tick. A timed-out worker thread is
+    abandoned (daemon); the per-book process exits after the tick anyway.
+    """
+    import threading
+
+    out: dict = {}
+
+    def _run():
+        try:
+            out["v"] = fn(*args, **kwargs)
+        except Exception as e:  # noqa: BLE001 — surfaced to the caller below
+            out["e"] = e
+
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
+    t.join(timeout)
+    if t.is_alive():
+        raise TimeoutError(f"{getattr(fn, '__name__', fn)} timed out after {timeout}s")
+    if "e" in out:
+        raise out["e"]
+    return out.get("v")
+
+
 def _refresh_values(codes: list[str], quiet: bool = True) -> int:
     import akshare as ak
 
     n = 0
     for code in codes:
         try:
-            v = ak.bond_zh_cov_value_analysis(symbol=code)
+            v = _call_with_timeout(ak.bond_zh_cov_value_analysis, 60.0, symbol=code)
             if v is not None and len(v):
                 v.to_parquet(CB / "value" / f"{code}.parquet")
                 n += 1
@@ -104,7 +133,7 @@ class CbBook:
         cache = self.dir / "monthly" / f"{month_key}.json"
 
         if not cache.exists():
-            master = ak.bond_zh_cov()
+            master = _call_with_timeout(ak.bond_zh_cov, 120.0)
             master.to_parquet(CB / "bonds.parquet")
             live = _live_candidates(master)
             print(f"[{now}] cb decision {month_key}: refreshing {len(live)} live bonds")
