@@ -21,6 +21,20 @@
 - 数据缺口：store 增量合并会自愈——重跑 `qtrade.cli fetch` 即可补齐
 - baostock 慢/挂：只影响 A股研究，不影响 crypto 生产路径
 
+## IB Gateway 自动化（IBC, 2026-07-19 装好待激活）
+
+- 组件: `~/ibc/`（IBC 3.24.1）+ `~/Library/LaunchAgents/com.qtrade.ibgateway.plist`
+  （模板同步在 deploy/）。config.ini 已配好: API 口 4002、**ReadOnlyApi=yes**
+  （qtrade 只读行情, 即使代码有 bug 也发不出 IB 订单）、每日 14:45 本地时间
+  Gateway 自重启（CME 日常维护窗内, 最多牺牲一个整点 tick）
+- **激活两步（用户）**: ① `~/ibc/config.ini` 填 IbLoginId/IbPassword 两行
+  （若登录的是 paper 账户, 同时把 TradingMode=live 改成 paper）; ② 退出手动
+  开着的 Gateway, 然后 `launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.qtrade.ibgateway.plist`
+- 之后: 开机自启、崩溃自拉起（KeepAlive）、每日自重启; health 直接探 4002 端口,
+  掉线即 push 告警。卸载: `launchctl bootout gui/$(id -u)/com.qtrade.ibgateway`
+- 注意: IB 每周日强制断一次会话; 无 2FA 的账户 IBC 能全自动重登, 带 2FA 需要
+  IBKR Mobile 点一下（TWOFA_TIMEOUT_ACTION=exit + KeepAlive 会反复重试直到你点）
+
 ## 机器/进程问题
 
 - **停机 <6 小时：无需任何处理**（E32：信号衰减极慢，晚 6 小时仅 -2pp）

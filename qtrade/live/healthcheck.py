@@ -197,6 +197,19 @@ def run_health(alert: bool = False) -> int:
                   "needs human review")
             findings.append(f"{name}: HALTED")
 
+    # IB Gateway reachability: futures_ibkr's single external dependency.
+    # Probed directly so the push alert fires when the gateway dies, instead
+    # of waiting for the book's heartbeat to age past tolerance.
+    if (DEFAULT_ROOT / "futures_ibkr" / "equity.csv").exists():
+        import socket as _socket
+        try:
+            with _socket.create_connection(("127.0.0.1", 4002), timeout=3):
+                pass
+        except OSError:
+            print("WARN  ib_gateway: port 4002 unreachable — futures_ibkr will "
+                  "stall (IBC auto-restart configured? see ops-runbook)")
+            findings.append("ib_gateway: port 4002 unreachable")
+
     if LIVE_ROOT.exists():
         flagged = [(p.parent.name, p.name) for flag in ("HALTED", "RECONCILE")
                    for p in LIVE_ROOT.glob(f"*/{flag}")]
