@@ -6,7 +6,7 @@
 <title>quant-system — a solo quant research program run like a lab</title>
 <meta name="description" content="Pre-registered experiments, published failures, nine paper-trading books across five asset classes.">
 <meta property="og:title" content="quant-system — a solo quant research program run like a lab">
-<meta property="og:description" content="65 pre-registered experiments, most of them documented failures — by design. Nine survivors trade in parallel on paper across five asset classes.">
+<meta property="og:description" content="67 pre-registered experiments, most of them documented failures — by design. Nine survivors trade in parallel on paper across five asset classes.">
 <meta property="og:url" content="https://zhefu3.github.io/quant-system/">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary">
@@ -328,7 +328,7 @@ footer .mono { font-family: var(--mono); font-size: 12.5px; }
 <div class="wrap">
 
 <section class="hero" style="margin-top:0">
-  <p class="overline">research/log.md · E1 – E65</p>
+  <p class="overline">research/log.md · E1 – E67</p>
   <h1>A solo quant research program,<br>run like a <em>lab</em>.</h1>
   <p class="lede">Every strategy idea is pre-registered with frozen success criteria
   <em>before</em> the backtest runs. Every failure is published. Nine survivors trade
@@ -339,18 +339,18 @@ footer .mono { font-family: var(--mono); font-size: 12.5px; }
     <a class="cta ghost" href="https://github.com/zhefu3/quant-system/blob/main/research/log.md">Read the lab log</a>
   </div>
   <div class="stats">
-    <div class="tile"><div class="n">65</div><div class="l">pre-registered experiments</div></div>
-    <div class="tile"><div class="n">16</div><div class="l">formal verdicts recorded</div></div>
+    <div class="tile"><div class="n">67</div><div class="l">pre-registered experiments</div></div>
+    <div class="tile"><div class="n">18</div><div class="l">formal verdicts recorded</div></div>
     <div class="tile"><div class="n">9</div><div class="l">paper books live</div></div>
     <div class="tile"><div class="n">5</div><div class="l">asset classes</div></div>
-    <div class="tile"><div class="n">86</div><div class="l">anti-self-deception tests</div></div>
+    <div class="tile"><div class="n">114</div><div class="l">anti-self-deception tests</div></div>
   </div>
 </section>
 
 <section id="record">
   <div class="kicker">The record</div>
   <h2>Verdicts, as they landed</h2>
-  <p class="sub">The 16 formal verdicts in the lab log, in the order they were decided.
+  <p class="sub">The 18 formal verdicts in the lab log, in the order they were decided.
   Most experiments die — that is the point of the gate. Hover or tab onto any square.</p>
   <div class="strip-card">
     <div class="strip" id="strip" role="list"></div>
@@ -490,6 +490,8 @@ footer .mono { font-family: var(--mono); font-size: 12.5px; }
     <span class="g">461-factor public library</span>
     <span class="g">breadth expansion 300→800 names</span>
     <span class="g">convertible downward-revision game</span>
+    <span class="g">implied-vol position sizing</span>
+    <span class="g">low-premium weekly CB rotation</span>
   </div>
   <p class="grave-note">The 461-factor library survives as screening infrastructure —
   the verdict was "no incremental alpha," not "useless code."</p>
@@ -510,6 +512,15 @@ footer .mono { font-family: var(--mono); font-size: 12.5px; }
       non-finite price — a fail-safe shared by all nine books, locked in by a sentinel test.</li>
     <li><b>Hard wall-clock timeouts on every external call</b> After a silent API hang
       froze a book for hours — no network call runs unbounded.</li>
+    <li><b>Unswallowable deadlines.</b> After a book hung 10h because a per-item
+      exception handler absorbed the tick's one-shot timeout: the wall-clock
+      deadline is BaseException-derived — no broad except can disarm it — and
+      flaky endpoints get per-item soft timeouts so a stall costs one item, not
+      the tick.</li>
+    <li><b>Paper fills respect the market's refusals.</b> A-share suspensions and
+      one-way limit boards reject orders into a retried pending queue; every
+      attempt is logged — the paper twin of the live TCA stream. A suspended
+      holding can no longer be phantom-sold at a stale price.</li>
     <li><b>Five-layer execution safety</b> Account pinning → per-order caps →
       exchange reconciliation flags → weight/gross clamps → a drawdown circuit breaker
       requiring human review to clear. Real-money switches belong to the human; none
@@ -536,7 +547,7 @@ footer .mono { font-family: var(--mono); font-size: 12.5px; }
 </section>
 
 <footer>
-  <div class="mono">Python ~35k LOC · vectorbt · LightGBM · DuckDB · 7 data adapters · single CLI</div>
+  <div class="mono">Python ~37k LOC · vectorbt · LightGBM · DuckDB · 7 data adapters · single CLI</div>
   <div><a href="https://github.com/zhefu3/quant-system">github.com/zhefu3/quant-system</a> ·
     research project — nothing here is investment advice.</div>
 </footer>
@@ -581,6 +592,8 @@ const VERDICTS = [
   {id:'E63',  o:'pass',     t:'Convertible double-low: passed with a recorded 2021-dependency warning that ships with the book'},
   {id:'E64',  o:'fail',     t:'Breadth 300→800 names: no increment at monthly frequency, dilutes the signal — closed'},
   {id:'E65',  o:'gateclosed', t:'Downward-revision game: gate passed (+10.7%/yr, Sharpe 1.31) but attribution showed 84% generic beta and 0.77 correlation to an existing book — closed as redundant'},
+  {id:'E66',  o:'fail',     t:'Implied-vol (DVOL) position sizing: the forward-looking mechanism is real — it de-levered ahead of the 2022 crash — but the variance-risk-premium tax halved exposure year-round; dSharpe -0.22, closed'},
+  {id:'E67',  o:'fail',     t:'The CB community\'s favorite low-premium weekly rotation: real signal (gross +7.6%/yr over 994 weeks), but 25% weekly turnover dies on replicable costs — passes at 5bp, fails the pre-committed 10bp; conservative level decides'},
 ];
 const strip = document.getElementById('strip');
 const tip = document.getElementById('tip');
