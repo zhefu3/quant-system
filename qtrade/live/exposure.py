@@ -72,10 +72,14 @@ def cross_book_section() -> None:
             if pd.isna(corr):
                 continue
             printed_any = True
-            mark = "  ⚠ 收益冗余" if abs(corr) > REDUNDANCY_FLAG else ""
-            print(f"  {a} × {b}: ρ={corr:+.2f} (n={len(both)}d){mark}")
-            if abs(corr) > REDUNDANCY_FLAG:
+            if corr > REDUNDANCY_FLAG:
+                mark = "  ⚠ 收益冗余"
                 flagged.append((a, b, corr))
+            elif corr < -REDUNDANCY_FLAG:
+                mark = "  (强负相关 — 分散贡献, 非冗余)"
+            else:
+                mark = ""
+            print(f"  {a} × {b}: ρ={corr:+.2f} (n={len(both)}d){mark}")
     if not printed_any:
         print(f"  (所有账本对重叠记录 <{MIN_OVERLAP_DAYS} 天, 相关性待积累)")
     if flagged:
