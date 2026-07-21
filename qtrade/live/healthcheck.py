@@ -142,6 +142,34 @@ def _cross_source_checks() -> tuple[list[str], list[str]]:
     return findings, infos
 
 
+def _ib_gateway_probe(port: int = 4002) -> str:
+    """'ok' | 'down' (port closed) | 'zombie' (port open, API handshake dead).
+
+    The handshake runs in a SUBPROCESS with a hard kill: a wedged gateway
+    must never hang the health run itself (which rides the hourly loop —
+    the exact incident class of 07-14/16). Client id 93 avoids the books'
+    ids; a same-id clash would false-flag zombie."""
+    import socket as _socket
+    import subprocess
+    import sys as _sys
+
+    try:
+        with _socket.create_connection(("127.0.0.1", port), timeout=3):
+            pass
+    except OSError:
+        return "down"
+    code = (f"from ib_async import IB\n"
+            f"ib = IB(); ib.connect('127.0.0.1', {port}, clientId=93, timeout=8)\n"
+            f"assert ib.isConnected()\n"
+            f"ib.reqCurrentTime(); ib.disconnect()")
+    try:
+        r = subprocess.run([_sys.executable, "-c", code],
+                           capture_output=True, timeout=20)
+        return "ok" if r.returncode == 0 else "zombie"
+    except subprocess.TimeoutExpired:
+        return "zombie"
+
+
 def run_health(alert: bool = False) -> int:
     now = pd.Timestamp.now("UTC")
     store = BarStore()
@@ -197,18 +225,20 @@ def run_health(alert: bool = False) -> int:
                   "needs human review")
             findings.append(f"{name}: HALTED")
 
-    # IB Gateway reachability: futures_ibkr's single external dependency.
-    # Probed directly so the push alert fires when the gateway dies, instead
-    # of waiting for the book's heartbeat to age past tolerance.
+    # IB Gateway health: futures_ibkr's single external dependency. API-level,
+    # not port-level — 2026-07-21 the gateway sat ZOMBIE for 8h (local port
+    # answering, IB session dead) and the TCP probe stayed green throughout.
+    # Port asks "are you there"; the API handshake asks "can you still work".
     if (DEFAULT_ROOT / "futures_ibkr" / "equity.csv").exists():
-        import socket as _socket
-        try:
-            with _socket.create_connection(("127.0.0.1", 4002), timeout=3):
-                pass
-        except OSError:
-            print("WARN  ib_gateway: port 4002 unreachable — futures_ibkr will "
-                  "stall (IBC auto-restart configured? see ops-runbook)")
-            findings.append("ib_gateway: port 4002 unreachable")
+        verdict = _ib_gateway_probe()
+        if verdict == "down":
+            print("WARN  ib_gateway: port 4002 unreachable — gateway down "
+                  "(IBC KeepAlive should relaunch; see ops-runbook)")
+            findings.append("ib_gateway: down")
+        elif verdict == "zombie":
+            print("WARN  ib_gateway: ZOMBIE — port open but API session dead "
+                  "(the 07-21 starvation mode); await IBC restart or kick it")
+            findings.append("ib_gateway: zombie session")
 
     if LIVE_ROOT.exists():
         flagged = [(p.parent.name, p.name) for flag in ("HALTED", "RECONCILE")
