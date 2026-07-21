@@ -14,6 +14,20 @@ done
 # in outputs/alerts_state.json keeps a standing WARN from spamming.
 .venv/bin/python -m qtrade.cli health --alert || echo "[paper_all] health check failed"
 
+# Daily PIT snapshot of CB clause-game events (2026-07-21): builds the
+# announcement-date dataset that E65's reopen condition needs and nobody
+# sells — two polite API calls, diffed into an event log. Runs BEFORE the
+# records backup so today's snapshot rides today's backup push.
+events_marker="outputs/cb_events_$(date +%Y-%m-%d).done"
+if [[ ! -f $events_marker ]]; then
+  touch "$events_marker"
+  .venv/bin/python - <<'PY' || echo "[paper_all] cb_events collection failed"
+import subprocess, sys
+r = subprocess.run([".venv/bin/python", "research/collect_cb_events.py"], timeout=300)
+sys.exit(r.returncode)
+PY
+fi
+
 # Daily off-site backup of forward records (2026-07-21): the paper records
 # are irreplaceable evidence; one push per day to the private records repo.
 # Subprocess timeout so a hung push can never block the next hourly loop.

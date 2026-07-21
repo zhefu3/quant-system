@@ -13,6 +13,9 @@ DST=/Users/kelsey/qtrade-records
 [[ -d $DST/.git ]] || { echo "[backup] $DST missing — bootstrap first"; exit 1; }
 rsync -a --delete "$SRC/outputs/paper/" "$DST/paper/"
 [[ -d $SRC/outputs/live ]] && rsync -a --delete "$SRC/outputs/live/" "$DST/live/"
+# the forward-collected PIT event dataset is irreplaceable BY DESIGN —
+# its whole value is that it cannot be re-fetched later
+[[ -d $SRC/data_store/cn_cb_events ]] && rsync -a --delete "$SRC/data_store/cn_cb_events/" "$DST/cn_cb_events/"
 cp "$SRC/research/revalidation_history.csv" "$DST/" 2>/dev/null || true
 
 cd "$DST"
