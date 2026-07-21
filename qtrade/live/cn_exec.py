@@ -57,20 +57,61 @@ def fill_verdict(side: str, code: str, bar_today: pd.Series | None,
     return "fill"
 
 
-def today_bar(store, market: str, code: str, today_cn: str):
-    """(bar_today, prev_close) — bar only if the last stored row is today
-    (Asia/Shanghai date), which is also the suspension test."""
+def pick_asof(df, ref_day: str):
+    """(bar at ref_day, prev_close) from a daily frame, or (None, last close)
+    when the series stops short of ref_day — the suspension signal.
+
+    ref_day is the market's latest COMPLETED trade day (the benchmark's last
+    bar date), NOT the wall clock: daily bars publish hours after the close,
+    and decision ticks can fire on weekends (2026-08-01 is a Saturday). The
+    2026-07-21 rehearsal caught the wall-clock version marking 50/50 CSI300
+    names "suspended" at 16:10 on an ordinary Tuesday."""
+    if df is None or not len(df):
+        return None, None
+    days = df.index.tz_convert("Asia/Shanghai").strftime("%Y-%m-%d")
+    last_day = days[-1]
+    if last_day < ref_day:
+        return None, float(df["close"].iloc[-1])  # behind the market: suspended
+    if last_day == ref_day:
+        prev = float(df["close"].iloc[-2]) if len(df) >= 2 else None
+        return df.iloc[-1], prev
+    # series runs past ref_day (shouldn't happen live): locate ref_day's row
+    hits = [i for i, d in enumerate(days) if d == ref_day]
+    if not hits:
+        older = df[[d < ref_day for d in days]]
+        return None, (float(older["close"].iloc[-1]) if len(older) else None)
+    i = hits[-1]
+    prev = float(df["close"].iloc[i - 1]) if i >= 1 else None
+    return df.iloc[i], prev
+
+
+def bar_asof(store, market: str, code: str, ref_day: str):
     try:
         df = store.load(market, code, "1d")
     except FileNotFoundError:
         return None, None
-    if not len(df):
-        return None, None
-    last_day = df.index[-1].tz_convert("Asia/Shanghai").strftime("%Y-%m-%d")
-    prev_close = float(df["close"].iloc[-2]) if len(df) >= 2 else None
-    if last_day != today_cn:
-        return None, float(df["close"].iloc[-1])
-    return df.iloc[-1], prev_close
+    return pick_asof(df, ref_day)
+
+
+def pool_ref_day(store, market: str, codes) -> str | None:
+    """The latest bar date across the codes in play — the book's own
+    self-consistent 'as of' day.
+
+    NOT the benchmark index and NOT the wall clock: the second rehearsal
+    (2026-07-21) showed the index publishing before adj_factor lands, so a
+    bench reference marks the entire stock universe suspended for a few
+    hours every afternoon. Judged against the pool's own max date, verdicts
+    and fill prices (_latest closes) always describe the same market state;
+    a single name lagging the pool is a genuine suspension."""
+    days = []
+    for c in codes:
+        try:
+            df = store.load(market, c, "1d")
+        except FileNotFoundError:
+            continue
+        if len(df):
+            days.append(df.index[-1].tz_convert("Asia/Shanghai").strftime("%Y-%m-%d"))
+    return max(days) if days else None
 
 
 def log_attempt(book_dir: Path, ts: str, code: str, side: str, status: str,

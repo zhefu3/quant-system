@@ -248,7 +248,7 @@ def refresh_monthly_pit(pro, union: list[str]) -> None:
 
 # -- monthly decision --------------------------------------------------------------
 
-def decide_month(month_key: str) -> dict[str, float]:
+def decide_month(month_key: str, book_dir: Path | None = None) -> dict[str, float]:
     """Run E47's pipeline: train on all completed months, predict the latest
     month-end cross-section, pick top-50 in current membership."""
     import lightgbm as lgb
@@ -280,7 +280,10 @@ def decide_month(month_key: str) -> dict[str, float]:
     cur = pd.DataFrame(pred_rows).replace([np.inf, -np.inf], np.nan)
     feat_cols = list(feats)
 
-    model_file = ROOT / "model.pkl"
+    # model cache lives with the BOOK's state dir, not the production ROOT —
+    # a sandbox/rehearsal tick must never overwrite the live model (found in
+    # the 2026-07-21 pre-August rehearsal audit)
+    model_file = (book_dir or ROOT) / "model.pkl"
     month = int(month_key.split("-")[1])
     if model_file.exists() and month not in REFIT_MONTHS:
         model = pickle.loads(model_file.read_bytes())
@@ -341,18 +344,24 @@ class AshareMlBook:
             from . import cn_exec
 
             refresh_monthly_pit(pro, union)
-            weights = decide_month(month_key)
+            weights = decide_month(month_key, book_dir=self.dir)
             gate = RiskGate(PRESETS["ashare_ml"].risk, self.dir)
             hwm = self._hwm()
             closes = self._latest_closes(store, set(weights) | set(state["positions"]))
             net, _ = mark(state, closes)
             weights, notes = gate.apply(weights, net / max(hwm, net) - 1)
             # execution realism (2026-07-21 measurement upgrade, log.md):
-            # suspended / one-way-board names cannot trade today; they freeze
-            # on the net leg and queue for the daily retry loop
+            # suspended / one-way-board names cannot trade; they freeze on
+            # the net leg and queue for the daily retry loop. Tradability is
+            # judged as of the POOL's own latest bar date — never the wall
+            # clock (data publishes hours after the close; decision ticks
+            # can fire on weekends) and never the bench (the index publishes
+            # before adj_factor lands — both rehearsal findings, 2026-07-21).
+            ref_day = cn_exec.pool_ref_day(store, "ashare_ts",
+                                           set(weights) | set(state["positions"]))
             verdicts = {}
             for code in set(weights) | set(state["positions"]):
-                bar, prev = cn_exec.today_bar(store, "ashare_ts", code, today_cn)
+                bar, prev = cn_exec.bar_asof(store, "ashare_ts", code, ref_day)
                 side = "buy" if weights.get(code, 0.0) * net > \
                     state["positions"].get(code, 0.0) * closes.get(code, 0.0) else "sell"
                 verdicts[code] = cn_exec.fill_verdict(side, code, bar, prev)
@@ -360,6 +369,7 @@ class AshareMlBook:
                 weights, state["positions"], verdicts)
             state, fills = rebalance(state, weights, closes, frozen=frozen)
             state["pending"] = pending
+            state["last_retry_day"] = ref_day  # decision IS today's attempt
             for code in frozen:
                 cn_exec.log_attempt(self.dir, now, code,
                                     "buy" if code in weights else "sell",
@@ -403,24 +413,23 @@ class AshareMlBook:
         return {"ts": now, "equity": net, "gross_equity": gross}
 
     def _retry_pending(self, state: dict, store, now: str, today_cn: str) -> dict:
-        """Deferred orders (suspended/limit-locked at decision time) retry once
-        per daily tick until they fill or the next decision replaces them.
-        Quiet on non-trading days (bench has no bar), so weekends don't spam
-        the exec log with phantom 'suspended' rows."""
+        """Deferred orders (suspended/limit-locked at decision time) retry
+        until they fill or the next decision replaces them — at most ONE
+        attempt per market day (ref_day = bench bar date), so hourly ticks
+        and weekends never spam the exec log."""
         from . import cn_exec
 
         pending = dict(state.get("pending", {}))
         if not pending:
             return state
-        try:
-            bench = store.load("ashare_index", "SH_000300", "1d")
-            if bench.index[-1].tz_convert("Asia/Shanghai").strftime("%Y-%m-%d") != today_cn:
-                return state  # market closed today — nothing can have changed
-        except FileNotFoundError:
-            return state
+        ref_day = cn_exec.pool_ref_day(store, "ashare_ts",
+                                       set(pending) | set(state["positions"]))
+        if ref_day is None or state.get("last_retry_day") == ref_day:
+            return state  # no new market day since the last attempt
+        state["last_retry_day"] = ref_day
         retry_no = int(state.get("pending_retries", 0)) + 1
         for code, tgt in sorted(pending.items()):
-            bar, prev = cn_exec.today_bar(store, "ashare_ts", code, today_cn)
+            bar, prev = cn_exec.bar_asof(store, "ashare_ts", code, ref_day)
             cur_qty = state["positions"].get(code, 0.0)
             all_closes = self._latest_closes(store, set(state["positions"]) | {code})
             px = all_closes.get(code)

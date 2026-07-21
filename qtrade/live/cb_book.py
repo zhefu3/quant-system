@@ -95,20 +95,29 @@ class CbBook:
                     out[c] = float(pd.to_numeric(v["收盘价"], errors="coerce").iloc[-1])
         return out
 
-    def _fresh(self, codes, today_cn: str) -> set[str]:
-        """Codes whose latest quote row is dated today — the CB analogue of
-        'not suspended'. Trading on a stale quote fabricates a fill at a price
-        that no longer exists (2026-07-21 execution-realism upgrade; CB price
-        limits are not modeled — no fresh OHLC in the value files, and 一字板
-        is rare for convertibles; recorded as a known limitation)."""
-        fresh = set()
+    def _quote_days(self, codes) -> dict[str, str]:
+        out = {}
         for c in codes:
             f = CB / "value" / f"{c}.parquet"
             if f.exists():
                 v = pd.read_parquet(f)
-                if len(v) and pd.to_datetime(v["日期"].iloc[-1]).strftime("%Y-%m-%d") == today_cn:
-                    fresh.add(c)
-        return fresh
+                if len(v):
+                    out[c] = pd.to_datetime(v["日期"].iloc[-1]).strftime("%Y-%m-%d")
+        return out
+
+    def _fresh(self, codes) -> tuple[set[str], str | None]:
+        """(codes whose latest quote matches the market's newest quote date,
+        that ref date). The reference is the POOL's max quote date, not the
+        wall clock — quotes publish after the close and decision ticks can
+        fire on weekends (rehearsal finding, 2026-07-21). A bond lagging the
+        pool's newest date is suspended/delisted; trading it would fabricate
+        a fill at a price that no longer exists. CB price bands not modeled
+        (no fresh OHLC in value files; 一字板 rare in CBs — recorded)."""
+        days = self._quote_days(codes)
+        if not days:
+            return set(), None
+        ref = max(days.values())
+        return {c for c, d in days.items() if d == ref}, ref
 
     def tick(self) -> dict:
         from ..presets import PRESETS
@@ -153,8 +162,7 @@ class CbBook:
             # execution realism: stale-quoted names cannot trade at a price
             # that no longer exists — freeze and queue for the daily retry
             from . import cn_exec
-            today = pd.Timestamp.now(tz="Asia/Shanghai").strftime("%Y-%m-%d")
-            fresh = self._fresh(set(weights) | set(state["positions"]), today)
+            fresh, ref_day = self._fresh(set(weights) | set(state["positions"]))
             verdicts = {c: ("fill" if c in fresh else "suspended")
                         for c in set(weights) | set(state["positions"])}
             frozen, pending = cn_exec.split_executable(weights, state["positions"],
@@ -162,6 +170,7 @@ class CbBook:
             state, fills = rebalance(state, weights, closes, fee=R.FEE,
                                      slip=R.SLIP, frozen=frozen)
             state["pending"] = pending
+            state["last_retry_day"] = ref_day  # decision IS today's attempt
             for c in frozen:
                 cn_exec.log_attempt(self.dir, now, c,
                                     "buy" if c in weights else "sell",
@@ -185,10 +194,15 @@ class CbBook:
         if held or pending:
             _refresh_values(sorted(held | set(pending)))
 
-        # retry deferred orders whose quotes are fresh again
+        # retry deferred orders whose quotes are fresh again — at most one
+        # attempt per new market quote date
         if pending:
             from . import cn_exec
-            fresh = self._fresh(set(pending), today_cn)
+            fresh, ref_day = self._fresh(set(pending) | set(state["positions"]))
+            if ref_day is None or state.get("last_retry_day") == ref_day:
+                fresh = set()
+            else:
+                state["last_retry_day"] = ref_day
             retry_no = int(state.get("pending_retries", 0)) + 1
             for code in sorted(set(pending)):
                 if code not in fresh:

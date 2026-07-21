@@ -94,6 +94,36 @@ def test_split_executable_partitions():
     assert pending == {"A": 0.5, "C": 0.0}
 
 
+def _daily_df(days: list[str], closes: list[float]) -> pd.DataFrame:
+    idx = pd.DatetimeIndex(
+        [pd.Timestamp(d, tz="Asia/Shanghai").tz_convert("UTC") for d in days],
+        name="ts")
+    return pd.DataFrame({"open": closes, "high": closes, "low": closes,
+                         "close": closes}, index=idx)
+
+
+def test_pick_asof_matches_market_day():
+    """The 2026-07-21 rehearsal bug: tradability judged by wall clock marked
+    50/50 names suspended before the data published. As-of the market's own
+    latest day, a stock whose series reaches ref_day is tradable."""
+    df = _daily_df(["2026-07-17", "2026-07-20"], [10.0, 10.5])
+    bar, prev = cn_exec.pick_asof(df, "2026-07-20")
+    assert bar is not None and float(bar["close"]) == 10.5
+    assert prev == 10.0
+
+
+def test_pick_asof_lagging_series_is_suspended():
+    df = _daily_df(["2026-07-16", "2026-07-17"], [10.0, 10.2])
+    bar, last = cn_exec.pick_asof(df, "2026-07-20")
+    assert bar is None and last == 10.2
+
+
+def test_pick_asof_series_past_ref_day_locates_row():
+    df = _daily_df(["2026-07-17", "2026-07-20", "2026-07-21"], [10.0, 10.5, 11.0])
+    bar, prev = cn_exec.pick_asof(df, "2026-07-20")
+    assert float(bar["close"]) == 10.5 and prev == 10.0
+
+
 def test_equity_conserved_under_freeze():
     """Freezing must not create or destroy money on either leg."""
     closes = {"A": 10.0, "B": 20.0}
