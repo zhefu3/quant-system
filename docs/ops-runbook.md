@@ -41,6 +41,22 @@
 - 停机 >1 天：手动跑一次 `qtrade.cli paper`（或 live），让仓位追上目标即可
 - launchd 日志在 `outputs/paper/launchd.log`；任务卸载：`launchctl bootout gui/$(id -u)/com.qtrade.paper`
 
+## 灾难恢复（磁盘全灭 / 换机, 2026-07-21 演练通过）
+
+前瞻记录每日备份在私有仓 zhefu3/qtrade-records（paper 全量 + live 旗标 +
+条款事件数据集 + 重校验历史）。恢复手顺:
+
+1. `git clone https://github.com/zhefu3/quant-system.git ~/qtrade`（代码+log）
+2. `git clone https://github.com/zhefu3/qtrade-records.git`,把 `paper/` 拷回
+   `~/qtrade/outputs/paper/`、`cn_cb_events/` 拷回 `data_store/cn_cb_events/`
+3. `uv sync --extra dev`; 行情数据仓库(`data_store/` 其余)按各 fetch 脚本重抓
+   ——可再生, 只有时间成本
+4. launchd 两件套照 HANDOFF/本手册重装（paper + ibgateway）;密钥按 HANDOFF 第四节
+5. 验证: `cli health` 九本账应从备份的末值继续, 无断链
+
+丢失窗口 = 最后一次备份以来的当日小时级 mark（日备份节奏, 已接受的 RPO）。
+演练记录: 2026-07-21 从远端克隆重建, 九本账全部可解析、末值对上。
+
 ## 制度日历
 
 | 频率 | 动作 | 工具 |
