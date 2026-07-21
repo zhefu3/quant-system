@@ -1,0 +1,101 @@
+"""A-share execution realism for paper books (QMT-shaped, 2026-07-21).
+
+The E61 prereg recorded the simplification honestly: suspensions and price
+limits were not simulated. This layer closes that gap BEFORE the first real
+monthly rebalance (Aug), so the forward record never contains a fill that
+the real market would have refused:
+
+- suspended (no bar today)            -> cannot trade, position frozen
+- limit-up 一字板 (high==low at +limit) -> buys refused
+- limit-down 一字板 (low==high at -limit)-> sells refused
+
+Refused orders go to a pending queue retried on each daily tick until they
+fill or the next monthly decision replaces them. Every attempt is logged to
+exec_log.csv (the paper twin of the live TCA stream: intended price, fill
+price, status, retry count).
+
+Detection runs on 后复权 series, so limits are checked as ratios with a
+tolerance for raw-scale price rounding (round(prev*1.1, 2) happens on raw
+prices; on hfq data the exact tick is unrecoverable, ±0.6% tolerance
+captures it). 一字板 comparison is high==low, adjustment-invariant.
+The gross shadow stays frictionless by design — it measures signal decay;
+execution friction belongs to the cost side of the ledger.
+"""
+
+from __future__ import annotations
+
+from pathlib import Path
+
+import pandas as pd
+
+LIMIT_TOL = 0.006  # raw-scale rounding blur when checking on adjusted data
+
+
+def limit_pct(code: str) -> float:
+    """Daily price band by board: 20% for 创业板(300/301)/科创板(688/689),
+    10% for main boards. HS300/CB universes hold no ST names."""
+    head = code.split(".")[0][:3]
+    return 0.20 if head in ("300", "301", "688", "689") else 0.10
+
+
+def fill_verdict(side: str, code: str, bar_today: pd.Series | None,
+                 prev_close: float | None) -> str:
+    """'fill' | 'suspended' | 'limit_locked' for one intended order today."""
+    if bar_today is None:
+        return "suspended"
+    if prev_close is None or prev_close <= 0:
+        return "fill"  # no basis to judge a lock; do not over-refuse
+    hi, lo = float(bar_today["high"]), float(bar_today["low"])
+    if abs(hi / lo - 1) > 1e-6:
+        return "fill"  # traded through a range — not a one-way board
+    lim = limit_pct(code)
+    chg = hi / float(prev_close) - 1
+    if side == "buy" and chg >= lim - LIMIT_TOL:
+        return "limit_locked"
+    if side == "sell" and chg <= -(lim - LIMIT_TOL):
+        return "limit_locked"
+    return "fill"
+
+
+def today_bar(store, market: str, code: str, today_cn: str):
+    """(bar_today, prev_close) — bar only if the last stored row is today
+    (Asia/Shanghai date), which is also the suspension test."""
+    try:
+        df = store.load(market, code, "1d")
+    except FileNotFoundError:
+        return None, None
+    if not len(df):
+        return None, None
+    last_day = df.index[-1].tz_convert("Asia/Shanghai").strftime("%Y-%m-%d")
+    prev_close = float(df["close"].iloc[-2]) if len(df) >= 2 else None
+    if last_day != today_cn:
+        return None, float(df["close"].iloc[-1])
+    return df.iloc[-1], prev_close
+
+
+def log_attempt(book_dir: Path, ts: str, code: str, side: str, status: str,
+                ref_px: float | None, fill_px: float | None, retry: int) -> None:
+    f = Path(book_dir) / "exec_log.csv"
+    pd.DataFrame([{"ts": ts, "symbol": code, "side": side, "status": status,
+                   "ref_px": ref_px, "fill_px": fill_px, "retry": retry}]).to_csv(
+        f, mode="a", header=not f.exists(), index=False)
+
+
+def split_executable(desired: dict[str, float], current_pos: dict[str, float],
+                     verdicts: dict[str, str]) -> tuple[set[str], dict[str, float]]:
+    """(codes to freeze this tick, pending net targets to retry later).
+    Callers pass the FULL desired weights to rebalance() along with the
+    frozen set: the net leg skips frozen codes, the gross shadow still
+    trades them (see ashare_ml.rebalance)."""
+    frozen: set[str] = set()
+    pending: dict[str, float] = {}
+    for code in set(desired) | set(current_pos):
+        v = verdicts.get(code, "fill")
+        if v == "fill":
+            continue
+        frozen.add(code)
+        tgt = desired.get(code, 0.0)
+        cur = current_pos.get(code, 0.0)
+        if abs(tgt) > 1e-12 or abs(cur) > 1e-12:
+            pending[code] = tgt
+    return frozen, pending

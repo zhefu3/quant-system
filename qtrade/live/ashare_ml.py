@@ -74,17 +74,38 @@ def top_k_weights(scores: pd.Series, members: set[str], k: int = TOP_K) -> dict[
 
 
 def rebalance(state: dict, weights: dict[str, float], closes: dict[str, float],
-              fee: float = FEE, slip: float = SLIP) -> tuple[dict, list[dict]]:
+              fee: float = FEE, slip: float = SLIP,
+              frozen: set[str] | None = None,
+              only: set[str] | None = None) -> tuple[dict, list[dict]]:
     """Simulate fills at close with E47's frozen costs. Returns (state, fills).
-    Gross shadow (cost-free) is tracked in state['gross_positions']/'gross_cash'."""
+    Gross shadow (cost-free) is tracked in state['gross_positions']/'gross_cash'.
+    Codes in `frozen` (suspended / limit-locked today, per cn_exec verdicts)
+    skip the NET leg — the real market refused that order — but the GROSS
+    shadow still trades: the shadow is the frictionless twin that measures
+    signal decay, and execution friction belongs to the cost ledger. Without
+    the skip, a frozen holding absent from `weights` would be treated as
+    target-zero and phantom-sold at a stale price.
+
+    `only` is patch mode (deferred-order retries): touch just these codes,
+    both legs, and leave the rest of the book completely alone. Full-book
+    semantics (absent from weights = exit) apply only when `only` is None."""
     cash, pos = state["cash"], dict(state["positions"])
     gcash = state.get("gross_cash", cash)
     gpos = dict(state.get("gross_positions", pos))
     equity = cash + sum(q * closes.get(c, 0.0) for c, q in pos.items())
     fills = []
-    for code in sorted(set(pos) | set(weights)):
+    for code in sorted((set(pos) | set(weights)) if only is None else set(only)):
         px = closes.get(code)
         if px is None or px <= 0:
+            continue
+        if frozen and code in frozen:
+            # gross-shadow leg only
+            g_tgt = weights.get(code, 0.0) * equity / px
+            gcash -= (g_tgt - gpos.get(code, 0.0)) * px
+            if g_tgt == 0.0:
+                gpos.pop(code, None)
+            else:
+                gpos[code] = g_tgt
             continue
         # trade to the exact target QUANTITY (slippage hits cash, not shares) —
         # dividing notional by the slipped price would overshoot exits and
@@ -313,9 +334,12 @@ class AshareMlBook:
 
         # monthly decision (cached); PIT refresh only on decision day
         month_key = pd.Timestamp.now(tz="Asia/Shanghai").strftime("%Y-%m")
+        today_cn = pd.Timestamp.now(tz="Asia/Shanghai").strftime("%Y-%m-%d")
         cache = self.dir / "monthly" / f"{month_key}.json"
         state = self._state()
         if not cache.exists():
+            from . import cn_exec
+
             refresh_monthly_pit(pro, union)
             weights = decide_month(month_key)
             gate = RiskGate(PRESETS["ashare_ml"].risk, self.dir)
@@ -323,17 +347,41 @@ class AshareMlBook:
             closes = self._latest_closes(store, set(weights) | set(state["positions"]))
             net, _ = mark(state, closes)
             weights, notes = gate.apply(weights, net / max(hwm, net) - 1)
-            state, fills = rebalance(state, weights, closes)
+            # execution realism (2026-07-21 measurement upgrade, log.md):
+            # suspended / one-way-board names cannot trade today; they freeze
+            # on the net leg and queue for the daily retry loop
+            verdicts = {}
+            for code in set(weights) | set(state["positions"]):
+                bar, prev = cn_exec.today_bar(store, "ashare_ts", code, today_cn)
+                side = "buy" if weights.get(code, 0.0) * net > \
+                    state["positions"].get(code, 0.0) * closes.get(code, 0.0) else "sell"
+                verdicts[code] = cn_exec.fill_verdict(side, code, bar, prev)
+            frozen, pending = cn_exec.split_executable(
+                weights, state["positions"], verdicts)
+            state, fills = rebalance(state, weights, closes, frozen=frozen)
+            state["pending"] = pending
+            for code in frozen:
+                cn_exec.log_attempt(self.dir, now, code,
+                                    "buy" if code in weights else "sell",
+                                    verdicts[code], closes.get(code), None, 0)
+            for f in fills:
+                cn_exec.log_attempt(self.dir, now, f["symbol"],
+                                    "buy" if f["qty"] > 0 else "sell",
+                                    "fill", closes.get(f["symbol"]), f["price"], 0)
             cache.write_text(json.dumps({"month": month_key, "weights": weights,
-                                         "n": len(weights)}, indent=2))
+                                         "n": len(weights),
+                                         "deferred": sorted(pending)}, indent=2))
             for f in fills:
                 pd.DataFrame([{**f, "ts": now}]).to_csv(
                     self.trades_file, mode="a",
                     header=not self.trades_file.exists(), index=False)
             print(f"[{now}] ashare_ml decision {month_key}: {len(weights)} names, "
-                  f"{len(fills)} fills")
+                  f"{len(fills)} fills, {len(pending)} deferred (suspended/locked)")
             for n in notes:
                 print(f"  RISK: {n}")
+
+        # daily retry of deferred orders (suspension lifted / board opened)
+        state = self._retry_pending(state, store, now, today_cn)
 
         # daily mark-to-market (skip if today already marked)
         today_cn = pd.Timestamp.now(tz="Asia/Shanghai").strftime("%Y-%m-%d")
@@ -353,6 +401,50 @@ class AshareMlBook:
         print(f"[{now}] ashare_ml equity {net:.2f} (gross shadow {gross:.2f}) "
               f"positions {len(state['positions'])}")
         return {"ts": now, "equity": net, "gross_equity": gross}
+
+    def _retry_pending(self, state: dict, store, now: str, today_cn: str) -> dict:
+        """Deferred orders (suspended/limit-locked at decision time) retry once
+        per daily tick until they fill or the next decision replaces them.
+        Quiet on non-trading days (bench has no bar), so weekends don't spam
+        the exec log with phantom 'suspended' rows."""
+        from . import cn_exec
+
+        pending = dict(state.get("pending", {}))
+        if not pending:
+            return state
+        try:
+            bench = store.load("ashare_index", "SH_000300", "1d")
+            if bench.index[-1].tz_convert("Asia/Shanghai").strftime("%Y-%m-%d") != today_cn:
+                return state  # market closed today — nothing can have changed
+        except FileNotFoundError:
+            return state
+        retry_no = int(state.get("pending_retries", 0)) + 1
+        for code, tgt in sorted(pending.items()):
+            bar, prev = cn_exec.today_bar(store, "ashare_ts", code, today_cn)
+            cur_qty = state["positions"].get(code, 0.0)
+            all_closes = self._latest_closes(store, set(state["positions"]) | {code})
+            px = all_closes.get(code)
+            eq, _ = mark(state, all_closes)
+            # direction: toward target value vs current holding value
+            side = "buy" if px and tgt * eq > cur_qty * px else "sell"
+            verdict = cn_exec.fill_verdict(side, code, bar, prev)
+            if verdict == "fill" and px:
+                state, fills = rebalance(state, {code: tgt}, all_closes,
+                                         only={code})
+                for f in fills:
+                    pd.DataFrame([{**f, "ts": now}]).to_csv(
+                        self.trades_file, mode="a",
+                        header=not self.trades_file.exists(), index=False)
+                    cn_exec.log_attempt(self.dir, now, code, side, "fill_retry",
+                                        px, f["price"], retry_no)
+                pending.pop(code)
+                print(f"  deferred order filled on retry {retry_no}: {code}")
+            else:
+                cn_exec.log_attempt(self.dir, now, code, side, verdict,
+                                    px, None, retry_no)
+        state["pending"] = pending
+        state["pending_retries"] = retry_no
+        return state
 
     def _hwm(self) -> float:
         if self.equity_file.exists():

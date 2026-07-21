@@ -95,6 +95,21 @@ class CbBook:
                     out[c] = float(pd.to_numeric(v["收盘价"], errors="coerce").iloc[-1])
         return out
 
+    def _fresh(self, codes, today_cn: str) -> set[str]:
+        """Codes whose latest quote row is dated today — the CB analogue of
+        'not suspended'. Trading on a stale quote fabricates a fill at a price
+        that no longer exists (2026-07-21 execution-realism upgrade; CB price
+        limits are not modeled — no fresh OHLC in the value files, and 一字板
+        is rare for convertibles; recorded as a known limitation)."""
+        fresh = set()
+        for c in codes:
+            f = CB / "value" / f"{c}.parquet"
+            if f.exists():
+                v = pd.read_parquet(f)
+                if len(v) and pd.to_datetime(v["日期"].iloc[-1]).strftime("%Y-%m-%d") == today_cn:
+                    fresh.add(c)
+        return fresh
+
     def tick(self) -> dict:
         from ..presets import PRESETS
         import akshare as ak
@@ -135,9 +150,25 @@ class CbBook:
             hwm = max(float(pd.read_csv(self.equity_file)["equity"].max()), net) \
                 if self.equity_file.exists() else net
             weights, notes = gate.apply(weights, net / hwm - 1)
-            state, fills = rebalance(state, weights, closes, fee=R.FEE, slip=R.SLIP)
+            # execution realism: stale-quoted names cannot trade at a price
+            # that no longer exists — freeze and queue for the daily retry
+            from . import cn_exec
+            today = pd.Timestamp.now(tz="Asia/Shanghai").strftime("%Y-%m-%d")
+            fresh = self._fresh(set(weights) | set(state["positions"]), today)
+            verdicts = {c: ("fill" if c in fresh else "suspended")
+                        for c in set(weights) | set(state["positions"])}
+            frozen, pending = cn_exec.split_executable(weights, state["positions"],
+                                                       verdicts)
+            state, fills = rebalance(state, weights, closes, fee=R.FEE,
+                                     slip=R.SLIP, frozen=frozen)
+            state["pending"] = pending
+            for c in frozen:
+                cn_exec.log_attempt(self.dir, now, c,
+                                    "buy" if c in weights else "sell",
+                                    "suspended", closes.get(c), None, 0)
             cache.write_text(json.dumps({"month": month_key, "n_pool": len(cand),
-                                         "weights": weights}, indent=2))
+                                         "weights": weights,
+                                         "deferred": sorted(pending)}, indent=2))
             for f in fills:
                 pd.DataFrame([{**f, "ts": now}]).to_csv(
                     self.trades_file, mode="a",
@@ -150,8 +181,33 @@ class CbBook:
         if state.get("last_mark") == today_cn:
             return {"ts": now, "skipped": "already marked"}
         held = set(state["positions"]) | set(state.get("gross_positions", {}))
-        if held:
-            _refresh_values(sorted(held))
+        pending = dict(state.get("pending", {}))
+        if held or pending:
+            _refresh_values(sorted(held | set(pending)))
+
+        # retry deferred orders whose quotes are fresh again
+        if pending:
+            from . import cn_exec
+            fresh = self._fresh(set(pending), today_cn)
+            retry_no = int(state.get("pending_retries", 0)) + 1
+            for code in sorted(set(pending)):
+                if code not in fresh:
+                    continue
+                closes_c = self._latest(set(state["positions"]) | {code})
+                state, fills = rebalance(state, {code: pending[code]}, closes_c,
+                                         fee=R.FEE, slip=R.SLIP, only={code})
+                for f in fills:
+                    pd.DataFrame([{**f, "ts": now}]).to_csv(
+                        self.trades_file, mode="a",
+                        header=not self.trades_file.exists(), index=False)
+                    cn_exec.log_attempt(self.dir, now, code,
+                                        "buy" if f["qty"] > 0 else "sell",
+                                        "fill_retry", closes_c.get(code),
+                                        f["price"], retry_no)
+                pending.pop(code)
+                print(f"  deferred CB order filled on retry {retry_no}: {code}")
+            state["pending"] = pending
+            state["pending_retries"] = retry_no
         closes = self._latest(held)
         net, gross = mark(state, closes)
         pd.DataFrame([{"ts": now, "equity": round(net, 2),
