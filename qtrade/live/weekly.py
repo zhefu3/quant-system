@@ -41,6 +41,9 @@ def run_weekly():
     cross_book_section()
 
     print()
+    _cb_ipo_section()
+
+    print()
     _llm_cost_section()
 
     print("\n--- 制度到期提醒 ---")
@@ -70,6 +73,36 @@ def run_weekly():
     print()
     from .healthcheck import run_health
     run_health()
+
+
+def _cb_ipo_section():
+    """转债打新提醒 — 竞品调研(2026-07-21)采纳的信息层功能: CB IPO 申购是
+    国内散户的制度性福利(中签≈免费期权), 系统只负责别让你错过窗口; 申购是
+    真实账户动作, 永远在用户手里。数据: akshare 申购日期, 拉不到时回退到
+    月度缓存的 bonds.parquet(可能滞后, 如实标注)。"""
+    from .timeouts import call_with_timeout
+
+    cached = Path(__file__).resolve().parents[2] / "data_store" / "cn_cb" / "bonds.parquet"
+    df, src = None, "live"
+    try:
+        import akshare as ak
+        df = call_with_timeout(ak.bond_zh_cov, 60.0)
+    except Exception:  # noqa: BLE001 — reminder must never break the digest
+        if cached.exists():
+            df, src = pd.read_parquet(cached), "cache(月度, 可能滞后)"
+    print("--- 转债打新提醒（申购动作在你, 系统只盯窗口）---")
+    if df is None:
+        print("(数据源不可用)")
+        return
+    today = pd.Timestamp.now(tz="Asia/Shanghai").normalize().tz_localize(None)
+    dates = pd.to_datetime(df["申购日期"], errors="coerce")
+    week = df[(dates >= today) & (dates <= today + pd.Timedelta(days=7))]
+    if not len(week):
+        print(f"未来 7 天无新券申购 [{src}]")
+        return
+    for _, r in week.sort_values("申购日期").iterrows():
+        print(f"  {r['申购日期']} {r['债券简称']}({r['债券代码']}) "
+              f"规模 {r.get('发行规模', '?')}亿 评级 {r.get('信用评级', '?')} [{src}]")
 
 
 def _llm_cost_section():
