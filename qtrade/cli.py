@@ -318,6 +318,10 @@ def main():
     wk = sub.add_parser("weekly", help="one-command weekly digest + protocol due reminders")
     wk.set_defaults(fn=lambda a: __import__("qtrade.live.weekly", fromlist=["run_weekly"]).run_weekly())
 
+    rb = sub.add_parser("rebalance-report", help="monthly rebalance quality: fills vs deferrals, lockout cost")
+    rb.add_argument("--month", default=None, help="YYYY-MM (default: current CN month)")
+    rb.set_defaults(fn=lambda a: __import__("qtrade.live.rebal_report", fromlist=["run_rebal_report"]).run_rebal_report(month=a.month))
+
     tca = sub.add_parser("tca", help="realized vs assumed execution cost (live fills)")
     tca.set_defaults(fn=lambda a: __import__("qtrade.live.tca", fromlist=["run_tca"]).run_tca())
 

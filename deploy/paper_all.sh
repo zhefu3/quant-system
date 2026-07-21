@@ -14,6 +14,19 @@ done
 # in outputs/alerts_state.json keeps a standing WARN from spamming.
 .venv/bin/python -m qtrade.cli health --alert || echo "[paper_all] health check failed"
 
+# Daily off-site backup of forward records (2026-07-21): the paper records
+# are irreplaceable evidence; one push per day to the private records repo.
+# Subprocess timeout so a hung push can never block the next hourly loop.
+backup_marker="outputs/records_backup_$(date +%Y-%m-%d).done"
+if [[ ! -f $backup_marker ]]; then
+  touch "$backup_marker"
+  .venv/bin/python - <<'PY' || echo "[paper_all] records backup failed"
+import subprocess, sys
+r = subprocess.run(["/bin/zsh", "deploy/backup_records.sh"], timeout=300)
+sys.exit(r.returncode)
+PY
+fi
+
 # Monthly revalidation, institutionalized (2026-07-19; was a manual script).
 # Runs AFTER all book ticks so books never wait on it. One attempt per month
 # (marker written before the run): a failure surfaces via `cli weekly`'s
