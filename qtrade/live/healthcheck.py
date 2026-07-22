@@ -100,40 +100,47 @@ def _cross_source_checks() -> tuple[list[str], list[str]]:
     except ImportError:
         infos.append("ccxt not importable — crypto cross-check skipped")
 
-    # A-share: last stored daily return (tushare pipeline, hfq) vs akshare hfq
-    # return. Aligned by calendar DATE (stored stamps carry an intraday tz
-    # offset, akshare uses midnight); compared as returns, not levels —
-    # adjustment-base invariant.
+    # A-share: last stored daily return (tushare pipeline, hfq) vs akshare.
+    # Dates aligned in Asia/Shanghai (store stamps are CN-midnight-in-UTC —
+    # naive .date() shifts a day; this check's OWN first live firing was that
+    # exact false positive, 2026-07-22). The store return must agree with
+    # EITHER akshare's raw return (exchange fact, convention-free) or its
+    # hfq return (covers ex-div days where raw diverges by the dividend);
+    # only disagreement with BOTH is a data finding.
     try:
         store = BarStore()
         sym = "000001.SZ"
         df = store.load("ashare_ts", sym, "1d").tail(3)
         if len(df) >= 2:
-            day1, day2 = df.index[-2].date(), df.index[-1].date()
+            day1 = df.index[-2].tz_convert("Asia/Shanghai").date()
+            day2 = df.index[-1].tz_convert("Asia/Shanghai").date()
             r_store = float(df["close"].iloc[-1] / df["close"].iloc[-2] - 1)
 
-            def _ak_hist():
+            def _ak_hist(adjust: str):
                 import akshare as ak
+                end = df.index[-1].tz_convert("Asia/Shanghai")
                 return ak.stock_zh_a_hist(symbol=sym.split(".")[0], period="daily",
-                                          adjust="hfq",
-                                          start_date=(df.index[-1] - pd.Timedelta(days=14)).strftime("%Y%m%d"),
-                                          end_date=df.index[-1].strftime("%Y%m%d"))
+                                          adjust=adjust,
+                                          start_date=(end - pd.Timedelta(days=14)).strftime("%Y%m%d"),
+                                          end_date=end.strftime("%Y%m%d"))
             try:
-                h = call_with_timeout(_ak_hist, 45.0)
-                by_date = {pd.Timestamp(d).date(): float(c)
-                           for d, c in zip(h["日期"], h["收盘"])}
-                if day1 in by_date and day2 in by_date:
-                    r_ak = by_date[day2] / by_date[day1] - 1
-                    div = abs(r_store - r_ak)
-                    if div > 0.005:
-                        findings.append(f"xsource {sym}: tushare vs akshare daily "
-                                        f"return diverge {div:.2%} "
-                                        f"({r_store:+.2%} vs {r_ak:+.2%})")
+                r_aks = {}
+                for adjust, tag in (("", "raw"), ("hfq", "hfq")):
+                    h = call_with_timeout(_ak_hist, 45.0, adjust)
+                    by_date = {pd.Timestamp(d).date(): float(c)
+                               for d, c in zip(h["日期"], h["收盘"])}
+                    if day1 in by_date and day2 in by_date:
+                        r_aks[tag] = by_date[day2] / by_date[day1] - 1
+                if r_aks:
+                    best = min(abs(r_store - r) for r in r_aks.values())
+                    if best > 0.005:
+                        detail = ", ".join(f"{t} {r:+.2%}" for t, r in r_aks.items())
+                        findings.append(f"xsource {sym}: store {r_store:+.2%} vs "
+                                        f"akshare ({detail}) — no basis agrees")
                     else:
-                        infos.append(f"{sym}: tushare/akshare returns agree "
-                                     f"({div:.3%})")
+                        infos.append(f"{sym}: tushare/akshare agree ({best:.3%})")
                 else:
-                    infos.append(f"{sym}: akshare missing {day2} — skipped")
+                    infos.append(f"{sym}: akshare missing {day1}/{day2} — skipped")
             except Exception as e:  # noqa: BLE001 — source down is not a finding
                 infos.append(f"{sym} akshare: unavailable ({type(e).__name__})")
     except Exception as e:  # noqa: BLE001
