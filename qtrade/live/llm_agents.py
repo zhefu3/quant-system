@@ -263,12 +263,28 @@ def make_targets_fn(preset: BookPreset):
             weights = json.loads(cache.read_text())["weights"]
             return {s: float(weights.get(s, 0.0)) for s in preset.symbols}, closes
 
+        # Committee unavailability (API billing/outage — 2026-07-22: exhausted
+        # credit balance killed every tick for 10h, marks included) must not
+        # stop the BOOKKEEPING: fall back to yesterday's cached weights —
+        # positions freeze, marking continues, and the missing decision is
+        # surfaced by health's decision-freshness check, not by a starved
+        # heartbeat. Decisions stay LLM-only; this is accounting continuity,
+        # not a decision path (E60 protocol untouched).
         import anthropic
 
-        client = anthropic.Anthropic()
-        reflect_matured(client, bars_by_symbol)  # lessons land before today's meeting
-        brief = market_brief(bars_by_symbol)
-        weights, archive = run_committee(client, brief, preset.symbols)
+        try:
+            client = anthropic.Anthropic()
+            reflect_matured(client, bars_by_symbol)  # lessons land before today's meeting
+            brief = market_brief(bars_by_symbol)
+            weights, archive = run_committee(client, brief, preset.symbols)
+        except Exception as e:  # noqa: BLE001 — TickDeadline passes (BaseException)
+            print(f"  committee unavailable ({type(e).__name__}: {str(e)[:90]}) "
+                  "— holding yesterday's book, mark continues")
+            prev = sorted(DECISIONS.glob("*.json"))
+            if not prev:
+                return {s: 0.0 for s in preset.symbols}, closes
+            weights = json.loads(prev[-1].read_text())["weights"]
+            return {s: float(weights.get(s, 0.0)) for s in preset.symbols}, closes
 
         DECISIONS.mkdir(parents=True, exist_ok=True)
         cache.write_text(json.dumps(
