@@ -44,6 +44,13 @@ class IbkrFuturesAdapter:
             from ib_async import IB
 
             ib = IB()
+            # Per-request cap: when an IB data farm flaps, qualifyContracts/
+            # reqHistoricalData hang indefinitely — without this the tick eats
+            # the full 900s wall-clock and dies UNGRACEFULLY (no disconnect),
+            # leaking server-side account-summary subscriptions until the
+            # session throws Error 322 (2026-07-23: 31h of exactly that).
+            # A bounded failure exits through cleanup instead.
+            ib.RequestTimeout = 60
             try:
                 ib.connect(HOST, PORT, clientId=CLIENT_ID, timeout=15, readonly=True)
             except (OSError, ConnectionError, TimeoutError) as e:
@@ -69,17 +76,27 @@ class IbkrFuturesAdapter:
 
         ib = self._connect()
         contract = ContFuture(symbol, exchange=EXCHANGE[symbol], currency="USD")
-        ib.qualifyContracts(contract)
+        try:
+            ib.qualifyContracts(contract)
+        except Exception:
+            # bounded failure (RequestTimeout) — disconnect NOW so the server
+            # never accumulates half-dead sessions across aborted ticks
+            self.close()
+            raise
         days = max(1, (pd.Timestamp.now("UTC") - pd.Timestamp(start)).days)
         years = min(10, days // 365 + 1)
         # useRTH=True verified bar-identical to the E40b research archive
         # (2026-07-13, 750-bar ES overlap, zero diff) — research and live
         # must consume the same series.
-        raw = ib.reqHistoricalData(
-            contract, endDateTime="", durationStr=f"{years} Y",
-            barSizeSetting="1 day", whatToShow="ADJUSTED_LAST",
-            useRTH=True, formatDate=2,
-        )
+        try:
+            raw = ib.reqHistoricalData(
+                contract, endDateTime="", durationStr=f"{years} Y",
+                barSizeSetting="1 day", whatToShow="ADJUSTED_LAST",
+                useRTH=True, formatDate=2,
+            )
+        except Exception:
+            self.close()  # bounded failure exits through a clean disconnect
+            raise
         if not raw:
             raise RuntimeError(f"IBKR returned no CONTFUT bars for {symbol}")
         df = util.df(raw).rename(columns=str.lower)
