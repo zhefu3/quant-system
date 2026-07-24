@@ -17,6 +17,7 @@ import pandas as pd
 
 from ..data.store import BarStore
 from ..presets import PRESETS
+from ..timeconv import cn_date, utc_date, utc_now
 from .paper import DEFAULT_ROOT
 from .timeouts import call_with_timeout
 
@@ -25,6 +26,15 @@ STALE_AFTER = {"1h": pd.Timedelta(hours=12), "4h": pd.Timedelta(hours=24),
                "1d": pd.Timedelta(days=6)}
 RECENT = 200  # bars inspected for NaN/gap checks
 XSOURCE_TOL = 0.01  # two venues disagreeing >1% on a daily close is a finding
+
+# Ordered by reachability from THIS network: binance is geo-blocked here and
+# sat at the front of the old pair, so the crypto cross-check never once
+# completed between deploy (07-19) and 07-24 — while reporting only INFO.
+# A monitor that can fail silently forever is not a monitor; hence the list
+# (first two reachable venues win) plus the darkness escalation below.
+XSOURCE_VENUES = ("okx", "kraken", "coinbase", "binance")
+XSOURCE_DARK_DAYS = 3  # no completed comparison for this long => WARN
+XSOURCE_STATE = Path(__file__).resolve().parents[2] / "outputs" / "health_xsource.json"
 
 LIVE_ROOT = Path(__file__).resolve().parents[2] / "outputs" / "live"
 
@@ -51,52 +61,78 @@ def _check_series(store: BarStore, market: str, symbol: str, tf: str,
     return issues, stale
 
 
+def _apply_xsource_darkness(completed: dict[str, bool]) -> list[str]:
+    """Escalate a cross-check that has not COMPLETED a comparison in
+    XSOURCE_DARK_DAYS. Lesson of 07-24: the binance leg was unreachable from
+    day one, the stored fallback compared against a research archive that by
+    design stops updating, and both failures were INFO — the monitor was dark
+    for its whole life and nothing said so. Completion is tracked per key in
+    a state file; disagreement WARNs elsewhere, this only watches darkness."""
+    import json
+
+    state: dict[str, dict] = {}
+    if XSOURCE_STATE.exists():
+        try:
+            state = json.loads(XSOURCE_STATE.read_text())
+        except (ValueError, OSError):
+            state = {}
+    today = str(utc_date(utc_now()))
+    findings = []
+    for key, ok in completed.items():
+        ent = state.setdefault(key, {"first_try": today, "last_ok": None})
+        if ok:
+            ent["last_ok"] = today
+        anchor = ent["last_ok"] or ent["first_try"]
+        dark = (pd.Timestamp(today) - pd.Timestamp(anchor)).days
+        if dark >= XSOURCE_DARK_DAYS:
+            findings.append(f"xsource {key}: no completed comparison in {dark}d "
+                            "— the cross-check itself is dark (sources/network?)")
+    XSOURCE_STATE.parent.mkdir(parents=True, exist_ok=True)
+    XSOURCE_STATE.write_text(json.dumps(state, indent=1))
+    return findings
+
+
 def _cross_source_checks() -> tuple[list[str], list[str]]:
     """(findings, info lines). A venue being unreachable is INFO — only an
     actual disagreement between two live sources is a WARN. Every call is
-    soft-timeout wrapped; this section may never hang the health run."""
+    soft-timeout wrapped; this section may never hang the health run.
+    Persistent failure-to-compare escalates via _apply_xsource_darkness."""
     findings, infos = [], []
+    completed: dict[str, bool] = {}
 
-    # crypto: yesterday's completed daily close, binance vs okx. When only one
-    # venue is reachable (geo-blocks), fall back to venue vs our stored series
-    # — the check degrades, it does not disappear.
+    # crypto: yesterday's completed daily close, first two reachable venues
+    # from XSOURCE_VENUES. Days must match — venues roll their daily candle
+    # at the same UTC boundary, but a lagging API must not fake a divergence.
     try:
         import ccxt
-        store = BarStore()
         for sym in ("BTC/USDT", "ETH/USDT"):
-            closes, day = {}, None
-            for venue in ("binance", "okx"):
+            completed[sym] = False
+            quotes: dict[str, tuple] = {}  # venue -> (completed day, close)
+            for venue in XSOURCE_VENUES:
+                if len(quotes) == 2:
+                    break
                 try:
                     ex = getattr(ccxt, venue)({"timeout": 15000})
                     o = call_with_timeout(ex.fetch_ohlcv, 30.0, sym, "1d", limit=3)
-                    closes[venue] = float(o[-2][4])  # last COMPLETED day
-                    day = pd.Timestamp(o[-2][0], unit="ms", tz="UTC").date()
+                    quotes[venue] = (utc_date(pd.Timestamp(o[-2][0], unit="ms")),
+                                     float(o[-2][4]))  # last COMPLETED day, UTC roll
                 except Exception as e:  # noqa: BLE001 — venue down is not a finding
                     infos.append(f"{sym} {venue}: unavailable ({type(e).__name__})")
-            if len(closes) == 2:
-                div = abs(closes["binance"] / closes["okx"] - 1)
-                if div > XSOURCE_TOL:
-                    findings.append(f"xsource {sym}: binance vs okx daily close "
-                                    f"diverge {div:.2%}")
+            if len(quotes) == 2:
+                (v1, (d1, p1)), (v2, (d2, p2)) = quotes.items()
+                if d1 != d2:
+                    infos.append(f"{sym}: {v1}/{v2} completed days differ "
+                                 f"({d1} vs {d2}) — skipped")
                 else:
-                    infos.append(f"{sym}: binance/okx agree ({div:.3%})")
-            elif len(closes) == 1 and day is not None:
-                venue, px = next(iter(closes.items()))
-                try:
-                    bars = store.load("crypto", sym, "1h")
-                    day_bars = bars[bars.index.date == day]
-                    if len(day_bars):
-                        stored = float(day_bars["close"].iloc[-1])
-                        div = abs(px / stored - 1)
-                        if div > XSOURCE_TOL:
-                            findings.append(f"xsource {sym}: {venue} vs stored "
-                                            f"close diverge {div:.2%} ({day})")
-                        else:
-                            infos.append(f"{sym}: {venue}/stored agree ({div:.3%})")
+                    completed[sym] = True
+                    div = abs(p1 / p2 - 1)
+                    if div > XSOURCE_TOL:
+                        findings.append(f"xsource {sym}: {v1} vs {v2} daily close "
+                                        f"diverge {div:.2%} ({d1})")
                     else:
-                        infos.append(f"{sym}: no stored bars for {day} — skipped")
-                except Exception as e:  # noqa: BLE001
-                    infos.append(f"{sym} stored fallback failed ({type(e).__name__})")
+                        infos.append(f"{sym}: {v1}/{v2} agree ({div:.3%})")
+            else:
+                infos.append(f"{sym}: <2 venues reachable — comparison skipped")
     except ImportError:
         infos.append("ccxt not importable — crypto cross-check skipped")
 
@@ -110,10 +146,11 @@ def _cross_source_checks() -> tuple[list[str], list[str]]:
     try:
         store = BarStore()
         sym = "000001.SZ"
+        completed[sym] = False
         df = store.load("ashare_ts", sym, "1d").tail(3)
         if len(df) >= 2:
-            day1 = df.index[-2].tz_convert("Asia/Shanghai").date()
-            day2 = df.index[-1].tz_convert("Asia/Shanghai").date()
+            day1 = cn_date(df.index[-2])
+            day2 = cn_date(df.index[-1])
             r_store = float(df["close"].iloc[-1] / df["close"].iloc[-2] - 1)
 
             def _ak_hist(adjust: str):
@@ -127,11 +164,12 @@ def _cross_source_checks() -> tuple[list[str], list[str]]:
                 r_aks = {}
                 for adjust, tag in (("", "raw"), ("hfq", "hfq")):
                     h = call_with_timeout(_ak_hist, 45.0, adjust)
-                    by_date = {pd.Timestamp(d).date(): float(c)
+                    by_date = {cn_date(d): float(c)
                                for d, c in zip(h["日期"], h["收盘"])}
                     if day1 in by_date and day2 in by_date:
                         r_aks[tag] = by_date[day2] / by_date[day1] - 1
                 if r_aks:
+                    completed[sym] = True
                     best = min(abs(r_store - r) for r in r_aks.values())
                     if best > 0.005:
                         detail = ", ".join(f"{t} {r:+.2%}" for t, r in r_aks.items())
@@ -146,6 +184,7 @@ def _cross_source_checks() -> tuple[list[str], list[str]]:
     except Exception as e:  # noqa: BLE001
         infos.append(f"ashare cross-check skipped ({type(e).__name__})")
 
+    findings.extend(_apply_xsource_darkness(completed))
     return findings, infos
 
 
