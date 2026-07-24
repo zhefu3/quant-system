@@ -34,6 +34,11 @@ fi
 backup_marker="outputs/records_backup_$(date +%Y-%m-%d).done"
 if [[ ! -f $backup_marker ]]; then
   touch "$backup_marker"
+  # QMT git-bus producer (prebuilt 07-24): refresh the targets messages daily
+  # so the future VPS consumer's 7-day freshness guard is already satisfied
+  # on activation day; the backup push right below carries them off-site.
+  .venv/bin/python -m qtrade.cli qmt-targets --book ashare_ml >/dev/null 2>&1 || true
+  .venv/bin/python -m qtrade.cli qmt-targets --book cb_double_low >/dev/null 2>&1 || true
   .venv/bin/python - <<'PY' || echo "[paper_all] records backup failed"
 import subprocess, sys
 r = subprocess.run(["/bin/zsh", "deploy/backup_records.sh"], timeout=300)

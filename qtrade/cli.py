@@ -330,6 +330,12 @@ def main():
                     help="push a macOS notification on WARNs (de-duplicated)")
     hc.set_defaults(fn=lambda a: __import__("qtrade.live.healthcheck", fromlist=["run_health"]).run_health(alert=a.alert))
 
+    qt = sub.add_parser("qmt-targets", help="CN paper book -> git-bus targets message "
+                        "for the QMT executor (prebuilt; VPS side consumes it)")
+    qt.add_argument("--book", default="ashare_ml", choices=["ashare_ml", "cb_double_low"])
+    qt.add_argument("--out", default=None, help="override output path (default: records repo qmt/)")
+    qt.set_defaults(fn=lambda a: __import__("qtrade.live.qmt_exec", fromlist=["produce_targets"]).produce_targets(a.book, a.out))
+
     pt = sub.add_parser("parity", help="recompute the last recorded tick's signals from data")
     pt.add_argument("--preset", default="crypto_core")
     pt.set_defaults(fn=lambda a: __import__("qtrade.live.parity", fromlist=["run_parity"]).run_parity(a.preset))
