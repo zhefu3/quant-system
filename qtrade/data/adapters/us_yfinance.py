@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import pandas as pd
 
+from ...timeconv import utc_date
 from ..schema import normalize_ohlcv
 
 INTERVAL_MAP = {"5m": "5m", "15m": "15m", "30m": "30m", "1h": "1h", "1d": "1d"}
@@ -31,8 +32,8 @@ class USAdapter:
 
         df = yf.download(
             symbol,
-            start=pd.Timestamp(start).date(),
-            end=pd.Timestamp(end).date() if end is not None else None,
+            start=utc_date(start),
+            end=utc_date(end) if end is not None else None,
             interval=INTERVAL_MAP[timeframe],
             auto_adjust=True,  # backtests need split/dividend-adjusted prices
             progress=False,

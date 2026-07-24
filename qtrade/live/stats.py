@@ -31,7 +31,7 @@ def daily_returns(equity_file: Path | str, column: str = "equity") -> pd.Series:
     eq = pd.read_csv(equity_file)
     ts = pd.to_datetime(eq["ts"], format="mixed", utc=True)
     s = pd.Series(eq[column].values, index=pd.DatetimeIndex(ts))
-    daily = s.groupby(s.index.date).last()
+    daily = s.groupby(s.index.date).last()  # tz-ok: documented UTC-day mark grouping (docstring)
     return pd.Series(daily.values,
                      index=pd.to_datetime(daily.index)).pct_change().dropna()
 

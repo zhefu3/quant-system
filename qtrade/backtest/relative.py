@@ -16,6 +16,8 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from ..timeconv import cn_date
+
 STAMP_SELL = 0.0005  # 印花税(卖出), 2023 调降后
 FEE = 0.00025        # 佣金单边
 SLIP = 0.001         # 冲击/滑点单边(成分股, 保守)
@@ -86,7 +88,7 @@ def backtest_topk(
         if first_day is not None:
             turnover_cost.loc[first_day] += cost
         weights = new_w
-        holdings_log.append({"date": str(d.date()), "n": len(picks),
+        holdings_log.append({"date": str(cn_date(d)), "n": len(picks),
                              "turnover": round(float(buys + sells), 3)})
 
     port_ret = port_ret - turnover_cost

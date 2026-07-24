@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import pandas as pd
 
+from ...timeconv import cn_date
 from ..schema import normalize_ohlcv
 
 FREQ_MAP = {"5m": "5", "15m": "15", "30m": "30", "1h": "60", "1d": "d"}
@@ -63,8 +64,8 @@ class AShareAdapter:
         rs = bs.query_history_k_data_plus(
             to_bs_code(symbol),
             fields,
-            start_date=str(pd.Timestamp(start).date()),
-            end_date=str(pd.Timestamp(end).date()),
+            start_date=str(cn_date(start)),
+            end_date=str(cn_date(end)),
             frequency=freq,
             adjustflag=self.adjustflag,
         )

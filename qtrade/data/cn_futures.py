@@ -130,7 +130,7 @@ def stitch(product: str) -> tuple[pd.DataFrame | None, dict]:
 def _last_session_date(now_utc: pd.Timestamp) -> pd.Timestamp:
     """Date of the most recent completed day session (naive Shanghai date)."""
     now_sh = now_utc.tz_convert("Asia/Shanghai")
-    cutoff = pd.Timestamp(f"{now_sh.date()} {SESSION_CLOSE_SH}", tz="Asia/Shanghai")
+    cutoff = pd.Timestamp(f"{now_sh.date()} {SESSION_CLOSE_SH}", tz="Asia/Shanghai")  # tz-ok: now_sh converted above
     d = now_sh.normalize().tz_localize(None)
     return d if now_sh >= cutoff else d - pd.Timedelta(days=1)
 
@@ -163,7 +163,7 @@ def update_contracts(products: list[str] | None = None, sleep_s: float = 0.4) ->
     CONTRACT_DIR.mkdir(parents=True, exist_ok=True)
     marker = CONTRACT_DIR / ".last_refresh"
     session = _last_session_date(pd.Timestamp.now("UTC"))
-    if marker.exists() and marker.read_text().strip() >= str(session.date()):
+    if marker.exists() and marker.read_text().strip() >= str(session.date()):  # tz-ok: naive CN wall by construction
         return 0
 
     fetched = 0
@@ -177,5 +177,5 @@ def update_contracts(products: list[str] | None = None, sleep_s: float = 0.4) ->
             except Exception:  # noqa: BLE001 — not yet listed: normal
                 pass
             time.sleep(sleep_s)
-    marker.write_text(str(session.date()))
+    marker.write_text(str(session.date()))  # tz-ok: naive CN wall by construction
     return fetched
