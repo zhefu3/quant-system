@@ -100,6 +100,10 @@ E65转债下修博弈(过后段门槛但与cb_double_low收益相关0.77/下修�
 3. 例行: 07-22 llm_agents 首条反思落地(时序怪癖见 log 07-21 注记, 验质量)；
    8月初三本月频账首次换仓质量检查(工具已备: cli rebalance-report)；10-07 A/B 裁决；
    ~08-09 crypto_core 满 30 天(实盘前置达标, 8月中三线证据摆桌)
+4. **GPT 外部评审分诊落地**(07-26, docs/gpt-review-triage.md): P0=E68 时点宇宙
+   对照(选择偏差定价, 全项目当前最高优先)+E69 placebo 底噪+trial 台账/DSR+etf
+   重标注+llm prompt hash; P1=Exposure Registry/判决哈希+crypto clean-room 复现
+   +qmt partial-fill; 新策略家族冻结至 P0/P1 清完
 
 ## 八、纪律（硬约束，本周新增三条）
 
