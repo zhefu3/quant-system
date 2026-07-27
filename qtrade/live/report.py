@@ -169,6 +169,12 @@ def run_ab(name_a: str, name_b: str):
                       f"P({name_b}更优)={res['p_b_better']:.0%} "
                       f"[sharpe {res['sharpe_a']:.2f} vs {res['sharpe_b']:.2f}, "
                       f"{res['n_days']}天] — 裁决线: P≥90% 且非劣回撤")
+                mde = res["mde_sharpe_80"]
+                print(f"  功效: 最小可检测 ΔSharpe={mde if mde else '∞'} (80%功效); "
+                      f"两账实际不同的天数 {res['n_diff_days']}/{res['n_days']}")
+                if res["exposure"] != "OK":
+                    print("  ⚠ INCONCLUSIVE_NO_EXPOSURE: 差异条件几乎未触发 —— "
+                          "本窗口的'无差异'不构成等价证据, 只说明变体没被考到")
 
 
 def _print_regime_context(preset):

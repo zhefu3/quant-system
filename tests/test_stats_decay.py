@@ -37,6 +37,39 @@ def test_ab_test_detects_better_book():
     assert res["mean_daily_diff_bps"] == pytest.approx(20, abs=3)
 
 
+def test_ab_test_flags_a_variant_that_never_diverged():
+    """A challenger whose distinguishing condition never fires is untested.
+
+    Its returns match the champion on all but a couple of days, so the paired
+    test sees no effect — that must read as INCONCLUSIVE_NO_EXPOSURE, never as
+    equivalence (2026-07-27 amendment; the live core-vs-v2 pair sat here for
+    its first 18 days).
+    """
+    a = _rets(0.001, seed=7)
+    b = a.copy()
+    b.iloc[5] += 0.0004  # the regime filter fired exactly twice
+    b.iloc[40] -= 0.0003
+    res = ab_test(a, b)
+    assert res["n_diff_days"] == 2
+    assert res["exposure"] == "INCONCLUSIVE_NO_EXPOSURE"
+
+
+def test_ab_test_reports_power_and_calls_a_well_exposed_null_conclusive():
+    a, b = _rets(0.001, seed=11), _rets(0.001, seed=12)  # genuinely different paths
+    res = ab_test(a, b)
+    assert res["exposure"] == "OK"  # they differ every day: treatment applied
+    # a noisy pair resolves only large effects; power must rise with effect size
+    assert res["mde_sharpe_80"] > 0.1
+    assert res["power"]["dSR=0.5"] >= res["power"]["dSR=0.1"]
+
+
+def test_ab_test_identical_books_have_no_resolving_power():
+    a = _rets(0.001, seed=9)
+    res = ab_test(a, a.copy())
+    assert res["mde_sharpe_80"] is None  # cannot detect anything, at any size
+    assert res["exposure"] == "INCONCLUSIVE_NO_EXPOSURE"
+
+
 REF = {"ann_return": 0.14, "ann_vol": 0.12, "max_dd": 0.152}  # crypto_core ref
 
 
