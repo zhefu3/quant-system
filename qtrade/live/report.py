@@ -158,12 +158,18 @@ def run_ab(name_a: str, name_b: str):
         if len(rows) == 2 and min(r["days"] for r in rows) < 60:
             print("\n提示: 晋升裁决需要 ≥1 个季度的并行记录, 现在的差异只是噪声。")
         # statistical arbiter (>=30 common daily marks; refuses below that)
-        from .stats import ab_test, daily_returns
+        from .stats import ab_test, daily_returns, exposure_series
 
         fa, fb = (DEFAULT_ROOT / name_a / "equity.csv",
                   DEFAULT_ROOT / name_b / "equity.csv")
         if fa.exists() and fb.exists():
-            res = ab_test(daily_returns(fa), daily_returns(fb))
+            # measure divergence on positions when both books logged signals —
+            # offsetting weight moves can net to zero P&L yet still be treatment
+            sa, sb = (DEFAULT_ROOT / name_a / "signals.csv",
+                      DEFAULT_ROOT / name_b / "signals.csv")
+            ex = (exposure_series(sa, sb) if sa.exists() and sb.exists()
+                  else None)
+            res = ab_test(daily_returns(fa), daily_returns(fb), exposure=ex)
             if res:
                 print(f"\n统计裁决: {name_b} 日均差 {res['mean_daily_diff_bps']:+.1f}bps, "
                       f"P({name_b}更优)={res['p_b_better']:.0%} "
@@ -171,10 +177,15 @@ def run_ab(name_a: str, name_b: str):
                       f"{res['n_days']}天] — 裁决线: P≥90% 且非劣回撤")
                 mde = res["mde_sharpe_80"]
                 print(f"  功效: 最小可检测 ΔSharpe={mde if mde else '∞'} (80%功效); "
-                      f"两账实际不同的天数 {res['n_diff_days']}/{res['n_days']}")
-                if res["exposure"] != "OK":
+                      f"暴露 {res['n_diff_days']}/{res['n_days']}天 "
+                      f"= {res['n_diff_episodes']} 个独立 episode, "
+                      f"累计仓位差 {res['total_exposure']}")
+                if res["exposure"] == "INCONCLUSIVE_NO_EXPOSURE":
                     print("  ⚠ INCONCLUSIVE_NO_EXPOSURE: 差异条件几乎未触发 —— "
                           "本窗口的'无差异'不构成等价证据, 只说明变体没被考到")
+                elif res["exposure"] == "INCONCLUSIVE_LOW_PRECISION":
+                    print("  ⚠ INCONCLUSIVE_LOW_PRECISION: 暴露够但区间太宽 —— "
+                          "只能排除大效应, 不能判等价")
 
 
 def _print_regime_context(preset):

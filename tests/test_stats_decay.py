@@ -5,7 +5,8 @@ import pandas as pd
 import pytest
 
 from qtrade.live.decay import WINDOW, classify
-from qtrade.live.stats import ab_test, dd_pvalue, sharpe_ci
+from qtrade.live.stats import (ab_test, dd_pvalue, exposure_series,
+                               sharpe_ci)
 
 
 def _rets(mu, n=120, seed=0, sigma=0.01):
@@ -54,13 +55,50 @@ def test_ab_test_flags_a_variant_that_never_diverged():
     assert res["exposure"] == "INCONCLUSIVE_NO_EXPOSURE"
 
 
-def test_ab_test_reports_power_and_calls_a_well_exposed_null_conclusive():
+def test_ab_test_reports_power_and_grades_a_well_exposed_pair():
     a, b = _rets(0.001, seed=11), _rets(0.001, seed=12)  # genuinely different paths
     res = ab_test(a, b)
-    assert res["exposure"] == "OK"  # they differ every day: treatment applied
+    assert res["exposure"] in ("DECIDABLE", "INCONCLUSIVE_LOW_PRECISION")
+    assert res["trigger_frequency"] == 1.0  # continuous divergence, not rare doses
     # a noisy pair resolves only large effects; power must rise with effect size
     assert res["mde_sharpe_80"] > 0.1
     assert res["power"]["dSR=0.5"] >= res["power"]["dSR=0.1"]
+
+
+def test_ten_days_inside_one_regime_are_one_episode_not_ten():
+    """The exposure amendment's whole point: consecutive days are one dose.
+
+    A challenger that diverged for ten straight days saw a single regime, and
+    must not clear an exposure floor meant to require repeated independent
+    triggers (2026-07-27 amendment).
+    """
+    a = _rets(0.001, seed=21)
+    b = a.copy()
+    b.iloc[30:40] += 0.0005  # one uninterrupted bear-filter episode
+    res = ab_test(a, b)
+    assert res["n_diff_days"] == 10  # would have passed the old day-count floor
+    assert res["n_diff_episodes"] == 1
+    assert res["exposure"] == "INCONCLUSIVE_NO_EXPOSURE"
+
+
+def test_exposure_series_sees_position_divergence_that_returns_hide():
+    """Offsetting weight changes can net to zero P&L; positions still moved."""
+    import pandas as pd
+
+    def _write(path, weights):
+        rows = [{"ts": f"2026-0{1 + d // 28}-{1 + d % 28:02d} 20:00:00+00:00",
+                 "symbol": sym, "target_w": w, "held_w": w}
+                for d, day in enumerate(weights) for sym, w in day.items()]
+        pd.DataFrame(rows).to_csv(path, index=False)
+
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        fa, fb = f"{td}/a.csv", f"{td}/b.csv"
+        _write(fa, [{"BTC/USDT": 0.2, "ETH/USDT": 0.2}] * 4)
+        _write(fb, [{"BTC/USDT": 0.4, "ETH/USDT": 0.0}] * 4)  # same gross, moved
+        ex = exposure_series(fa, fb)
+        assert len(ex) == 4
+        assert ex.iloc[0] == pytest.approx(0.4)  # |0.2| + |0.2| of L1 distance
 
 
 def test_ab_test_identical_books_have_no_resolving_power():
