@@ -1289,3 +1289,86 @@ SR_winner; 比较 SR_real=1.11 在 {SR_winner} 分布中的分位。这才回答
   n_diff_episodes/total_exposure/trigger_frequency/三态; weekly 报告同步;
   新增单测含"十个连续差异日只算一次暴露"与"对冲性调仓收益无差异但仓位有差异"。
   163 passed / 6 skipped。
+
+### E69-B 过程不确定性修正案 + challenger 生命周期 (2026-07-27, 评审放行同日冻结)
+
+**E69-B Process-Uncertainty Amendment(按评审原文冻结)**
+1. 自适应 research-policy surrogate 构建于对历史研究过程的部分暴露之后, **不视为
+   无偏重建、不视为形式下界、不作为唯一主结果**(评审撤回其上一轮"主结果"表述,
+   我方接受: 除非能证明 surrogate 搜索能力严格弱于真实过程, 否则不存在数学下界关系)。
+2. E69-B 报告三个并列过程零假设情景: (a) fixed-graph null(可确认的最低搜索负担);
+   (b) adaptive-surrogate 敏感性情景; (c) conservative-search 压力情景。
+3. **不平均、不合成单一代表值。**
+4. 情景跨越判决门槛 → `INCONCLUSIVE_PROCESS_UNCERTAINTY`。
+5. 全部冻结情景同判决 → `ROBUST_TO_PROCESS_UNCERTAINTY`; 即便如此也只能表述为
+   "在冻结的搜索压力集合内, 污染不足以解释该结果", 不得表述为"不存在污染"。
+6. 降低事后塑形的三措施(采纳): surrogate 由盲化信息构建(只见实验时序/family 类型/
+   候选数/continue-abandon 动作, 隐藏最终 Sharpe 与赢家路径); 冻结 low/medium/high
+   三档 adaptivity policy set 而非单一 policy; 在与日志一致的转移策略中取结构最少者。
+
+**Challenger 生命周期修正案(解决"零暴露等到什么时候"——我方提问, 评审给规则)**
+- 90 天达最低暴露 → 正常统计裁决; 未达 → `INCONCLUSIVE_NO_EXPOSURE`,
+  **既不判失败也不判通过**, 转入 `DORMANT_EVENT_WATCH`。
+- DORMANT 语义: 继续自动记账; 退出每周人工评审; **对外不得再称"正在进行有效 A/B
+  验证"**; 仅当预注册制度条件真实出现时自动重回 active evaluation。
+- 上限 24 个月或 500 个共同交易日仍未达最低暴露 → `ARCHIVED_FORWARD_UNTESTABLE`
+  ——判的不是策略无效, 而是"在当前前瞻框架与可接受时间预算内不可验证"; 此前等待
+  时间不得计入有效样本量。
+- 追加经济条件: challenger 须**事前声明**其针对制度的最低年触发频率 p_min; 若长期
+  触发频率的置信上界仍低于 p_min, 则即使触发后效果好也不足以支撑独立策略版本。
+- **crypto_core_v2 即刻适用**: 07-09~07-27 共 19 天中 17 天持仓逐字相同, 10-07 若
+  仍无暴露则转 DORMANT, 上限 2028-07。v2 的 p_min 须在 10-07 前补声明。
+
+**Episode 分级与集中度(裁决语义细化)**
+- 独立 episode 数分级: 0-2 不允许估计一般化条件效果; 3-4 探索性方向证据;
+  5-7 弱到中等条件证据(须查单次事件主导); 8+ 才有资格讨论跨制度稳定性。
+- 集中度指标 C_max = max_j|Δ_j| / Σ_j|Δ_j|; **>0.5(单个 episode 贡献过半累计效果)
+  不得称稳定条件效果**。
+- 状态区分(评审要求): `DECIDABLE_CALENDAR_EFFECT`(暴露充分, 日历效应可判) 与
+  `CONDITIONAL_GENERALIZATION_UNCERTAIN`(仅一个长 episode, 不能跨制度外推)分列。
+- 历史触发频率作先验: 可用但**不得包装为独立验证证据**(历史数据已参与发现该过滤器
+  及其形式与参数)。并列报告 zero-centered skeptical prior 结果与 forward-only 结果;
+  若结论仅在历史先验下成立 → 标 `HISTORICAL_PRIOR_DEPENDENT`, 不得升级为独立前瞻验证。
+- 建议增强指标(评审提示, 非阻断): mean_L1_on_diff_days 与 exposure-equivalent days,
+  用于区分"50 天每天差一点"与"5 天真正分化"。列入实现待办。
+
+**放行状态**: E68 立即放行; champion-challenger episode 规则放行; E69 加本修正案后
+放行。评审明示"不要求再等下一轮"。**E68/E69 自本条起进入执行阶段。**
+
+### E68-A 结果: 选择偏差真实存在, 但缺口情景跨门槛 → INCONCLUSIVE_DATA_GAP (2026-07-27)
+
+**时点宇宙(档案, 非记忆)**: CoinMarketCap 历史快照 2019-06-30, ex-stablecoin 前六 =
+BTC/ETH/XRP/LTC/**BCH(#5)**/**EOS(#6)**。旗舰六币中 **ADA 当时 #11、LINK 当时 #16**
+——两者都在前六之外; 而当时的 #5/#6 都不在旗舰池内。事后挑选被档案坐实。
+
+**同法同窗对照(2019-07→2026-07, run_portfolio equal-alloc, 冻结参数零改动)**:
+
+| 臂 | Sharpe | vs 控制 | 判决分支 |
+|---|---|---|---|
+| 控制: 旗舰六币 | **0.680** | — | — |
+| PIT: missing_as_cash | 0.520 | -0.160 | (a) 差 ≤0.2 |
+| PIT: monotone_delisting | 0.500 | -0.180 | (a) 差 ≤0.2 |
+| PIT: terminal_total_loss | 0.420 | -0.260 | **(b) 差 >0.2 且 <0.6 → 降级** |
+| PIT: observed_coarse | -0.250 | -0.930 | (b), 但**情景无效, 见下** |
+
+- **口径纪律**: 控制 0.680 ≠ E23 的 1.11, 因为 1.11 是 2019-07→**2023-07** 的纯净
+  逆向样本外, 本实验窗口到 2026-07 含已知弱点年 2024(-14.4%)。遵循 E66 既定注记
+  "门槛是相对同法同窗差值, 勿跨实验引用绝对值"——本表只读差值, 不读绝对值。
+- **判决(按冻结的缺失资产修正案)**: 情景跨越判决门槛(missing_as_cash/monotone 落
+  分支 a, terminal_total_loss 落分支 b) → **`INCONCLUSIVE_DATA_GAP`**。
+  **不得由可得样本单独判通过**——即不得只报 -0.16 那个好看的数字。须取得 EOS 独立
+  历史(付费 PIT 源)后重新裁决。这正是该修正案被写出来要防的情形, 第一次适用即命中。
+- **可以确定的部分**: 无论哪个有效情景, 时点宇宙都**劣于**旗舰宇宙(-0.16~-0.26
+  Sharpe)。即"选择偏差为正且量级可观"已被证实; 未定的是它是否大到触发降级门槛。
+
+**observed_coarse 情景无效(方法学发现, 非结果)**: 用 yfinance 日线 EOS ffill 到 1h
+后, **95.8% 的小时 bar 收益恰好为零**——1h 策略被喂了阶梯函数, 均值回归/趋势信号在
+陈旧价格上乱触发, 每次调仓都撞日界跳空, 再叠加 25bp haircut。这是分辨率失配伪影,
+不是 EOS 的另一种经济路径。**按纪律不静默剔除**: 结果照登, 同时提出修正案供评审
+——该情景应改为"全账本重采样到日频后运行"(各腿同分辨率), 或对 EOS 注入按同期同类
+币标定的日内噪声。修正案未获裁定前, 该臂不参与判决。
+
+**下一步**: (1) E68-B 季度滚动 PIT 臂(换手拆账已冻结); (2) EOS 独立历史是解开
+INCONCLUSIVE 的唯一路径 → 数据采购从"值得买"升级为"本判决的阻塞项"(用户决策);
+(3) coarse 情景修正案交评审。脚本 research/e68_pit_universe.py, 排名来源 URL 已入
+脚本常量, 可复核。
