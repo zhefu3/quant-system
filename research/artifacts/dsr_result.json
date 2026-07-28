@@ -1,0 +1,25 @@
+{
+ "sr_ann": 0.6943953561526804,
+ "t_days": 2576,
+ "skew": 0.29945429534508333,
+ "kurt": 9.697805060126282,
+ "psr0": 0.9679732136722349,
+ "scenarios": {
+  "family-floor": {
+   "n": 11,
+   "sr0_ann": 0.6108314334908778,
+   "dsr": 0.5881728843213507
+  },
+  "reconstructed": {
+   "n": 100,
+   "sr0_ann": 1.383278235174988,
+   "note": "assumes max-of-family selection; E69-A puts the frozen config at the family's 40th pct, so this row over-deflates by construction",
+   "dsr": 0.0330971119766893
+  },
+  "independent-N": {
+   "n": 345,
+   "sr0_ann": 1.1067311324740932,
+   "dsr": 0.13575037873540324
+  }
+ }
+}
