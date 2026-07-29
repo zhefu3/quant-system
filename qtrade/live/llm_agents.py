@@ -176,6 +176,21 @@ _SYSTEM = (
     "a flat book is a valid position."
 )
 
+# The A/B's experimental subject is (models + prompt). Models are pinned
+# above; this pins the prompt the same way (2026-07-29 amendment, filed
+# before the 2027-01-14 evaluation). Any edit to _SYSTEM changes the hash,
+# and the mismatch refuses NEW committee decisions (yesterday's book holds,
+# marking continues) until a preregistration amendment re-pins it — silent
+# prompt drift cannot masquerade as the same experiment.
+PROMPT_SHA256 = "ff622e962bb18e2f1ed49c2120782ec45db9857c409d2aee1a261894d7aa9f03"
+
+
+def _prompt_hash() -> str:
+    import hashlib
+
+    return hashlib.sha256(_SYSTEM.encode()).hexdigest()
+
+
 _DECISION_SCHEMA = {
     "type": "object",
     "properties": {
@@ -273,6 +288,10 @@ def make_targets_fn(preset: BookPreset):
         import anthropic
 
         try:
+            if _prompt_hash() != PROMPT_SHA256:
+                raise RuntimeError(
+                    "prompt drift: _SYSTEM hash != pinned PROMPT_SHA256 — "
+                    "amend the prereg to re-pin before new decisions")
             client = anthropic.Anthropic()
             reflect_matured(client, bars_by_symbol)  # lessons land before today's meeting
             brief = market_brief(bars_by_symbol)
@@ -289,7 +308,7 @@ def make_targets_fn(preset: BookPreset):
         DECISIONS.mkdir(parents=True, exist_ok=True)
         cache.write_text(json.dumps(
             {"date": today, "weights": weights, "rationale": archive["rationale"],
-             "usage": archive["usage"]}, indent=2))
+             "usage": archive["usage"], "prompt_sha256": PROMPT_SHA256}, indent=2))
         (DECISIONS / f"{today}.md").write_text(
             f"# llm_agents decision {today}\n\n## Market brief\n{brief}\n\n"
             f"## News (haiku + web search)\n{archive['news']}\n\n"

@@ -104,3 +104,16 @@ def test_reflection_written_back_and_shown_in_memory(bars, tmp_path, monkeypatch
     assert d["outcome"]["book_ret"] == 0.031
     mem = llm_agents.recent_memory()
     assert "lesson: Call was right" in mem
+
+def test_prompt_hash_is_pinned_and_matches():
+    """The A/B's subject includes the prompt; drift must be loud (07-29 amendment)."""
+    from qtrade.live.llm_agents import PROMPT_SHA256, _prompt_hash
+
+    assert _prompt_hash() == PROMPT_SHA256
+
+
+def test_prompt_drift_refuses_new_decisions(monkeypatch):
+    from qtrade.live import llm_agents
+
+    monkeypatch.setattr(llm_agents, "PROMPT_SHA256", "0" * 64)
+    assert llm_agents._prompt_hash() != llm_agents.PROMPT_SHA256
