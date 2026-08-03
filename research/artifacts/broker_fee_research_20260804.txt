@@ -1,0 +1,541 @@
+{
+  "summary": "Research and adversarially verify US broker fee structures for a $500 micro-live ETF account",
+  "agentCount": 12,
+  "logs": [],
+  "result": {
+    "research": [
+      "Verified 2026 IBKR facts from official pages (browser-loaded; ibkr.com blocks scripted fetch) for a small real-money account. (1) Pro commissions US stocks/ETFs: Fixed USD 0.005/share min USD 1.00/order; Tiered USD 0.0035/share min USD 0.35/order + third-party fees; both capped at 1% of trade value. Critical small-account nuance: fractional trades on Pro cost the greater of 1% of trade value or USD 0.01. (2) Lite is officially 'US Residents Only' (Individual/Joint/IRA/Trust); no official page defines whether an F-1 NRA on W-8BEN qualifies — third-party sources suggest it hinges on a US permanent address; plan around Pro (low confidence on F-1 specifics). (3) Fractional shares cover 10,500+ US stocks and ETFs; SPY/QQQ/GLD/VOO/IVV individually confirmed in IBKR's official eligible-list CSV; official FAQ confirms both Pro and Lite accounts get fractional permissions. (4) No account minimum, no inactivity/maintenance fee in 2026 (eliminated July 2021) — but a USD 500 minimum equity is required to hold any paid market-data subscription. (5) No data subscription needed to trade; in 2026 all clients get free real-time streaming Cboe One/IEX (non-consolidated) data on all US-listed stocks/ETFs plus 100 free snapshots/month; delayed quotes on US equities specifically are no longer offered to IB LLC clients — you trade on the free real-time feed, with paid consolidated feeds optional.",
+      "2026 年对 F-1/W-8BEN 国际学生开放的零佣金美股通道核实结果:(1) 开户:Firstrade 国际账户(无 SSN 可开,24 国,$0 佣金,高置信)、SogoTrade(明确接受无 SSN 的 F 签证,限价单 $0/市价单 $2.88)、moomoo MFI(无 SSN 可开+学生促销至 2026-12-31,但非美居民费表实为 $0.005/股+平台费,靠 2×$5,000 佣金卡抵扣)、Webull(F-1 可开但必须有 SSN/ITIN,$0 佣金)、Alpaca(非美税务居民可开、$0 佣金、原生 API,国家清单不公开);IBKR Lite 仅限美/新加坡居民。(2) API:moomoo OpenAPI 与 Webull OpenAPI 均为官方且免额外费用,Alpaca 本身是 API 券商;Firstrade 无官方 API。(3) 卖出侧监管费:SEC 费 FY2026 为 $20.60/百万(2026-04-04 生效,此前为 $0);FINRA TAF 2026-01-01 起 $0.000195/股、上限 $9.79。(4) PFOF 量化:Schwarz et al.(JoF 2025)实测 5 券商往返执行成本 0.07%-0.46%(不含佣金),但 PFOF 差异不解释执行差异;SEC 提案估计零售竞争性缺口 ~1.08bp/~$1.5B/年。(5) Schwab International 对境外非美居民 $0 佣金(medium,官网 403);Schwab/Fidelity 对在美 F-1 的国内开户政策无官方公开页面,仅第三方轶事(low)。"
+    ],
+    "claims": [
+      {
+        "claim": "IBKR Pro Fixed pricing for US stocks/ETFs: USD 0.005 per share, minimum USD 1.00 per order, maximum 1% of trade value (regulatory fees passed through). Verified on the official US commissions table, 2026-08-03.",
+        "source_url": "https://www.interactivebrokers.com/en/pricing/commissions-stocks.php",
+        "confidence": "high"
+      },
+      {
+        "claim": "IBKR Pro Tiered pricing for US stocks/ETFs: USD 0.0035 per share at <=300,000 shares/month, minimum USD 0.35 per order, maximum 1% of trade value, PLUS third-party exchange/clearing/regulatory/pass-through fees (unlike Fixed, which includes them). Verified on the official US commissions table, 2026-08-03.",
+        "source_url": "https://www.interactivebrokers.com/en/pricing/commissions-stocks.php",
+        "confidence": "high"
+      },
+      {
+        "claim": "Small-account trap on Pro: fractional-share trades are charged 'the greater of 1% of the trade value or USD 0.01' (official footnote example: buying 0.5 share of a USD 10 stock costs USD 0.05). So dollar-based small orders on Pro effectively cost ~1% per trade, not the USD 0.35/1.00 minimum arithmetic.",
+        "source_url": "https://www.interactivebrokers.com/en/pricing/commissions-stocks.php",
+        "confidence": "high"
+      },
+      {
+        "claim": "IBKR Lite eligibility is 'US Residents Only' — official disclosure: 'IBKR Lite is available to US residents with the following account types: Individual, Joint, IRA and Trusts when the beneficiary and trustee are natural persons.' Lite gives USD 0 commission on US exchange-listed stocks/ETFs (OTC/pink-sheet, overnight-hours trades etc. fall back to Fixed pricing).",
+        "source_url": "https://www.interactivebrokers.com/en/trading/why-ibkr-lite.php",
+        "confidence": "high"
+      },
+      {
+        "claim": "Whether an F-1 non-resident alien (W-8BEN filer) living in the US qualifies for Lite is NOT explicitly addressed on any official IBKR page I could find. Official wording says only 'US residents' without defining tax vs. physical residency; a third-party guide states Lite requires a US permanent address and suggests F-1/J-1 students physically in the US may be offered it, but this is unverified. For go/no-go planning, assume IBKR Pro pricing.",
+        "source_url": "https://www.expatfinance.us/united-states/interactive-brokers-lite",
+        "confidence": "low"
+      },
+      {
+        "claim": "IBKR fractional trading covers 10,500+ US stocks AND ETFs ('Fractional Shares on 10,500+ U.S. Stocks & ETFs', invest from USD 1), per the official fractional trading page, 2026-08-03.",
+        "source_url": "https://www.interactivebrokers.com/en/trading/fractional-trading.php",
+        "confidence": "high"
+      },
+      {
+        "claim": "SPY (ARCA), QQQ (NASDAQ), GLD (ARCA) — and also VOO and IVV — are individually confirmed on IBKR's official machine-readable fractional-eligible list (fracshare_stk.csv, ~23,900 instruments, downloaded 2026-08-03), each with no scheduled ineligibility date.",
+        "source_url": "https://www.ibkr.com/download/fracshare_stk.csv",
+        "confidence": "high"
+      },
+      {
+        "claim": "Fractional-share permissions are available to both Pro and Lite: official FAQ states 'Individual accounts (both standalone accounts and clients of Financial Advisors) and organizational accounts including Lite customers are eligible for fractional share permissions', with exceptions only for ISA/JISA, PEA accounts, Israel residency, and IB Securities Japan clients.",
+        "source_url": "https://www.interactivebrokers.com/faq?id=83262092",
+        "confidence": "high"
+      },
+      {
+        "claim": "No account minimum and no inactivity fee in 2026: the official pricing overview states 'No added spreads, account minimums, or hidden fees' and lists 'No inactivity fees'; the Other Fees page lists no retail inactivity or maintenance fee (only an institutional client account minimum exists).",
+        "source_url": "https://www.interactivebrokers.com/en/pricing/commissions-home.php",
+        "confidence": "high"
+      },
+      {
+        "claim": "The old monthly inactivity/activity fee (USD 10-20) was eliminated effective July 1, 2021 and has not returned as of 2026.",
+        "source_url": "https://www.financemagnates.com/forex/brokers/interactive-brokers-eliminates-monthly-account-inactivity-fees/",
+        "confidence": "medium"
+      },
+      {
+        "claim": "Hidden minimum that DOES exist: to subscribe to (and keep) paid market data or research subscriptions, an individual account must maintain minimum equity of USD 500 ('Minimum Equity Balance Requirements ... Individual USD 500.00'), excluding the subscription cost itself. IBKR's API docs additionally state market data subscriptions require an IBKR Pro account type.",
+        "source_url": "https://www.interactivebrokers.com/en/pricing/market-data-pricing.php",
+        "confidence": "high"
+      },
+      {
+        "claim": "No market data subscription is required to trade: clients can enable free delayed data where available or trade with no data (TWS shows 'Free Delayed Data' option and a warning at order confirmation when no real-time quote is held). Orders execute normally; execution quality is unaffected by what data you see.",
+        "source_url": "https://www.ibkrguides.com/traderworkstation/receive-delayed-market-data.htm",
+        "confidence": "medium"
+      },
+      {
+        "claim": "2026 status makes the delayed-data question largely moot for US stocks/ETFs: 'IBKR clients receive free real-time streaming market data on all US-listed stocks and ETFs from Cboe One and IEX (Non-consolidated)' — free for all clients, no subscription. Plus 100 free real-time snapshot quotes per month at order entry. Paid subscriptions are only needed for consolidated NBBO feeds (e.g., NYSE/Nasdaq Network A/B/C) or depth-of-book.",
+        "source_url": "https://www.interactivebrokers.com/en/pricing/market-data-pricing.php",
+        "confidence": "high"
+      },
+      {
+        "claim": "Delayed quotes specifically on US equities are NOT offered: 'In accordance with regulatory requirements, IBKR no longer offers delayed quotation information on U.S. equities to Interactive Brokers LLC clients' (delayed data remains free for other products/exchanges where available). The free Cboe One/IEX real-time feed is what you use instead.",
+        "source_url": "https://www.interactivebrokers.com/en/pricing/market-data-pricing.php",
+        "confidence": "high"
+      },
+      {
+        "claim": "Firstrade 提供 International Account:非美国公民/非永久居民、且没有 SSN 或美国 Tax ID 者可开户,需 W-8BEN,支持 24 个国家/地区(含中国大陆、香港、台湾、印度、日韩等),无最低入金,仅限个人账户",
+        "source_url": "https://help.firstrade.info/en/articles/9268315-can-i-open-an-international-account",
+        "confidence": "high"
+      },
+      {
+        "claim": "Firstrade 美股/ETF/期权/共同基金均为 $0 佣金,无账户维护费、无平台费(国际账户同样适用)",
+        "source_url": "https://www.firstrade.com/accounts/international",
+        "confidence": "high"
+      },
+      {
+        "claim": "Firstrade 国际账户页面未明确说明身在美国的 F-1 签证持有人(而非居住在海外者)是否可开国际账户;其条件仅写'非美国公民/永久居民且无 SSN/TIN',人在美国的 F-1 需自行向 Firstrade 确认",
+        "source_url": "https://help.firstrade.info/en/articles/9268315-can-i-open-an-international-account",
+        "confidence": "medium"
+      },
+      {
+        "claim": "moomoo(Moomoo Financial Inc., 美国持牌券商)明确面向无有效 SSN 的国际学生开户:可用本国税号开户,W-8BEN 整合在开户流程中,无需 ITIN",
+        "source_url": "https://www.moomoo.com/us/learn/detail-how-to-invest-in-us-stocks-without-ssn-on-moomoo-118118-251117113",
+        "confidence": "high"
+      },
+      {
+        "claim": "moomoo 有专门的国际学生促销(2024-12-11 至 2026-12-31):18 岁以上、无有效 SSN 的国际学生完成学生认证+入金后,获两张佣金卡(股票/ETF 一张、期权一张),各最高返还 $5,000 佣金,有效期 4 年",
+        "source_url": "https://www.moomoo.com/us/support/topic4_524",
+        "confidence": "high"
+      },
+      {
+        "claim": "moomoo 的 $0 佣金+$0 平台费定价仅适用于'美国居民'账户;非美国居民账户按单独费表收费:美股佣金 $0.005/股(每单最低 $1)+平台费(阶梯制),期权 $0.65/张——即对 W-8BEN 非居民账户 moomoo 并非真零佣金,促销佣金卡是用来抵消这部分的",
+        "source_url": "https://www.moomoo.com/us/support/topic4_65",
+        "confidence": "high"
+      },
+      {
+        "claim": "Webull 开户硬性要求:18 岁以上、有 SSN 或 ITIN、有美国居住地址、是美国永久居民或持接受的签证(明确列出 E1/E2/E3/F1/H1B/TN1/O1/L1)——即 F-1 学生可开 Webull,但必须已有 SSN 或 ITIN,无税号者不能开",
+        "source_url": "https://www.webull.com/help/faq/622-Opening-my-account",
+        "confidence": "high"
+      },
+      {
+        "claim": "Webull 美股/ETF/期权 $0 佣金、无平台费(仅部分指数期权收 $0.50/张);监管费透传:SEC 费 $20.60/百万(卖出)、FINRA TAF $0.000195/股(卖出,上限 $9.79/笔)、CAT 费 $0.000003×成交额(买卖双向)",
+        "source_url": "https://www.webull.com/pricing",
+        "confidence": "high"
+      },
+      {
+        "claim": "SogoTrade 明确接受无 SSN 的 A、F、G 签证持有人及非美公民/居民开外国人账户(J/O/P/R 签证需有 SSN);部分国家因风险/地理原因不能开",
+        "source_url": "https://www.sogotrade.com/foreign-accounts.aspx",
+        "confidence": "high"
+      },
+      {
+        "claim": "SogoTrade 定价:限价单 $0 佣金,市价单 $2.88/笔,合格限价单还可获 $1.00/1000 股返利('Get Paid to Trade',需 100 股以上、常规时段、价格改善至少 1 美分);国际账户与美国账户佣金相同",
+        "source_url": "https://www.sogotrade.com/foreign-accounts.aspx",
+        "confidence": "high"
+      },
+      {
+        "claim": "Alpaca(API 优先券商)支持多数非美税务居民开真实账户(按居住国而定,如加拿大不支持;无公开国家清单需邮件确认),开户时填 W-8BEN,需本国税号+护照;零售客户股票/ETF 免佣金、免清算费",
+        "source_url": "https://alpaca.markets/learn/live-trading-account-non-us",
+        "confidence": "high"
+      },
+      {
+        "claim": "IBKR Lite(零佣金)仅限美国居民(2025 年起新增新加坡居民);其他国际客户只能用 IBKR Pro,按固定/阶梯佣金收费,不是零佣金",
+        "source_url": "https://www.interactivebrokers.com/en/trading/why-ibkr-lite.php",
+        "confidence": "medium"
+      },
+      {
+        "claim": "moomoo 有官方 API(moomoo OpenAPI):通过本地/云端运行 OpenD 网关,官方 SDK 覆盖 Python/Java/C#/C++/JavaScript,支持 NYSE/NYSE-American/Nasdaq 股票和 ETF 的实盘与模拟盘程序化交易,API 交易不额外收费(按账户对应费表收佣金)",
+        "source_url": "https://www.moomoo.com/us/support/topic3_436",
+        "confidence": "high"
+      },
+      {
+        "claim": "Webull 有官方 API(Webull OpenAPI, developer.webull.com):面向用自有账户交易的个人交易者/量化开发者,覆盖美股、期权、期货、加密与事件合约,HTTP+MQTT/gRPC,官方 Python(3.8-3.13)与 Java SDK;API 不额外收费、费率与 App 相同,个人开发者免 IP 白名单,申请审核约 1-2 个工作日",
+        "source_url": "https://developer.webull.com/apis/docs/",
+        "confidence": "high"
+      },
+      {
+        "claim": "Firstrade 无官方 API;现存的是逆向工程的非官方 Python 包(pypi 'firstrade'),官方不支持,存在随时失效与合规风险",
+        "source_url": "https://brokerchooser.com/broker-reviews/firstrade-review/automated-trading-systems",
+        "confidence": "medium"
+      },
+      {
+        "claim": "Alpaca 本身就是官方 REST API 券商(Trading API 为核心产品),对非美居民账户同样通过 API 交易",
+        "source_url": "https://alpaca.markets/learn/live-trading-account-non-us",
+        "confidence": "high"
+      },
+      {
+        "claim": "SogoTrade 未查到面向零售客户的官方交易 API",
+        "source_url": "https://www.sogotrade.com/faq.aspx",
+        "confidence": "low"
+      },
+      {
+        "claim": "SEC Section 31 费(卖出侧):2026 财年费率为 $20.60/百万美元成交额,自 2026-04-04 生效;2026-04-03 及之前的费率为 $0.00/百万(SEC 于 2026-02-27 发布 FY2026 费率公告)",
+        "source_url": "https://www.finra.org/rules-guidance/notices/information-notice-20260317",
+        "confidence": "high"
+      },
+      {
+        "claim": "FINRA TAF(卖出侧):2026-01-01 起 covered equity 卖出费率从 $0.000166/股 上调至 $0.000195/股,单笔上限从 $8.30 上调至 $9.79(最低 $0.01);期权 TAF 从 $0.00279 上调至 $0.00329/张——与 moomoo、Webull 2026 年费表的透传数字一致",
+        "source_url": "https://www.finra.org/rules-guidance/rulebooks/corporate-organization/section-1-member-regulatory-fees",
+        "confidence": "high"
+      },
+      {
+        "claim": "对小单成本量级的含义:按 $20.60/百万 + $0.000195/股 计算,一笔 $1,000、约 20 股的卖单监管费约 $0.02+$0.01(各含最低 $0.01)≈ $0.03,买入侧为零(CAT 费另计,量级更小)",
+        "source_url": "https://www.finra.org/rules-guidance/notices/information-notice-20260317",
+        "confidence": "high"
+      },
+      {
+        "claim": "PFOF 与执行质量的量化证据(Schwarz, Barber, Huang, Jorion, Odean, 'The Actual Retail Price of Equity Trades', Journal of Finance 2025, 80:2507-2541):用 5 家券商 6 个账户约 8.5 万笔同时下达的小额市价单实测,账户级平均往返执行成本(不含佣金)在 0.07% 到 0.46% 之间,券商间差异统计与经济上都显著",
+        "source_url": "https://onlinelibrary.wiley.com/doi/10.1111/jofi.13467",
+        "confidence": "high"
+      },
+      {
+        "claim": "同一论文的关键结论:执行价差异来自批发商(wholesaler)对不同券商的同样订单系统性给出不同成交价,而券商间 PFOF 水平的差异并不能解释执行质量差异——即'收 PFOF 多 = 执行更差'在券商横截面上不成立",
+        "source_url": "https://merage.uci.edu/press-releases/2022/10/Uncovering-the-Hidden-Retail-Prices-of-Zero-Commission-Stock-Trades.html",
+        "confidence": "high"
+      },
+      {
+        "claim": "SEC 2022-12-14 Order Competition Rule 提案的官方估计:零售可成交订单在现行批发商内部化模式下的'竞争性缺口'约 1.08 个基点/美元成交额,合计约每年 $1.5B(该提案后未按原案通过,数字是 SEC 的模型估计,不是实测)",
+        "source_url": "https://www.federalregister.gov/documents/2023/01/03/2022-27617/order-competition-rule",
+        "confidence": "high"
+      },
+      {
+        "claim": "Charles Schwab:Schwab International 账户面向居住在合格国家(美国境外)的非美居民,美国上市证券在线交易 $0 佣金;个人/联名账户官网称无最低入金(部分地区第三方来源称需 $25,000)——官网对爬虫 403,细节来自检索摘要",
+        "source_url": "https://international.schwab.com/us-investing-brokerage-account",
+        "confidence": "medium"
+      },
+      {
+        "claim": "身在美国的 F-1 学生开 Schwab 国内账户:第三方来源称 Schwab 接受 F-1(需护照、I-20 等文件),且主流平台因 PATRIOT Act 要求 SSN 或 ITIN;Schwab 官方无公开页面明确 F-1 政策,未能直接核实",
+        "source_url": "https://khandelwalaw.com/can-i-trade-stocks-on-f1-visa/",
+        "confidence": "low"
+      },
+      {
+        "claim": "Fidelity:官方 FAQ 表明不为居住在美国境外的人开新账户,对海外客户服务受限;非居民外国人账户需存档 W-8BEN 外国身份证明(官网对爬虫 403,内容来自检索摘要)",
+        "source_url": "https://www.fidelity.com/accounts/services/investors_outside_US_faq.shtml",
+        "confidence": "medium"
+      },
+      {
+        "claim": "身在美国、有 SSN 的 F-1 学生开 Fidelity 账户:仅有论坛/第三方轶事称可开(如 Blind 帖子称 H-1B 顺利开户),Fidelity 无公开官方页面明确 F-1/非居民税务身份者的国内开户政策,建议电话确认",
+        "source_url": "https://topratedfirms.com/articles/non-resident/fidelity-for-foreign-citizens.aspx",
+        "confidence": "low"
+      },
+      {
+        "claim": "面向'无 SSN 的 F-1 国际学生 + 需要程序化接口'这一组合,核实到的可行组合是:moomoo(可无 SSN 开户 + 官方 OpenAPI,但非居民费表非零佣金、靠学生佣金卡抵扣)和 Alpaca(非美税务居民 + 原生 API + 零佣金,但按'居住国'审核,人在美国的 F-1 是否受理未在官方页面明确);Webull 有官方 API 且零佣金但必须有 SSN/ITIN;Firstrade 零佣金可无 SSN 开户但无官方 API",
+        "source_url": "https://alpaca.markets/learn/live-trading-account-non-us",
+        "confidence": "medium"
+      }
+    ],
+    "verified": [
+      {
+        "claim": "IBKR Pro Fixed pricing for US stocks/ETFs: USD 0.005 per share, minimum USD 1.00 per order, maximum 1% of trade value (regulatory fees passed through). Verified on the official US commissions table, 2026-08-03.",
+        "verdict": "confirmed",
+        "correction": "主张的四个要点与官网当前表格逐项一致，未过时（官网屏蔽普通抓取返回 403，已用浏览器实时打开 https://www.interactivebrokers.com/en/pricing/commissions-stocks.php 于 2026-08-03 核验：Fixed USD 0.005/股；Minimum per order USD 1.00；Maximum per order 1% of Trade Value；Third Party Fees 仅列 Regulatory Fees，即交易所/清算费已含在 Fixed 佣金内、监管费穿透）。但官网披露中有它没提的关键限制，可能影响真钱决策：(1) 当按 1% 计算的上限低于 $1 最低佣金时，按上限收——低价股小单实付不足 $1（官网例：10 股 × $0.20 股价 → 佣金 $0.02）；(2) 碎股（fractional）交易单独计费：取「1% 成交额」与「$0.01」的较大者，即碎股单实际总是按约 1% 收，远高于整股费率；(3) 隔夜续存（GTC 跨日）或被修改的订单视为新订单，重新收取 $1 最低佣金——跨日分批成交每天各收一次最低额；(4) 穿透的 regulatory fees 具体为 SEC 交易费、FINRA TAF（卖出侧）及 CAT 费，金额小但非零，卖出成本略高于名义佣金；(5) 同页 Tiered 方案在月量 ≤300,000 股档为 USD 0.0035/股（最低 $0.35/单）+ 交易所/清算/穿透费，小单高流动性股票下常比 Fixed 便宜，真钱决策应按自己的单量与路由习惯对两方案实算；(6) 页脚声明 IBKR 可随时单方面调整费率，且该表仅适用 IBKR LLC 直接客户——经 introducing broker 或顾问的账户可能另加佣金，非美实体（HK/SG 等）另有费表；(7) IBKR Lite $0 佣金仅限美国居民，非美居民只能用 Pro。"
+      },
+      {
+        "claim": "IBKR Pro Tiered pricing for US stocks/ETFs: USD 0.0035 per share at <=300,000 shares/month, minimum USD 0.35 per order, maximum 1% of trade value, PLUS third-party exchange/clearing/regulatory/pass-through fees (unlike Fixed, which includes them). Verified on the official US commissions table, 2026-08-03.",
+        "verdict": "corrected",
+        "correction": "Core numbers CONFIRMED against the live official page (https://www.interactivebrokers.com/en/pricing/commissions-stocks.php, fetched in a real browser 2026-08-03; direct WebFetch is bot-blocked with 403): Tiered <=300,000 shares/month = USD 0.0035/share, min USD 0.35/order, max 1% of trade value, and Tiered's Third Party Fees column lists Regulatory + Exchange + Clearing + Pass-Through fees. Not outdated. ONE INACCURACY: 'unlike Fixed, which includes them' is overbroad — the official table shows Fixed (USD 0.005/share, min USD 1.00) still passes REGULATORY fees through separately (its Third Party Fees column: 'Regulatory Fees', incl. FINRA CAT fees); Fixed only bundles exchange/clearing/pass-through. KEY OMITTED CONDITIONS relevant to a real-money decision: (1) the 1% max caps the COMMISSION only — footnote: 'Plus the applicable exchange, ECN and/or specialist fees based on execution venue', so third-party fees are added even on capped orders; and where the calculated max is below the min, the max applies (sub-dollar stocks). (2) Tiers are marginal and based on cumulative monthly US+Canadian share volume; commission-capped orders don't count toward tiers. (3) Directly relevant to an API-driven setup: 'directed API orders cannot use the Tiered fee structure. SmartRouted API orders can use either.' (4) Fractional-share trades: charged the greater of 1% of trade value or USD 0.01 (min USD 0.01); dividend-reinvestment minimum is the lesser of USD 0.35 or 0.1% of trade value. (5) Under Tiered, IBKR may keep some exchange rebates/discounts rather than passing them through; low-priced stocks (<USD 2.50) can incur high ECN liquidity-removal fees via SmartRouting. (6) Modified/overnight-persisting orders can be treated as new orders for minimum-commission purposes; partial fills executed as separate trades count per-execution for per-trade caps. (7) Rates apply to direct IBKR LLC clients and can change at any time. Secondary sources (matchmybroker, thepoorswiss, bankeronwheels) agree with the headline numbers."
+      },
+      {
+        "claim": "Small-account trap on Pro: fractional-share trades are charged 'the greater of 1% of the trade value or USD 0.01' (official footnote example: buying 0.5 share of a USD 10 stock costs USD 0.05). So dollar-based small orders on Pro effectively cost ~1% per trade, not the USD 0.35/1.00 minimum arithmetic.",
+        "verdict": "corrected",
+        "correction": "引文与示例逐字属实且未过时(2026-08-03 实时打开官方页 interactivebrokers.com/en/pricing/commissions-stocks.php 核对,WebFetch 被 403,改用浏览器直读)。US 股票表脚注 11 原文:\"Fractional share trades are subject to the same commission rates as whole share trades, with a minimum commission of USD 0.01. For each fractional share trade, you will be charged the greater of 1% of the trade value or USD 0.01.\" 示例 \"buying 50% of a share at USD 10.00 (USD 5.00 trade value): Commission = USD 0.05\" 也逐字在页。但结论需三处修正:(1) 方向性错误——\"trap\" 说反了。该页 Pro Tiered/Fixed 的 \"Maximum per order = 1% of Trade Value\",脚注 8 明确\"当计算出的最大值低于最小佣金时按最大值收取\"(官方整股示例:10 股 $0.20 股票收 $0.02 而非 $1.00 最低)。即 1% 是压低小单成本的封顶,不是加价:$5 交易收 $0.05,若按 $1.00 最低价反而是 20%。~1% 是 min($0.35/$1.00, 1%×金额) 的结果,永远不高于最低佣金算术。(2) 适用范围有阈值——\"小单≈1%\" 仅在 1%×金额 < 最低佣金时成立:Fixed 约 <$100/单,Tiered 约 <$35/单。超过阈值即回到 $1.00/$0.35 最低佣金算术(如 $500 的 dollar-based 单在 Fixed 收 $1.00 = 0.2%,不是 1%)。若\"小单\"指几百美元,原主张错误。(3) 该 ~1% 机制并非 fractional 专属(整股小单经脚注 8 同样如此);fractional 脚注的实际增量只是 $0.01 下限。另注意脚注\"greater of 1%\"若孤立直读会推出大额碎股单也收 ≥1%,与同页\"与整股同费率\"+1% 封顶矛盾;官方两个示例均为微额单,大额碎股单行为页内未完全钉死,第三方资料(brokerchooser)按 $0.005/股、min $1、max 1% 的封顶读法。未提的关键条件:Tiered 另转嫁交易所/清算/监管第三方费,Fixed 转嫁监管费(卖出 SEC/TAF);IBKR Lite 对美国居民 US 上市股/ETF(含碎股)$0 佣金是更优替代;费率声明 IBKR 可随时更改。决策口径建议:<$35(Tiered)/<$100(Fixed) 的单按每边 ~1%(往返 ~2%)计;更大单按最低佣金计。来源:https://www.interactivebrokers.com/en/pricing/commissions-stocks.php (浏览器实读全文), https://brokerchooser.com/broker-reviews/interactive-brokers-review/fractional-share-trading"
+      },
+      {
+        "claim": "IBKR Lite eligibility is 'US Residents Only' — official disclosure: 'IBKR Lite is available to US residents with the following account types: Individual, Joint, IRA and Trusts when the beneficiary and trustee are natural persons.' Lite gives USD 0 commission on US exchange-listed stocks/ETFs (OTC/pink-sheet, overnight-hours trades etc. fall back to Fixed pricing). (来源: https://www.interactivebrokers.com/en/trading/why-ibkr-lite.php)",
+        "verdict": "confirmed",
+        "correction": "主张本身准确且未过时(2026-08-03 实时核对两处官方页面:why-ibkr-lite.php 脚注与 pricing/commissions-stocks.php 披露均逐字含 \"IBKR Lite is available to US residents with the following account types: Individual, Joint, IRA and Trusts when the beneficiary and trustee are natural persons\",commissions 表 Eligibility 栏即 'US Residents Only';另补一句原文:'In addition, US financial advisors can offer IBKR Lite to their clients.')。$0 佣金限 US exchange-listed stocks/ETFs、OTC/pink sheet 及 overnight hours 回退 Fixed Pricing 也逐字属实(Fixed 回退还包括 de-listed ETPs、warrants、recurring investment instructions)。但它遗漏了五条对真钱决策关键的限制:(1) 10% 阈值规则——OnOpen/OnClose/Outside-RTH 及成交价低于 $1.00 的 Sub-Dollar 订单,月度合计超过账户当月美股交易量 10% 后按 min(USD 0.005/股, 1% 成交额) 收费,盘前市价单按 Market OnOpen 计入阈值;(2) 卖单并非零成本——'All sell orders are subject to small fees to offset the transactions fees imposed by regulators'(SEC/TAF 监管费 pass-through);(3) Lite 无 IB SmartRouting,订单经 PFOF 路由给 select market makers,执行质量可能劣于 Pro;(4) IBKR 保留拒绝呈现 'non-retail trading behavior' 的 Lite 订单的权利(被拒后转 Fixed 计费重提交)——对 API/量化高频下单方式是实质风险;(5) 闲置现金利率劣于 Pro(第三方对比约 benchmark−1.5% vs Pro 的 −0.5%,且 NAV<USD 100k 按比例折减)、margin 利率也更高。另外 'US residents' 是券商合规意义上的居民认定(resident alien 可含),与税务/移民身份判定不同,开户前应向 IBKR 确认自身身份适配。"
+      },
+      {
+        "claim": "IBKR fractional trading covers 10,500+ US stocks AND ETFs ('Fractional Shares on 10,500+ U.S. Stocks & ETFs', invest from USD 1), per the official fractional trading page, 2026-08-03.",
+        "verdict": "confirmed",
+        "correction": "字面准确但有五个未提的关键限定,真钱决策前必须知晓:(1) 数字时效——页面脚注注明 \"10,500+\" 来自第三方 Bankrate、统计截至 2026-01-23,并非 2026-08-03 的实时官方计数(BrokerChooser 2026-04 亦引 10,500+,US/CA/EU 合计 24,047 只,2026-07-23);(2) \"eligible\" 有筛选——仅限 NYSE/AMEX/NASDAQ/ARCA/BATS 上市股票,OTC Pink 股需日均成交额 >$10M 且市值 >$400M,并非全部美股;IBKR 声明可随时强平失去资格的碎股头寸(页面披露原文);(3) 需在 Client Portal 手动开通 Fractional Shares 交易权限,非默认开启;(4) 订单类型仅支持 market/limit,且据 IBKR 2022 官方新闻稿碎股不支持 API/FIX/CTCI 下单——若决策涉及程序化执行(qtrade 场景)必须先另行验证当前 TWS API 是否已支持;(5) 碎股跨券商转户受限(通常须清算,只有整数股可 ACATS 转出),投票权也可能要求整股。\"invest from USD 1\" 属实,最小成交额实为 $0.01。"
+      },
+      {
+        "claim": "SPY (ARCA), QQQ (NASDAQ), GLD (ARCA), VOO and IVV are individually confirmed on IBKR's official machine-readable fractional-eligible list (fracshare_stk.csv, ~23,900 instruments, downloaded 2026-08-03), each with no scheduled ineligibility date.",
+        "verdict": "confirmed",
+        "correction": "核查属实且不过时(2026-08-03 当日重新下载原始 CSV 独立复核):23,906 数据行≈\"~23,900\";五只 ETF 各恰好出现一次,交易所标注与主张一致(SPY,ARCA,756733 / QQQ,NASDAQ,320227571 / GLD,ARCA,51529211 / VOO,ARCA,136155102 / IVV,ARCA,8991352),SCHEDULED_INELIGIBILTY_DATE 字段均为空(全表另有 61 行确有日期,证明空值有信息量);IBKR 官方支持渠道确认该 URL 即官方 eligible list。但该主张遗漏了对真钱决策关键的限制:(1) 名单可随时变动且空日期≠承诺——IBKR 官方免责声明原文 \"Interactive Brokers may close fractional share positions in stocks no longer eligible for fractional trading at any given time\";(2) 在名单上≠你的账户能交易:须在 Client Portal 开通 \"Global (Trade in Fractions)\" 权限,且可用性因地区/账户类型/IBKR 主体而异;(3) 碎股头寸不能在券商间转移(ACATS 只转整股,碎股需清算或攒成整股);(4) API 渠道限制:IBKR 官方 2024-10 答复称碎股仅支持 FIX/CTCI、不支持标准 API(FAQ id=84637087)——对 qtrade 自动化交易是硬约束,下单前须验证当前 API 支持状态;(5) 该 CSV 是全球名单(含 TSE/LSE/IBIS/FWB 等),美股宇宙官方口径为 \"10,500+\";(6) 概念性错位:这是资格(eligibility)名单,不含任何费率信息——把它当\"券商费率主张\"的依据会混淆资格与成本,IBKR Pro 的最低佣金/Lite 的 $0 佣金需另行核实。"
+      },
+      {
+        "claim": "IBKR 碎股权限对 Pro 和 Lite 均开放;官方 FAQ (interactivebrokers.com/faq?id=83262092) 称个人账户(独立账户及 FA 客户)和机构账户(含 Lite 客户)均有资格,例外仅有 ISA/JISA、PEA 账户、以色列居民、IB Securities Japan 客户四项。",
+        "verdict": "corrected",
+        "correction": "引文本身逐字准确且为当前版本(2026-08-03 用浏览器实时打开官方 FAQ 核对,原句与四项例外完全一致),但\"例外仅有四项\"及其决策含义需要修正:(1) 同一 FAQ 页 Note 部分还有第五项限制被略去——比利时零售客户已被置为 close-only,只能平掉既有碎股仓位,不能新开;另注明 FA/资管/介绍经纪商只能对客户 all-or-none 整体开通。(2) 对真钱决策最关键的未提条件:IBKR Lite 本身仅对美国居民开放(官方 compare-lite-pro 页及 IBKR 官方 X 账号明确 \"IBKR Lite is only offered to US residents\"),非美居民(含中国居民)只能开 Pro——\"Pro 和 Lite 都可用\"对非美用户是空集,不应影响 Pro/Lite 选择。(3) 权限资格 ≠ 可交易范围:需在 Client Portal 手动开通 Trade in Fractions;仅覆盖合资格的美/加/欧股票与 ETF(官方口径约 24,000 只,2026-07-23 数据);IBKR 官网披露可随时对失去碎股资格的股票强平碎股仓位;碎股不可做空。(4) 时效性张力:Good Money Guide (2024-09) 报道 IBKR 英国 ISA 已可交易美股大盘碎股,与 FAQ 仍列 ISA/JISA 为例外存在矛盾,以今日实时抓取的官方 FAQ 为准,但说明 ISA 例外可能已细化,该 FAQ 条目未必逐字反映最新边界。(5) 该主张被标为\"费率主张\"但实为资格/权限主张,不含任何 Pro/Lite 费率信息,不能据此推断佣金差异。来源:官方 FAQ 实时页面、interactivebrokers.co.uk/en/trading/fractional-trading.php、interactivebrokers.com/en/general/compare-lite-pro.php、twitter.com/IBKR/status/1289388946384924674、goodmoneyguide.com/news/interactive-brokers-stocks-and-shares-isa/。"
+      },
+      {
+        "claim": "No account minimum and no inactivity fee in 2026: the official pricing overview states 'No added spreads, account minimums, or hidden fees' and lists 'No inactivity fees'; the Other Fees page lists no retail inactivity or maintenance fee (only an institutional client account minimum exists). (来源: https://www.interactivebrokers.com/en/pricing/commissions-home.php)",
+        "verdict": "confirmed",
+        "correction": "核心主张准确且未过时(2026-08-03 直接抓取官方页面核实;页面含 2026-05 引文,为当前版本):(1) commissions-home.php 逐字含 \"No added spreads, account minimums, or hidden fees\" 与 \"No inactivity fees\"(后者位于 IBKR Lite 计划卡片下);(2) accounts/required-minimums.php 明确 Individual/Joint/Trust/Org 账户在 IBKR Pro 和 Lite 下 Account Minimums 与 Inactivity Fees 均为 USD 0.00,零售无闲置费自 2021-07 取消后延续至今;(3) 机构侧最低额属实:Broker 账户前 8 个月最低佣金 USD 10,000(不足按 maintenance fee 补收)、之后每月 USD 2,000,Broker Masters 最低入金 USD 10,000。但主张遗漏了影响真钱决策的关键限制条件:[A] \"$0 commissions\" 的 IBKR Lite 仅限 US residents(FAQ 另提新加坡居民);非美国居民只能用 IBKR Pro,有佣金——Fixed 每单最低 USD 1.00,Tiered 最低 USD 0.35 且交易所/清算/监管费另转嫁(页面原文 \"Exchange, clearing and regulatory fees apply. Minimum order fees apply.\")。[B] \"无隐藏费\"不等于无其他费:Other Fees 页列有每月仅 2 次免费出金(之后收费)、市场数据订阅费(Lite 免费美股数据,Pro 需订阅)、部分产品撤单/改单费、高风险保证金账户 exposure fee、EMIR/MiFIR 客户 LEI 年费 USD 40、第三方托管费转嫁(如巴西 B3 零售 USD 5/月)。[C] 免责声明写明费率 \"may change at any time in its sole discretion\",且经 introducing broker/advisor 引入的客户可能被加收佣金,公布费率仅适用于 IBKR 直接客户。[D] 细节修正:broker client 账户层面其实存在按比例 USD 1.00 的 inactivity fee(不足最低佣金时),故\"仅机构账户最低额存在\"略有低估;另外美国监管性门槛独立存在(保证金账户 Reg T 需 USD 2,000 权益、PDT 需 USD 25,000,此为监管规则而非 IBKR 开户最低额)。结论:主张本身可采信,但若决策主体非美国居民,\"零佣金/无最低额\"的营销表述中只有\"无账户最低额、无闲置费\"两条适用,佣金与最低单笔费用必须计入成本模型。"
+      },
+      {
+        "claim": "The old monthly inactivity/activity fee (USD 10-20) was eliminated effective July 1, 2021 and has not returned as of 2026.",
+        "verdict": "confirmed",
+        "correction": "核心主张属实,但有三点补充:(1) 被取消的严格说是\"最低月活动费\"(佣金不足 $10 补差额;净值<$2,000 的账户为 $20),不是纯粹的闲置罚款——\"USD 10-20\" 描述准确,取消日期 2021-07-01 由来源文章与 IBKR 官方 2021-Q3 communique 印证,2026 年标准账户无恢复(BrokerChooser 等多家 2026 评测交叉确认)。(2) 未提的关键例外:IBKR UK Stocks & Shares ISA 账户至今仍有 GBP 3/月最低活动费(JISA GBP 1)——\"未恢复\"不适用于所有账户类型/辖区(此点来自多家 2026 第三方评测,IBKR 官网页面直接抓取被 403,未能官方原文核验)。(3) 对真钱决策相关的残余持有成本:行情数据订阅按月计费(不交易也扣)、每月仅 1 次免费出金,超出收费——对不活跃账户是实际成本,虽不属 inactivity fee。对标准个人账户(非 UK ISA)的决策而言,该主张可采信。"
+      },
+      {
+        "claim": "IBKR 存在隐性最低权益要求:个人账户须维持 USD 500 最低权益(\"Minimum Equity Balance Requirements ... Individual USD 500.00\")方可订阅并保留付费行情/研究订阅,且该 500 不含订阅费本身;API 文档另要求行情订阅须为 IBKR Pro 账户类型。",
+        "verdict": "confirmed",
+        "correction": "准确且未过时(2026-08-03 实时加载来源页核验;WebFetch 被 403,经浏览器直读 DOM)。定价页原文:\"The following minimums are required to subscribe and maintain market data and research subscriptions. This does not include the cost of the service ... Individual (unless listed below) USD 500.00\";并注明 \"The minimum requirements plus the cost of the subscription are required to have the data activated\"(即需 500 + 订阅费才激活数据)。API 文档原文:\"Must use an IBKR PRO account type\" 及 \"Clients should have $500 USD in their account in addition to the cost of all market data subscriptions\"。但主张遗漏的关键限制条件:(1) USD 500 仅适用于直接开立的 Individual/FA 客户/机构账户;Non-Professional Advisor 与 Introducing Broker 客户仅需 USD 200,IB India 居民 USD 100——若经 introducing broker 渠道开户,门槛是 200 不是 500;(2) 执行机制:权益跌破 USD 500 将收到 Market Data Violator 通知后数据被终止,须补足才恢复;(3) 入金 funded 状态次一交易日才生效,入金当天加订的数据次日方可用;(4) API 侧还要求真实账户(demo 不可订阅)、须先在 Client Portal 完成订阅并启用 Market Data API access;Forex 与加密货币经 API 取数无需订阅;(5) 订阅费不按比例折算,月中订/退按整月计费;部分订阅有佣金减免(如 US Securities Snapshot & Futures Value Bundle USD 10/月,当月佣金 ≥ USD 30 免除;OPRA L1 USD 1.50/月,佣金 ≥ USD 20 免除);(6) 免费数据(Cboe One/IEX 美股实时流、延迟行情、每月 100 次免费 snapshot)不受该最低权益约束——500 门槛只卡付费订阅。来源:interactivebrokers.com/en/pricing/market-data-pricing.php;interactivebrokers.com/docs/general/market-data-subscriptions/market-data-requirements;interactivebrokers.com/docs/general/market-data-subscriptions/market-data-subscription-minimum-equity-balance-requirements"
+      }
+    ]
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Research"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 2,
+      "title": "Verify"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "research:ibkr",
+      "phaseIndex": 1,
+      "phaseTitle": "Research",
+      "agentId": "ad89b0d6706106730",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785796191985,
+      "queuedAt": 1785796191973,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Verified 2026 IBKR facts from official pages (browser-loade…",
+      "promptPreview": "用 WebSearch/WebFetch 查证 2026 年当前的 Interactive Brokers (IBKR) 费率事实,给一个要拿真钱决策的小账户用。需要逐条带来源 URL:\n1. IBKR Pro 美股/ETF 佣金: Fixed 定价的每单最低佣金是多少? Tiered 定价的每单最低是多少?\n2. IBKR Lite 的零佣金资格: 是否仅限美国居民? F-1 签证国际学生(非居民外国人, 用 W-8BEN)能否用 Lite?\n3. IBKR 碎股(fractional shares)是否覆盖美股 ETF(如 SPY/QQQ/GLD)? Pro 和 Lite 都支持吗?\n4. 账户最低入金/月度不活跃费(2026 现状, IBKR 前几年取消过 inactivity fee, 确认现状)。\n5. 实时行情订阅费: 不订阅实时行情能否交易(延迟行情下单)?\n只报你在官方页面…",
+      "lastProgressAt": 1785796783005,
+      "tokens": 89463,
+      "toolCalls": 41,
+      "durationMs": 591020,
+      "resultPreview": "{\"claims\":[{\"claim\":\"IBKR Pro Fixed pricing for US stocks/ETFs: USD 0.005 per share, minimum USD 1.00 per order, maximum 1% of trade value (regulatory fees passed through). Verified on the official US commissions table, 2026-08-03.\",\"source_url\":\"https://www.interactivebrokers.com/en/pricing/commissions-stocks.php\",\"confidence\":\"high\"},{\"claim\":\"IBKR Pro Tiered pricing for US stocks/ETFs: USD 0.00…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "research:alternatives",
+      "phaseIndex": 1,
+      "phaseTitle": "Research",
+      "agentId": "a82912aa74445a313",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785796191986,
+      "queuedAt": 1785796191973,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "2026 年对 F-1/W-8BEN 国际学生开放的零佣金美股通道核实结果:(…",
+      "promptPreview": "用 WebSearch/WebFetch 查证 2026 年当前、对持 F-1 签证的国际学生(非美国居民税务身份, W-8BEN)开放的零佣金美股券商通道。需要逐条带来源 URL:\n1. 哪些零佣金券商明确接受国际学生/非居民开户(如 moomoo, Webull, Firstrade, Sogotrade 等)? 各自的美股/ETF 佣金与平台费?\n2. 这些券商是否支持 API/程序化交易? 哪些有官方 API?\n3. 卖出侧的监管费(SEC fee, FINRA TAF)2026 年费率是多少?\n4. 零佣金券商的订单流付款(PFOF)对小单执行质量的影响, 有无量化估计?\n5. Charles Schwab / Fidelity 对国际学生的开户政策。\n只报核实到的, 拿不到就标 low confidence。返回结构化 claims。",
+      "lastProgressAt": 1785796571314,
+      "tokens": 72534,
+      "toolCalls": 41,
+      "durationMs": 379328,
+      "resultPreview": "{\"claims\":[{\"claim\":\"Firstrade 提供 International Account:非美国公民/非永久居民、且没有 SSN 或美国 Tax ID 者可开户,需 W-8BEN,支持 24 个国家/地区(含中国大陆、香港、台湾、印度、日韩等),无最低入金,仅限个人账户\",\"source_url\":\"https://help.firstrade.info/en/articles/9268315-can-i-open-an-international-account\",\"confidence\":\"high\"},{\"claim\":\"Firstrade 美股/ETF/期权/共同基金均为 $0 佣金,无账户维护费、无平台费(国际账户同样适用)\",\"source_url\":\"https://www.firstrade.com/accounts/international\",\"c…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "verify:IBKR Pro Fixed pricing for US",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "ad9aafa6ff978865a",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785796783020,
+      "queuedAt": 1785796783008,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "IBKR Pro Fixed pricing for US stocks/ETFs: USD 0.005 per sh…",
+      "promptPreview": "对抗性核查这条券商费率主张(它将影响一个真钱决策): \"IBKR Pro Fixed pricing for US stocks/ETFs: USD 0.005 per share, minimum USD 1.00 per order, maximum 1% of trade value (regulatory fees passed through). Verified on the official US commissions table, 2026-08-03.\" (来源: https://www.interactivebrokers.com/en/pricing/commissions-stocks.php)。\n用 WebFetch 打开来源或用 WebSearch 找官方页面交叉验证。它是否准确、是否过时、是否有它没提的关键限制条件?\n返回 JSON",
+      "lastProgressAt": 1785796893337,
+      "tokens": 43931,
+      "toolCalls": 8,
+      "durationMs": 110317,
+      "resultPreview": "{\"claim\":\"IBKR Pro Fixed pricing for US stocks/ETFs: USD 0.005 per share, minimum USD 1.00 per order, maximum 1% of trade value (regulatory fees passed through). Verified on the official US commissions table, 2026-08-03.\",\"verdict\":\"confirmed\",\"correction\":\"主张的四个要点与官网当前表格逐项一致，未过时（官网屏蔽普通抓取返回 403，已用浏览器实时打开 https://www.interactivebrokers.com/en/pricing/commissions-stocks.php 于 2026-08-03 核验：Fixed USD…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "verify:IBKR Pro Tiered pricing for US",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "a0dacec62eb9b5ba9",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785796783027,
+      "queuedAt": 1785796783008,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "IBKR Pro Tiered pricing for US stocks/ETFs: USD 0.0035 per …",
+      "promptPreview": "对抗性核查这条券商费率主张(它将影响一个真钱决策): \"IBKR Pro Tiered pricing for US stocks/ETFs: USD 0.0035 per share at <=300,000 shares/month, minimum USD 0.35 per order, maximum 1% of trade value, PLUS third-party exchange/clearing/regulatory/pass-through fees (unlike Fixed, which includes them). Verified on the official US commissions table, 2026-08-03.\" (来源: https://www.interactivebrokers.com/en/pricing/commissions-s…",
+      "lastProgressAt": 1785796873676,
+      "tokens": 42658,
+      "toolCalls": 6,
+      "durationMs": 90649,
+      "resultPreview": "{\"claim\":\"IBKR Pro Tiered pricing for US stocks/ETFs: USD 0.0035 per share at <=300,000 shares/month, minimum USD 0.35 per order, maximum 1% of trade value, PLUS third-party exchange/clearing/regulatory/pass-through fees (unlike Fixed, which includes them). Verified on the official US commissions table, 2026-08-03.\",\"verdict\":\"corrected\",\"correction\":\"Core numbers CONFIRMED against the live offici…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 5,
+      "label": "verify:Small-account trap on Pro: fra",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "a0235dbdd5f6ae2ec",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785796783032,
+      "queuedAt": 1785796783008,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Small-account trap on Pro: fractional-share trades are char…",
+      "promptPreview": "对抗性核查这条券商费率主张(它将影响一个真钱决策): \"Small-account trap on Pro: fractional-share trades are charged 'the greater of 1% of the trade value or USD 0.01' (official footnote example: buying 0.5 share of a USD 10 stock costs USD 0.05). So dollar-based small orders on Pro effectively cost ~1% per trade, not the USD 0.35/1.00 minimum arithmetic.\" (来源: https://www.interactivebrokers.com/en/pricing/commissions-stoc…",
+      "lastProgressAt": 1785797011006,
+      "tokens": 55089,
+      "toolCalls": 10,
+      "durationMs": 227974,
+      "resultPreview": "{\"claim\":\"Small-account trap on Pro: fractional-share trades are charged 'the greater of 1% of the trade value or USD 0.01' (official footnote example: buying 0.5 share of a USD 10 stock costs USD 0.05). So dollar-based small orders on Pro effectively cost ~1% per trade, not the USD 0.35/1.00 minimum arithmetic.\",\"verdict\":\"corrected\",\"correction\":\"引文与示例逐字属实且未过时(2026-08-03 实时打开官方页 interactivebroke…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 6,
+      "label": "verify:IBKR Lite eligibility is 'US R",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "a7ce585f710f8777a",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785796783036,
+      "queuedAt": 1785796783008,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "IBKR Lite eligibility is 'US Residents Only' — official dis…",
+      "promptPreview": "对抗性核查这条券商费率主张(它将影响一个真钱决策): \"IBKR Lite eligibility is 'US Residents Only' — official disclosure: 'IBKR Lite is available to US residents with the following account types: Individual, Joint, IRA and Trusts when the beneficiary and trustee are natural persons.' Lite gives USD 0 commission on US exchange-listed stocks/ETFs (OTC/pink-sheet, overnight-hours trades etc. fall back to Fixed pricing).\" (来源:…",
+      "lastProgressAt": 1785796925450,
+      "tokens": 53308,
+      "toolCalls": 11,
+      "durationMs": 142414,
+      "resultPreview": "{\"claim\":\"IBKR Lite eligibility is 'US Residents Only' — official disclosure: 'IBKR Lite is available to US residents with the following account types: Individual, Joint, IRA and Trusts when the beneficiary and trustee are natural persons.' Lite gives USD 0 commission on US exchange-listed stocks/ETFs (OTC/pink-sheet, overnight-hours trades etc. fall back to Fixed pricing). (来源: https://www.intera…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 7,
+      "label": "verify:IBKR fractional trading covers",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "ac09a3da2f7d59d9f",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785796783041,
+      "queuedAt": 1785796783008,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "IBKR fractional trading covers 10,500+ US stocks AND ETFs (…",
+      "promptPreview": "对抗性核查这条券商费率主张(它将影响一个真钱决策): \"IBKR fractional trading covers 10,500+ US stocks AND ETFs ('Fractional Shares on 10,500+ U.S. Stocks & ETFs', invest from USD 1), per the official fractional trading page, 2026-08-03.\" (来源: https://www.interactivebrokers.com/en/trading/fractional-trading.php)。\n用 WebFetch 打开来源或用 WebSearch 找官方页面交叉验证。它是否准确、是否过时、是否有它没提的关键限制条件?\n返回 JSON",
+      "lastProgressAt": 1785796908658,
+      "tokens": 48099,
+      "toolCalls": 11,
+      "durationMs": 125617,
+      "resultPreview": "{\"claim\":\"IBKR fractional trading covers 10,500+ US stocks AND ETFs ('Fractional Shares on 10,500+ U.S. Stocks & ETFs', invest from USD 1), per the official fractional trading page, 2026-08-03.\",\"verdict\":\"confirmed\",\"correction\":\"字面准确但有五个未提的关键限定,真钱决策前必须知晓:(1) 数字时效——页面脚注注明 \\\"10,500+\\\" 来自第三方 Bankrate、统计截至 2026-01-23,并非 2026-08-03 的实时官方计数(BrokerChooser 2026-04 亦引 10,500+,US/CA/EU 合计 24,047 只,2026-07…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 8,
+      "label": "verify:SPY (ARCA), QQQ (NASDAQ), GLD",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "a7689dafb2d5873ff",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785796783045,
+      "queuedAt": 1785796783008,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "SPY (ARCA), QQQ (NASDAQ), GLD (ARCA), VOO and IVV are indiv…",
+      "promptPreview": "对抗性核查这条券商费率主张(它将影响一个真钱决策): \"SPY (ARCA), QQQ (NASDAQ), GLD (ARCA) — and also VOO and IVV — are individually confirmed on IBKR's official machine-readable fractional-eligible list (fracshare_stk.csv, ~23,900 instruments, downloaded 2026-08-03), each with no scheduled ineligibility date.\" (来源: https://www.ibkr.com/download/fracshare_stk.csv)。\n用 WebFetch 打开来源或用 WebSearch 找官方页面交叉验证。它是否准确、是否过时、是否有它没提的关键…",
+      "lastProgressAt": 1785796965028,
+      "tokens": 56236,
+      "toolCalls": 16,
+      "durationMs": 181983,
+      "resultPreview": "{\"claim\":\"SPY (ARCA), QQQ (NASDAQ), GLD (ARCA), VOO and IVV are individually confirmed on IBKR's official machine-readable fractional-eligible list (fracshare_stk.csv, ~23,900 instruments, downloaded 2026-08-03), each with no scheduled ineligibility date.\",\"verdict\":\"confirmed\",\"correction\":\"核查属实且不过时(2026-08-03 当日重新下载原始 CSV 独立复核):23,906 数据行≈\\\"~23,900\\\";五只 ETF 各恰好出现一次,交易所标注与主张一致(SPY,ARCA,756733 / Q…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 9,
+      "label": "verify:Fractional-share permissions a",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "a18438d123adf051f",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785796783050,
+      "queuedAt": 1785796783008,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "IBKR 碎股权限对 Pro 和 Lite 均开放;官方 FAQ (interactivebro…",
+      "promptPreview": "对抗性核查这条券商费率主张(它将影响一个真钱决策): \"Fractional-share permissions are available to both Pro and Lite: official FAQ states 'Individual accounts (both standalone accounts and clients of Financial Advisors) and organizational accounts including Lite customers are eligible for fractional share permissions', with exceptions only for ISA/JISA, PEA accounts, Israel residency, and IB Securities Japan clients.\" (来源…",
+      "lastProgressAt": 1785796938615,
+      "tokens": 48540,
+      "toolCalls": 13,
+      "durationMs": 155565,
+      "resultPreview": "{\"claim\":\"IBKR 碎股权限对 Pro 和 Lite 均开放;官方 FAQ (interactivebrokers.com/faq?id=83262092) 称个人账户(独立账户及 FA 客户)和机构账户(含 Lite 客户)均有资格,例外仅有 ISA/JISA、PEA 账户、以色列居民、IB Securities Japan 客户四项。\",\"verdict\":\"corrected\",\"correction\":\"引文本身逐字准确且为当前版本(2026-08-03 用浏览器实时打开官方 FAQ 核对,原句与四项例外完全一致),但\\\"例外仅有四项\\\"及其决策含义需要修正:(1) 同一 FAQ 页 Note 部分还有第五项限制被略去——比利时零售客户已被置为 close-only,只能平掉既有碎股仓位,不能新开;另注明 FA/资管/介绍经纪商只能对客户 all-or-none 整体开通…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 10,
+      "label": "verify:No account minimum and no inac",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "a3652346c7556a33f",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785796783054,
+      "queuedAt": 1785796783008,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "No account minimum and no inactivity fee in 2026: the offic…",
+      "promptPreview": "对抗性核查这条券商费率主张(它将影响一个真钱决策): \"No account minimum and no inactivity fee in 2026: the official pricing overview states 'No added spreads, account minimums, or hidden fees' and lists 'No inactivity fees'; the Other Fees page lists no retail inactivity or maintenance fee (only an institutional client account minimum exists).\" (来源: https://www.interactivebrokers.com/en/pricing/commissions-home.php)。\n用 We…",
+      "lastProgressAt": 1785796950708,
+      "tokens": 51401,
+      "toolCalls": 15,
+      "durationMs": 167654,
+      "resultPreview": "{\"claim\":\"No account minimum and no inactivity fee in 2026: the official pricing overview states 'No added spreads, account minimums, or hidden fees' and lists 'No inactivity fees'; the Other Fees page lists no retail inactivity or maintenance fee (only an institutional client account minimum exists). (来源: https://www.interactivebrokers.com/en/pricing/commissions-home.php)\",\"verdict\":\"confirmed\",\"…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 11,
+      "label": "verify:The old monthly inactivity/act",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "a8016fc6c5c01a8fc",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785796873686,
+      "queuedAt": 1785796783008,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "The old monthly inactivity/activity fee (USD 10-20) was eli…",
+      "promptPreview": "对抗性核查这条券商费率主张(它将影响一个真钱决策): \"The old monthly inactivity/activity fee (USD 10-20) was eliminated effective July 1, 2021 and has not returned as of 2026.\" (来源: https://www.financemagnates.com/forex/brokers/interactive-brokers-eliminates-monthly-account-inactivity-fees/)。\n用 WebFetch 打开来源或用 WebSearch 找官方页面交叉验证。它是否准确、是否过时、是否有它没提的关键限制条件?\n返回 JSON",
+      "lastProgressAt": 1785797005621,
+      "tokens": 42908,
+      "toolCalls": 11,
+      "durationMs": 131935,
+      "resultPreview": "{\"claim\":\"The old monthly inactivity/activity fee (USD 10-20) was eliminated effective July 1, 2021 and has not returned as of 2026.\",\"verdict\":\"confirmed\",\"correction\":\"核心主张属实,但有三点补充:(1) 被取消的严格说是\\\"最低月活动费\\\"(佣金不足 $10 补差额;净值<$2,000 的账户为 $20),不是纯粹的闲置罚款——\\\"USD 10-20\\\" 描述准确,取消日期 2021-07-01 由来源文章与 IBKR 官方 2021-Q3 communique 印证,2026 年标准账户无恢复(BrokerChooser 等多家 2026 评测交叉确认)。(2) 未提的关键例外:IBKR UK Stocks & Sha…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 12,
+      "label": "verify:Hidden minimum that DOES exist",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "ac2dea593a318b733",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785796893350,
+      "queuedAt": 1785796783008,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "IBKR 存在隐性最低权益要求:个人账户须维持 USD 500 最低权益(\"…",
+      "promptPreview": "对抗性核查这条券商费率主张(它将影响一个真钱决策): \"Hidden minimum that DOES exist: to subscribe to (and keep) paid market data or research subscriptions, an individual account must maintain minimum equity of USD 500 ('Minimum Equity Balance Requirements ... Individual USD 500.00'), excluding the subscription cost itself. IBKR's API docs additionally state market data subscriptions require an IBKR Pro account type.\" (来源:…",
+      "lastProgressAt": 1785797051752,
+      "tokens": 49733,
+      "toolCalls": 19,
+      "durationMs": 158402,
+      "resultPreview": "{\"claim\":\"IBKR 存在隐性最低权益要求:个人账户须维持 USD 500 最低权益(\\\"Minimum Equity Balance Requirements ... Individual USD 500.00\\\")方可订阅并保留付费行情/研究订阅,且该 500 不含订阅费本身;API 文档另要求行情订阅须为 IBKR Pro 账户类型。\",\"verdict\":\"confirmed\",\"correction\":\"准确且未过时(2026-08-03 实时加载来源页核验;WebFetch 被 403,经浏览器直读 DOM)。定价页原文:\\\"The following minimums are required to subscribe and maintain market data and research subscriptions. This does not include …"
+    }
+  ],
+  "totalTokens": 653900,
+  "totalToolCalls": 202
+}
