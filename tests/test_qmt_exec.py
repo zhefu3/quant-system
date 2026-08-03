@@ -213,3 +213,30 @@ def test_reconcile_violation_blocks_send(tmp_path):
         {"pre": {"600000.SH": 0.0}, "target": {"600000.SH": 5000.0}}))
     ex.run(_mk_targets(tmp_path), send=True)
     assert ex.recon_flag.exists() and b.placed == []
+
+
+def test_fill_report_grades_partial_and_orthogonal_to_reconcile():
+    """A 23%-filled order is PARTIAL, sits inside the [pre,target] corridor,
+    and therefore reports without tripping reconciliation (P1-8 amendment)."""
+    from qtrade.live.broker import check_reconciliation
+    from qtrade.live.qmt_exec import fill_report
+
+    expected = {"pre": {"600000.SH": 0.0}, "target": {"600000.SH": 10000.0}}
+    current = {"600000.SH": 2300.0}
+    fills = fill_report(expected, current)
+    assert fills == [{"code": "600000.SH", "planned_notional": 10000.0,
+                      "achieved_notional": 2300.0, "attainment": 0.23,
+                      "status": "PARTIAL"}]
+    assert check_reconciliation(current, expected, 10000.0) == []
+
+
+def test_fill_report_filled_unfilled_and_no_move():
+    from qtrade.live.qmt_exec import fill_report
+
+    expected = {"pre": {"A": 1000.0, "B": 0.0, "C": 5000.0},
+                "target": {"A": 1000.0, "B": 8000.0, "C": 0.0}}
+    current = {"A": 1000.0, "B": 7900.0, "C": 4900.0}
+    fills = {f["code"]: f["status"] for f in fill_report(expected, current)}
+    assert "A" not in fills          # no move planned: not graded
+    assert fills["B"] == "FILLED"    # 98.75% of the buy
+    assert fills["C"] == "UNFILLED"  # sell barely moved (2%)

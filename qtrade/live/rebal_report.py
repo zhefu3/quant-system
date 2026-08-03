@@ -49,7 +49,11 @@ def run_rebal_report(month: str | None = None) -> None:
             continue
         log = pd.read_csv(exec_f)
         log["ts"] = pd.to_datetime(log["ts"], format="mixed", utc=True)
-        log = log[log["ts"].dt.strftime("%Y-%m") == mk]
+        # month attribution in CN wall time — a fill at 18:12 UTC on the 31st
+        # is already the 1st in Shanghai, and these are CN books (the repo's
+        # #1 defect class striking in the display layer, 2026-08-03)
+        cn_month = log["ts"].dt.tz_convert("Asia/Shanghai").dt.strftime("%Y-%m")
+        log = log[cn_month == mk]
         if not len(log):
             print(f"exec_log 本月无条目")
             continue

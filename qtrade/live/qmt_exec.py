@@ -110,6 +110,37 @@ def load_targets(path: Path | str, now=None) -> dict:
     return payload
 
 
+# fill attainment below this fraction of the planned move counts as unfilled;
+# above 1-FILL_TOL counts as filled. Between the two, the state is PARTIAL —
+# a first-class outcome, not an error (2026-08-03 amendment, P1-8): the
+# remaining shares re-enter the next session's plan from actual positions,
+# and the deviation is reported instead of silently absorbed.
+FILL_TOL = 0.05
+
+
+def fill_report(expected: dict, current_notional: dict[str, float]) -> list[dict]:
+    """Grade yesterday's send: how much of each planned move actually happened.
+
+    Partial fills live INSIDE the [pre, target] corridor, so they never trip
+    the reconciliation flag (which watches for positions OUTSIDE it) — the
+    two detectors are deliberately orthogonal.
+    """
+    out = []
+    pre, target = expected.get("pre", {}), expected.get("target", {})
+    for code in sorted(set(pre) | set(target)):
+        planned = float(target.get(code, 0.0)) - float(pre.get(code, 0.0))
+        if abs(planned) < 1.0:  # no move was planned for this code
+            continue
+        achieved = float(current_notional.get(code, 0.0)) - float(pre.get(code, 0.0))
+        att = achieved / planned
+        status = ("FILLED" if att >= 1 - FILL_TOL
+                  else "UNFILLED" if att <= FILL_TOL else "PARTIAL")
+        out.append({"code": code, "planned_notional": round(planned, 2),
+                    "achieved_notional": round(achieved, 2),
+                    "attainment": round(att, 3), "status": status})
+    return out
+
+
 def plan_cn_orders(
     targets: dict,
     managed_capital: float,
@@ -270,6 +301,17 @@ class QmtExecutor:
         if self.expected_file.exists():
             cur_notional = {c: float(positions.get(c, 0.0)) * prices.get(c, 0.0)
                             for c in codes}
+            fills = fill_report(json.loads(self.expected_file.read_text()),
+                                cur_notional)
+            if fills:
+                self._audit(event="fill_report", fills=fills)
+                (self.dir / "fills_last.json").write_text(json.dumps(fills, indent=2))
+                for fr in fills:
+                    if fr["status"] != "FILLED":
+                        print(f"  fill {fr['code']}: {fr['status']} "
+                              f"({fr['attainment']:.0%} of planned "
+                              f"{fr['planned_notional']:+.0f}) — remainder "
+                              "re-enters today's plan from actual positions")
             notes = check_reconciliation(
                 cur_notional, json.loads(self.expected_file.read_text()), managed)
             if notes and not self.recon_flag.exists():
