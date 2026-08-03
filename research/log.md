@@ -1641,3 +1641,17 @@ FILLED/PARTIAL/UNFILLED 达成度, 写 audit+fills_last.json; 与 RECONCILE 正�
 - 发现仪表缺口: cb 的 16 笔正常成交只进 trades.csv 未进 exec_log(ashare 正常),
   纸面 TCA 对 cb 缺基线——已开独立修复任务, 不与本轮混改。
 - 165→167 测试全绿。
+
+### 运维事件: futures_ibkr 断档 120 小时——僵尸 API 跨过了本应每日发生的自重启 (2026-08-03)
+
+- 症状: 07-29 20:05 UTC 起每小时 tick 全部失败(qualifyContracts RequestTimeout
+  ×58 次), 端口 4002 始终可连(探针盲区旧相识), 其余八本账全程正常。
+- 恢复: 网关进程今日 12:51(本地)重启后 API 立即健康——手动 qualify/取数/整 tick
+  一次通过, 账本已追平(equity 9980.51, 补一笔 GC 调仓)。持仓期间无害: 该账本
+  gross 低且无到期动作, 五天里目标仓位无变化需求。
+- **真正的问题不是断档, 是自重启没救它**: IBC 每日 14:45 重启机制在 5 天窗口内
+  未生效或未清除僵尸(logs 无 restart 记录)。已开独立审计任务: 验证 AutoRestartTime
+  配置、launchd 触发链、以及"重启后 API 健康"的探测(现有探针只测端口)。
+- 告警链条如实评价: health 的 stale WARN + 通知**第一时间就响了**, 死人开关也在
+  看备份心跳——盲区不在监控, 在"无人值守时告警只能等人回来"。单机自动修复
+  (连续 N 次 RequestTimeout → 触发网关重启)列入审计任务的选项。
