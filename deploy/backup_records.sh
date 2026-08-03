@@ -16,6 +16,9 @@ rsync -a --delete "$SRC/outputs/paper/" "$DST/paper/"
 # the forward-collected PIT event dataset is irreplaceable BY DESIGN —
 # its whole value is that it cannot be re-fetched later
 [[ -d $SRC/data_store/cn_cb_events ]] && rsync -a --delete "$SRC/data_store/cn_cb_events/" "$DST/cn_cb_events/"
+# same principle, collector #2 (2026-08-04): funding/OI/limit-pool/LHB
+# snapshots — a Mac-only copy of unrebuildable data is a single point of loss
+[[ -d $SRC/data_store/market_snapshots ]] && rsync -a --delete "$SRC/data_store/market_snapshots/" "$DST/market_snapshots/"
 cp "$SRC/research/revalidation_history.csv" "$DST/" 2>/dev/null || true
 
 cd "$DST"
