@@ -28,6 +28,10 @@ sys.exit(r.returncode)
 PY
 fi
 
+# US signal-change watcher (2026-08-04): when etf_trend's frozen rules flip
+# a stance, push a notification and append the digest — reporting, not advice
+.venv/bin/python -m qtrade.live.us_signal_watch >/dev/null 2>&1 || true
+
 # live-forward snapshot collector #2 (2026-08-04): full-universe crypto
 # funding+OI and A股 limit-pool/龙虎榜 — history that free APIs cap or never
 # archive. Own marker so a failure here never blocks cb_events or the backup.
