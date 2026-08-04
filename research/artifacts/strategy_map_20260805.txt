@@ -1,0 +1,749 @@
+{
+  "summary": "Survey evidence-backed strategy families from literature and practice, score against qtrade constraints",
+  "agentCount": 12,
+  "logs": [],
+  "result": {
+    "summaries": [
+      "对12个异象/策略家族按qtrade硬约束(单Mac+免费数据/A股万5印花+万2.5佣金/无做空T+1/graveyard规则)完成费后证据审查。判死6个(blocked):美股隔夜漂移(NY Fed 2026年7月一手宣判2021-2025漂移≈0,NightShares清盘)、美股PEAD(Chordia系:成本吃70-100%且2010后大盘已消失)、52周高点(撞截面动量graveyard,无新数据轴)、美股指数效应(Greenwood-Sammon JF:纳入<1%剔除0.1%)、ST摘帽(2024国九条定向爆破壳价值+年样本50个)、新股次新与大宗折价(制度断裂/散户无门)。唯一viable:月末月初效应——百年+31国+机制型(机构再平衡资金流)+OOS存活,且是全名单唯一费后干净的(美股零佣金ETF、A股ETF免印花税,月1次交易<0.3%/年成本),但定位是1-3%/年的日历暴露叠加而非独立账本。四个marginal:(1)A股负隔夜/T+1折价~14bp——制度锁定不可套利,做成'买开盘/卖收盘'执行规则白捡,零trial成本;(2)A股PEAD——费率能过(事件驱动~1%/年)但须先证明公告日PIT轴对冻结版指增有独立增量,否则算graveyard重提;(3)A股指数调样——费率无碍但年2事件样本过不了DSR,只配零成本顺手研究;(4)涨停连板/打板生态——学术证据最硬的A股短周期alpha(Chen-Gao-Xiong账户级数据+NBER日频动量),制度未变不衰减,且是唯一满足graveyard例外(独家涨停池封单/龙虎榜PIT流)的家族;但同一文献警告散户排板=队尾逆向选择,故立项路径限定为live-forward先验证'封单强度→次日开盘收益'的无排队条件期望,先预测后执行。总排序:费后证据强度ToM>A股执行择时>打板生态(条件于自有数据)>A股PEAD≈A股调样,其余判死。",
+      "六家族对照qtrade硬约束的结论: 2 viable / 3 marginal / 1 blocked。共同模式——本批真正能过约束的都不是独立新策略, 而是给已在跑的趋势账本加的'条件化叠加层'。①最推荐: 期限结构斜率时序择时(viable)——用akshare全合约免费算商品斜率、用自采资金费/OI快照做crypto侧(独家数据轴, 满足墓地豁免), 只做时序门控严格避开已判死的截面carry; ②波动率管理敞口(viable)——Moreira-Muir 2017, 但按Cederburg 2020实时协议诚实定位为左尾/回撤控制层而非alpha源, 零数据成本、只减仓不加杠杆, 对微实盘阶段价值最高; ③趋势变体(marginal)——Levine-Pedersen 2016证明52周高点/通道突破与现行趋势是等价线性滤波, 加新变体≈踩'参数集成'墓地, 唯一新轴是加速度(Γ, Sornette组, 证据弱)只值一个增量IR小实验; ④dual momentum(marginal)——费率免疫但2014-2022发表后跑输买入持有, 广度≈1, 与ETF趋势重叠, 最多做A股指数ETF绝对动量门控单实验; ⑤时序动量残差化(marginal)——文献全是股票截面版(墓地边缘), 期货/crypto时序版是证据空白, 最佳落点是山寨币对BTC残差的时序动量对照实验, 严禁做成排序策略; ⑥商品季节性(blocked)——2024年OOS复检显示同月效应仅1990-1999存活、2000年后消失, 加上免费数据历史深度不足与截面商品墓地重叠, 不立项。执行注意: 商品期货实盘需期货账户(目前未见), 相关实验先纸面跟踪。",
+      "六个crypto原生家族按'严肃证据×qtrade硬约束'排序: (1)极端资金费方向性反转是唯一viable——文献链完整(BIS WP1087/Management Science 2024, SSRN Anatomy 2025), 事件式低换手扛得住20bp/回合, 且与已判死的基差carry机制不同(不收carry、只用拥挤度反转), 自采跨所快照构成新数据轴; 行动: 立即从Binance API免费回填2019年以来全部funding历史(现有Gate序列仅6个月不够用)。(2)清算级联后反转机制最硬(强平引擎结构性存在, arXiv 2607.27070), 最佳落地是给在跑的布林MR加级联确认过滤器, 1h免费数据即可先测; 完整版等自采OI。(3)OI拥挤度是数据护城河而非现成策略——Binance只留30天OI历史, 自采序列6-12个月后即稀缺; 现在只需两个零成本动作: 快照提频到小时级+每日顺存30天日内OI窗口。(4)Listing负漂移(Binance效应已反转为3个月-23%)值得一个预注册假设: 空新上线perp、净funding、3倍滑点haircut, 用免费onboardDate回测, 不显著即归档。(5)稳定币供应作为α信号被Lyons/Viswanath-Natraj正面否定, 仅保留为免费regime过滤器(DefiLlama API)。(6)时段季节性被费率算术判死(每日调仓≈50%/年拖累), 且周内效应被证明是聚合假象; 唯一残值是给现有策略的调仓单做执行择时, 零成本。总原则: 先花零成本补数据轴(funding回填/OI提频/事件日历), 只给前两家立E编号。",
+      "五个组合构造/执行层家族对照 qtrade 硬约束的结论: (1) 再平衡时点分桶(tranching)是最纯的免费午餐——零成本零数据零费率, 直接套转债双低与指增月频, Hoffstein等量化时点运气>100bp/年, 且作为方差项不存在发表后衰减, 建议最先做; (2) A股执行时点(买开盘/卖收盘)排第二——Qiao-Dam 测出 T+1 结构性开盘折价均值~14bp, 被监管规则钉住无法被套利走, 只移动成交时刻不加换手, 与万7.5费率同量级, 但明确不构成复活E67的理由; (3) 波动率目标化对已在跑的趋势/MR是低成本叠加, 诚实预期是回撤与尾部改善(Harvey 2018)而非费后Sharpe免费提升(Cederburg 2020已部分证伪后者); (4) 税费结构是有界的一次性算术(~几十bp/年): ETF/转债免印花税包装、红利税除权日避让、crypto maker化, 另一半价值是负面知识——中美两头资本利得都不征税, 美式税损收割(Chaudhuri-Lo 1.08%/年)对本账户恒为零, 勿进口; (5) Return stacking 判 marginal: 趋势叠加证据本身扎实(Hurst-Ooi-Pedersen), 但 qtrade 已持有趋势四条腿, 增量只剩杠杆资本结构——A股侧被两融利息/期货门槛封死, 小资金下资本效率价值≈0, 留待资金规模变化时重估。总排序: 分桶 > A股执行时点 > 税费算术 > 波动率目标 > return stacking。"
+    ],
+    "all_families": [
+      {
+        "name": "隔夜漂移(美股, overnight drift)",
+        "mechanism": "收盘尾盘订单失衡由流动性提供者承接并要求隔夜补偿;日内/隔夜投资者客群分层导致利润几乎全部集中在隔夜段(动量/反转类策略尤甚)。",
+        "evidence": "Lou-Polk-Skouras, JFE 2019 (14个策略利润全在隔夜或全在日内);NY Fed (Boyarchenko等):1998-2020年ES期货2-3am ET一小时贡献约3.7%/年(占全收益~60%)。证据在发表时点是顶刊级强证据。",
+        "post_pub_decay": "已被一手来源宣判死亡:NY Fed Liberty Street 2026-07《The Disappearing Overnight Drift》——2021-2025该窗口收益≈0,归因于收盘订单失衡标准差从6.5%压缩到2.9%(算法LP切细流量);NightShares NSPY/NIWM 2023年7月清盘,存续期NSPY -6.9% vs SPX +22%。教科书级的机制消失+发表后衰减双重实证。",
+        "data_needs": "仅需日线open/close(yfinance即可)——数据从来不是瓶颈,收益消失才是。",
+        "fit": "blocked",
+        "fit_reason": "费前已死(2021-2025≈0);即便复活,每日100%换手×SPY点差~1bp≈2.5%/年拖累,与历史漂移同数量级。不许投入任何算力。",
+        "source_urls": [
+          "https://personal.lse.ac.uk/polk/research/TugOfWar.pdf",
+          "https://www.sciencedirect.com/science/article/abs/pii/S0304405X19300650",
+          "https://libertystreeteconomics.newyorkfed.org/2026/07/the-disappearing-overnight-drift/",
+          "https://www.etf.com/sections/news/2-nightshares-etfs-close-after-struggling-gain-traction"
+        ]
+      },
+      {
+        "name": "A股负隔夜收益/T+1开盘折价(反向隔夜效应)",
+        "mechanism": "T+1禁止当日回转卖出→开盘买入者承担流动性折价,A股隔夜收益系统性为负、日内为正(与全球相反);Qiao-Dam估计平均T+1折价约14bp/日。",
+        "evidence": "《The overnight return puzzle and the T+1 trading rule in Chinese stock markets》(J Financial Markets 2020);《Overnight versus intraday returns of anomalies in China》(PBFJ 2023);多篇独立复现,方向一致,属A股最稳健的制度性规律之一。",
+        "post_pub_decay": "机制由交易制度锁定:只要T+1存在,折价无法被套利消除——结构性溢价,衰减风险低。但正因无法套利(股票无法只持日内),它也无法成为独立策略。",
+        "data_needs": "日线OHLC即可(¥2000 A股日线已覆盖);验证只需把已有回测的成交价从close换成open对比。",
+        "fit": "marginal",
+        "fit_reason": "独立策略被T+1本身堵死;唯一可行形态是执行层规则:给所有A股账本(指增/未来打板)定死'买单开盘执行、卖单收盘执行',每笔理论捡10-14bp——对月频指增约值1-2%/年,几乎零成本落地。定位是执行叠加,不是新家族,不占trial预算。",
+        "source_urls": [
+          "https://www.sciencedirect.com/science/article/abs/pii/S1386418120300033",
+          "https://www.sciencedirect.com/science/article/abs/pii/S0927538X23000732"
+        ]
+      },
+      {
+        "name": "月末/月初效应 (turn-of-month)",
+        "mechanism": "机构按日历同步再平衡+养老金/工资定投现金流月初集中入市+风险递延;不同频率再平衡mandate层级叠加(2026年新机制证据)。",
+        "evidence": "Lakonishok-Smidt 1988;McConnell-Xu (FAJ 2008/SSRN):1926-2005全部股权溢价集中在月末-1至月初+3的4日窗口,31/35国成立,不限小盘、不限12月、不限美国;2026 J Int Fin Markets论文《Infrequent rebalancing, risk deferral and equity returns at the turn of the month》给出机制支撑。是日历类异象中唯一有跨国+百年+机制三重证据的。",
+        "post_pub_decay": "McConnell-Xu本身就是OOS检验(1897-1986发表后,1987-2005依旧全额成立);近年复现显示夏普下降但窗口收益仍为正;属McLean-Pontiff框架下衰减最少的'机制型'效应(制度性资金流,非错误定价)。",
+        "data_needs": "指数日线(yfinance+已有A股日线),零增量数据成本。",
+        "fit": "viable",
+        "fit_reason": "全名单里唯一费后干净的:美股零佣金ETF月度1次进出<0.3%/年成本;A股经300ETF(ETF免印花税,仅佣金万2.5)同样便宜,T+1无碍(持4-6天)。诚实上限:这是低容量日历择时叠加,期望贡献1-3%/年,建议做成对趋势账本/闲置现金的'月历窗口暴露调节',不开独立账本;DSR上要防日历效应的多重检验陷阱(只测这一个预注册窗口,不扫参数)。",
+        "source_urls": [
+          "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=917884",
+          "https://www.tandfonline.com/doi/abs/10.2469/faj.v64.n2.11",
+          "https://www.sciencedirect.com/science/article/abs/pii/S1042443126000259",
+          "https://quantpedia.com/strategies/turn-of-the-month-in-equity-indexes"
+        ]
+      },
+      {
+        "name": "PEAD(美股)",
+        "mechanism": "对盈余信息反应不足,价格沿SUE方向漂移约60个交易日(Ball-Brown 1968起)。",
+        "evidence": "Bernard-Thomas 1989/1990经典;但费后证据方向致命:Chordia-Goyal-Sadka-Sadka-Shivakumar (FAJ 2009):漂移集中在最不流动组(月VW收益2.43% vs 最流动组0.04%),交易成本吃掉纸面利润的70-100%。利润恰好长在成本最高的地方。",
+        "post_pub_decay": "Chordia-Subrahmanyam-Tong 2014:流动性/交易活动上升后显著衰减;2010年后大盘股中接近消失(公告日外无显著超额);Columbia论文归因于盈余新闻持续性本身下降——不只是被套利,信号源也在变弱。",
+        "data_needs": "PIT公告日+分析师预期(IBES级)——免费轴拿不到;yfinance盈余日历非PIT且质量差。",
+        "fit": "blocked",
+        "fit_reason": "三杀:可交易域(大盘/流动股)效应已死;有效域(小盘/非流动)成本吃光70-100%;免费数据轴不支持PIT公告库。文献自己已把费后净收益判为零。",
+        "source_urls": [
+          "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=1403342",
+          "https://www.tandfonline.com/doi/abs/10.2469/faj.v65.n4.3",
+          "https://business.columbia.edu/sites/default/files-efs/imce-uploads/CEASA/Events%20Page/PEAD_Declined_over_time.pdf"
+        ]
+      },
+      {
+        "name": "PEAD(A股, 业绩预告/快报事件驱动)",
+        "mechanism": "散户主导+涨跌停延缓价格发现+注意力有限→对盈余(尤其业绩预告)反应不足;涨停封板还会机械性延迟兑现。",
+        "evidence": "Emerging Markets Finance & Trade 2022(注意力+意见分歧驱动的中国PEAD);Int Review of Financial Analysis 2024(简化盈余惊喜度量,多空1年~9.5%超额);但2025 Applied Economics Letters报告60日'反向PEAD'——近年样本内符号不稳,证据存在方向性分歧,质量远低于美股经典文献。",
+        "post_pub_decay": "Jacobs-Müller 2020:发表后衰减主要是美国现象,国际异象发表后大体仍存——对A股相对有利;但中国文献口径混乱(年报vs预告vs快报),且反向PEAD论文提示制度/参与者结构变化可能已翻转符号。",
+        "data_needs": "PIT业绩预告/快报/正式公告日期+数值:巨潮资讯免费可爬,需自建PIT采集(与已有转债条款PIT采集能力同构);SUE用同比口径即可,不依赖分析师预期。",
+        "fit": "marginal",
+        "fit_reason": "费率能过:事件持有60日的长腿组合换手远低于月频截面(~1%/年 vs 3.8%/年);但无做空砍掉通常贡献更大的空腿,且与已判死的基本面因子截面/已冻结的LightGBM指增强重叠。立项条件:公告日PIT事件轴必须证明对指增有独立增量(先做特征增量测试),否则视为graveyard重提。",
+        "source_urls": [
+          "https://www.tandfonline.com/doi/full/10.1080/1540496X.2022.2079975",
+          "https://www.sciencedirect.com/science/article/abs/pii/S1057521924003922",
+          "https://www.tandfonline.com/doi/full/10.1080/13504851.2025.2608299"
+        ]
+      },
+      {
+        "name": "52周高点动量",
+        "mechanism": "锚定效应:价格接近52周高点时投资者对好消息反应不足,信息缓慢兑现(George-Hwang, JF 2004)。",
+        "evidence": "George-Hwang 2004(52周高点距离的预测力主导并解释传统动量利润);国际复现(J Int Money & Finance 2010, 20国)。但费后:多类研究显示成本抹掉风险调整利润的1/2-2/3,澳洲等市场计入做空限制+成本后不显著。",
+        "post_pub_decay": "动量类在McLean-Pontiff口径下发表后衰减显著(平均58%);52周高点与标准截面动量高度同源——George-Hwang自己证明二者利润重叠。",
+        "data_needs": "日线即可,数据零障碍。",
+        "fit": "blocked",
+        "fit_reason": "撞graveyard正面:与已判死的'股票截面动量(3宇宙)'同族且无新数据轴,按规则直接封禁;A股侧还叠加月频截面3.8%/年费拖累+无做空双杀。不构成例外。",
+        "source_urls": [
+          "https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1540-6261.2004.00695.x",
+          "https://www.sciencedirect.com/science/article/abs/pii/S0261560610001099"
+        ]
+      },
+      {
+        "name": "指数成分调整事件(美股 S&P)",
+        "mechanism": "指数基金被动需求冲击→纳入溢价/剔除折价;可预测调整被前置交易。",
+        "evidence": "Harris-Gurel 1986、Shleifer 1986奠基;1990年代纳入平均+7.4%。",
+        "post_pub_decay": "Greenwood-Sammon《The Disappearing Index Effect》(Journal of Finance 2025):2010-2020纳入<1%、剔除仅+0.1%——尽管指数化资产份额大增,效应反而消失(前置预测+机构对倒安排)。顶刊直接宣判。",
+        "data_needs": "指数公告免费公开——无关紧要,效应已死。",
+        "fit": "blocked",
+        "fit_reason": "一手顶刊文献已完成死刑判决,零算力投入。它同时是A股同类效应的领先指标(套利者密度上升的终局)。",
+        "source_urls": [
+          "https://onlinelibrary.wiley.com/doi/10.1111/jofi.13410",
+          "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4294297",
+          "https://www.nber.org/system/files/working_papers/w30748/w30748.pdf"
+        ]
+      },
+      {
+        "name": "指数成分调整事件(A股 沪深300/中证500半年度调样)",
+        "mechanism": "规则化调样(每年6/12月,市值+流动性排名)可提前预测;A股ETF规模暴增后被动资金必须在生效日调仓→公告日至生效日漂移。",
+        "evidence": "PBFJ 2016(CSI300增删不对称:纳入涨幅永久、剔除跌幅弱);PBFJ 2021(长期看被剔除股反而跑赢被纳入股——提示纳入溢价被高估/存在反转);生效日当日量价效应弱。证据层级为区域期刊,强度中等。",
+        "post_pub_decay": "无系统发表后追踪;国内公募/量化对该窗口研究极充分,ETF被动盘变大与套利者变多同步,净效应未知;美股同类效应消亡(Greenwood-Sammon)是不祥的领先指标。",
+        "data_needs": "中证指数公司调样公告(免费,可并入采集层做PIT);调入名单可用日线自行按规则预测——数据完全够。",
+        "fit": "marginal",
+        "fit_reason": "费率无障碍(每年2次、长only、持2-4周);致命伤是样本量:每年2个事件×~30只票,DSR意义上学习速度极慢,十年也就20个事件点。只配作零边际成本的'顺手'研究(公告采集已免费),严禁作为主力trial。",
+        "source_urls": [
+          "https://www.sciencedirect.com/science/article/abs/pii/S0927538X1630107X",
+          "https://www.sciencedirect.com/science/article/abs/pii/S0927538X2100158X"
+        ]
+      },
+      {
+        "name": "A股涨停连板/打板生态",
+        "mechanism": "涨跌停+T+1+散户注意力→日频动量(持续1-2日后一周内反转);大户在涨停日买入、次日卖出获利,其净买入预测长期反转(对散户的收割结构)。",
+        "evidence": "最强的A股账户级证据:Chen-Gao-He-Jiang-Xiong《Daily Price Limits and Destructive Market Behavior》(J Econometrics 2019, 深交所账户数据):大户打板策略系统性盈利、追板散户系统性亏损,ST股5%停板提供因果识别;Gao-Jiang-Xiong-Xiong《Daily Momentum and New Investors》(NBER w31839):中国日频动量显著,14/21新兴市场存在 vs 仅3/21发达市场——这是A股少数被顶级学者确认真实存在的短周期alpha。",
+        "post_pub_decay": "制度基础(涨跌停/T+1/散户结构)未变,机制不随发表衰减;但利润分配天然归执行/排队优势方,且2024年后量化监管与游资打法轮动使参数层剧烈漂移——衰减形式是'轮动'而非'消失'。",
+        "data_needs": "正是自有独家流:涨停池PIT(封单金额/开板次数)+龙虎榜+A股分钟线;历史分钟级封单无法回补→只能live-forward积累(与现行'只信活数据'议程一致);执行需miniQMT。",
+        "fit": "marginal",
+        "fit_reason": "唯一满足graveyard例外条款(全新独家数据轴)的家族。诚实风险:散户排板处于队尾,成交即逆向选择(排到手≈可能开板);学术证据说盈利属于大户。允许立项的路径:不做'排板',先用live-forward封单数据验证可无排队执行的条件期望——如'首板封单强度/开板次数→次日开盘收益'(次日开盘买,T+1后卖,费率~8bp/round vs 目标期望数十bp)。先当预测问题验证,再谈执行。",
+        "source_urls": [
+          "https://www.princeton.edu/~wxiong/papers/PriceLimit.pdf",
+          "https://www.nber.org/papers/w24014",
+          "https://www.nber.org/papers/w31839",
+          "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3070038"
+        ]
+      },
+      {
+        "name": "ST摘帽事件",
+        "mechanism": "摘帽=退市风险解除+流动性/关注回归→事件窗正CAR;深层依赖壳价值制度。",
+        "evidence": "仅低层级中文期刊事件研究(汉斯出版社等),无顶刊、无费后口径;反面证据倒是顶刊级:Chen et al. 2019显示ST股是大户收割散户的典型场所。",
+        "post_pub_decay": "不是发表衰减而是制度断裂:2024新国九条明确'削减壳资源价值'+退市新规'应退尽退',2024年5月ST批量跌停潮;2024年摘帽仅49家。历史CAR建立在壳价值预期上,该预期正被监管定向爆破。",
+        "data_needs": "财务PIT+监管公告可得,但无意义。",
+        "fit": "blocked",
+        "fit_reason": "四杀:证据质量低;机制被2024监管改革拆除(历史回测不可外推);年样本~50个过不了DSR;持有ST期间面值退市/连续跌停尾部风险无做空无法对冲。",
+        "source_urls": [
+          "https://image.hanspub.org/Html/58-2622799_58195.htm",
+          "https://news.cnstock.com/news,yw-202404-5218842.htm",
+          "https://finance.sina.com.cn/jjxw/2024-05-07/doc-inauipar8787346.shtml"
+        ]
+      },
+      {
+        "name": "新股/次新(打新+次新炒作)",
+        "mechanism": "打新:发行定价管制下的一二级价差彩票;次新:无套牢盘+小流通盘+新投资者注意力(实为日频动量子集)。",
+        "evidence": "1990-2018平均抑价170%(vs 美国16.8%);但配售加权后无信息投资者中位收益仅0.51%/次(winner's curse文献);注册制改革(2019科创板→2023主板)后首日定价市场化、破发常态化,FRL 2021显示改革放大首日波动而非消灭它。",
+        "post_pub_decay": "2013/2020/2023三轮制度变更使历史证据几乎不可外推——衰减来源是制度非套利。",
+        "data_needs": "打新:券商App手点即可;次新:上市日期+日线(已有)。",
+        "fit": "blocked",
+        "fit_reason": "打新对小资金是期望为正但年化几百元量级的彩票(由中签率决定),无研究价值,手动顺手做即可;次新炒作不独立立项,并入涨停生态家族(同一日频动量机制、同一套独家数据)。",
+        "source_urls": [
+          "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=967995",
+          "https://www.sciencedirect.com/science/article/abs/pii/S1544612321005602"
+        ]
+      },
+      {
+        "name": "大宗交易折价",
+        "mechanism": "减持限制→大股东经大宗通道折价出货;接盘方次日二级卖出赚折价(过桥套利);或以折价率作为减持压力/知情交易信号。",
+        "evidence": "直接套利:单笔≥30万股或200万元且需协商对手方——散户制度性无门。信号形态:主要是券商研报/投顾口径(折价>5-10%=减持压力),缺顶刊费后证据;间接支持来自Jones-Shi-Zhang-Zhang (JFQA 2024):中国小单散户流负预测、机构大单正预测——'跟大资金'方向成立但非大宗折价本身。",
+        "post_pub_decay": "2023-2024减持新规(破发/破净/分红不达标禁减持)直接压缩大宗供给,历史折价分布断裂。",
+        "data_needs": "交易所每日大宗披露免费,可并入采集层;但对无做空散户,折价信号主要是'回避'信息。",
+        "fit": "blocked",
+        "fit_reason": "直接套利无资格(资金门槛+对手方网络);信号形态证据弱且方向偏空(长only用不上),制度还在变。最多作为指增的负面筛选特征顺手测,绝不立项。",
+        "source_urls": [
+          "https://www.cambridge.org/core/product/identifier/S0022109024000085/type/journal_article",
+          "https://ag.yueniuzq.com/stock/block-trade-discount-rate-institutional-impact/"
+        ]
+      },
+      {
+        "name": "趋势变体:52周高点突破 / 通道突破 / 动量加速度",
+        "mechanism": "锚定效应(52周高点作参照价)与信息缓慢扩散导致价格对新信息反应不足, 突破关键位后延续; 加速度(收益的二阶差分)捕捉趋势曲率变化。",
+        "evidence": "George & Hwang 2004 JF(52周高点, 但为股票截面版); Laubsch, Smales & Vo 2023 SSRN(商品期货52周高/低点: 行为效应存在, 但'择时能力证据不足'); Levine & Pedersen 2016 FAJ《Which Trend Is Your Friend?》核心结论: 最一般形式的均线交叉/通道突破与时序动量是同一线性滤波器的等价表示——即52周高点突破与通道突破对已在跑的趋势系统几乎不提供正交信息; Hurst, Ooi & Pedersen 2017(百年趋势证据, 毛收益强); 加速度: Ardila, Forró & Sornette 2021 Physica A(Γ因子, 2/3参数化下胜过动量), 但为Sornette单一团队、股票样本、未被广泛复现——费后增量证据弱。",
+        "data_needs": "零增量: 现有crypto K线/akshare商品日线/yfinance日线即可; 单Mac日频计算无压力。",
+        "fit": "marginal",
+        "fit_reason": "费率与数据全部满足, 但Levine-Pedersen等价性意味着52周高点/通道突破只是现行趋势(crypto 1h/商品日/ETF日/美期货日)的参数换皮——踩'参数集成'墓地边缘。唯一真正的新信号轴是加速度(Γ), 只值得做一个小实验: 作为现有趋势的入场过滤/仓位调制, 预注册检验其相对现行信号的增量IR, 无增量即弃。",
+        "post_pub_decay": "TSMOM族2009后普遍走弱但未死(Baltas & Kosowski 2020仍显著); Huang, Li, Wang & Zhou 2020 JFE质疑逐资产回归下TSM统计可靠性、且MOP结果大半来自波动率缩放而非动量本身; 52周高点股票版属McLean-Pontiff式发表后衰减重灾区; 加速度效应无独立OOS追踪记录。",
+        "source_urls": [
+          "https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1540-6261.2004.00695.x",
+          "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2603731",
+          "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4534852",
+          "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2645882",
+          "https://www.sciencedirect.com/science/article/abs/pii/S0304405X19301953"
+        ]
+      },
+      {
+        "name": "Dual Momentum(Antonacci: 绝对动量门控 + 相对动量选强)",
+        "mechanism": "12个月绝对(时序)动量把组合在'风险资产/现金'间切换以躲过熊市, 相对动量在少数资产间选最强者; 本质是低频TSMOM+低广度截面选择的叠加。",
+        "evidence": "Antonacci 2013 SSRN《Absolute Momentum》与2012/2014 GEM(1974-2011月度回测年化超额显著, 1950-1973与2012-2018两段扩展样本仍正); 但ReSolve的craftsman分析显示结果对回看期/换仓日高度敏感(timing luck), 单一参数化的置信度远低于表面数字。费率上几乎免疫(年换手1-2次, 美股零佣金/A股ETF免印花), 费后与毛收益几乎相同——问题不在费, 在信号。",
+        "data_needs": "yfinance日线(SPY/EFA/AGG/BIL)或现有A股ETF日线(沪深300/中证500/货基)即可, 零成本, 月频, 单Mac几分钟。",
+        "post_pub_decay": "发表后明显失灵: 2014-2022 GEM跑输S&P500买入持有(美股长牛浅回调使防御机制屡屡whipsaw, 2020年3月出场后错过V型反弹, 换到EFA时又遇美股独强); 这是教科书级的'规则在样本外遇到新政权'案例。",
+        "fit": "marginal",
+        "fit_reason": "所有硬约束都过(费率可忽略/数据免费/无需做空/月频T+1无碍), 但两点压分: ①绝对动量部分与已在跑的ETF日线趋势高度重叠, 增量近零; ②相对动量在2-3个资产间月频二选一, 广度≈1, 统计功效极低, DSR过不了。若做, 只值得做成'A股指数ETF绝对动量门控'单实验(利用ETF免印花税优势), 且必须多参数+多换仓日平均以消timing luck。",
+        "source_urls": [
+          "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2244633",
+          "https://medium.com/@garyantonacci_30463/extended-backtest-of-global-equities-momentum-dual-momentum-eb12902612e0",
+          "https://investresolve.com/global-equity-momentum-executive-summary/",
+          "https://robotwealth.com/dual-momentum-review/"
+        ]
+      },
+      {
+        "name": "时序动量残差化(对基准beta残差再算TSMOM)",
+        "mechanism": "先剥离共同因子/市场beta分量再对残差算时序动量, 信号更接近'资产自身的漂移'而非一荣俱荣的beta, 波动更低、因子暴露时变性更小, 理论上风险调整后收益更高。",
+        "evidence": "一手文献几乎全是股票截面版: Blitz, Huij & Martens 2011 JEF(残差动量风险调整收益约为总收益动量2倍); Blitz, Hanauer & Vidojevic 2020(国际稳健); Huij & Lansdorp 2017。期货/crypto的时序残差版无权威一手文献——这是证据空白而非证据否定。间接动机: Huang et al 2020 JFE指出TSMOM大量收益来自共同分量/波动率缩放, 残差化正是对该批评的建设性回应, 但也意味着剥掉共同分量后剩余可预测性可能很薄。费后证据: 无(文献均为毛收益+股票语境)。",
+        "data_needs": "零增量数据: 各资产收益+基准序列(山寨币对BTC、商品对南华/自建等权指数、ETF对沪深300), 滚动beta估计, 单Mac轻松; 关键成本是研究时间而非数据钱。",
+        "post_pub_decay": "股票残差动量同属截面动量家族, McLean-Pontiff式发表后衰减适用(Robeco自家追踪显示idiosyncratic momentum比总动量衰减慢但同样走弱); 期货/crypto时序版无发表记录可衰减——等于无先验保护也无先验拖累。",
+        "fit": "marginal",
+        "fit_reason": "红线警告: 若实现为'按残差动量排序做多强空弱', 就是换皮重提已判死的股票截面动量/商品截面动量——必须严格做成逐资产时序信号(残差>0做多/<0做空或空仓)。最有希望的落点是crypto: 山寨币对BTC残差的时序动量, 可做空、日频换手下taker+滑点10bp/边可承受, 且与在跑的crypto 1h趋势(总收益版)形成可检验的对照实验。定位为现有趋势账本的增强实验, 不是新家族。",
+        "source_urls": [
+          "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2319861",
+          "https://www.sciencedirect.com/science/article/abs/pii/S1059056020300927",
+          "https://www.sciencedirect.com/science/article/abs/pii/S0304405X19301953"
+        ]
+      },
+      {
+        "name": "商品季节性(同月历史收益/供需日历效应)",
+        "mechanism": "收获/取暖/需求周期与库存成本的季节循环使对冲压力和风险溢价随日历月变化, 产生可预测的同月收益相关性。",
+        "evidence": "Keloharju, Linnainmaa & Nyberg 2016 JF(跨资产同月季节性, 含商品, 毛收益年化~13%); 但专门的商品OOS复检 Li, Liu, Miao & Tse 2024(26个商品1970-2022): 同月策略仅在1990-1999子样本跑赢, 对样本期不稳健, 近年季节效应持续减弱、市场趋向有效。费后证据: 无正面证据——毛收益都撑不住OOS, 遑论费后。",
+        "data_needs": "需要每个品种20年以上月度收益才能估季节均值(每个月历月只有N个观测), akshare中国商品期货仅回溯到约2005-2010年, 历史深度先天不足; 美国长历史数据不免费。",
+        "post_pub_decay": "衰减最彻底的一家: 2024年复检明确显示2000年后效应基本消失; McLean-Pontiff框架下属'发表即死'类。",
+        "fit": "blocked",
+        "fit_reason": "双重出局: ①截面式实现(做多季节强/做空季节弱)与已判死的商品截面动量/商品carry墓地重叠, 且逐品种时序日历规则是数据挖掘高危区(参数=月份×品种); ②免费数据历史深度不够估计季节均值, 而OOS证据显示即使估出来2000年后也不挣钱。另外商品实盘需期货账户, 目前未见开设。最多保留为LightGBM或趋势系统里的一个月份哑变量特征, 不立项。",
+        "source_urls": [
+          "https://onlinelibrary.wiley.com/doi/abs/10.1111/jofi.12398",
+          "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4575549",
+          "https://onlinelibrary.wiley.com/doi/10.1111/jofi.12365"
+        ]
+      },
+      {
+        "name": "期限结构斜率择时(时序basis/carry门控趋势仓位, 非截面carry)",
+        "mechanism": "贴水/升水斜率是存储成本与对冲压力驱动的事前风险溢价度量: 同一品种自身处于backwardation时做多期望收益更高——用斜率符号在时间维度上门控/调制方向性仓位, 而非跨品种排序收割carry。",
+        "evidence": "Koijen, Moskowitz, Pedersen & Vrugt 2018 JFE《Carry》: carry不仅截面、在时序上也显著预测各资产类收益(这正是与已判死的截面carry的区别所在); Gorton, Hayashi & Rouwenhorst 2013(basis与库存/对冲压力的基本面机制); Fuertes, Miffre & Rallis 2010 JBF(动量×期限结构双信号叠加毛alpha 21%, 虽为截面双排序, 但证明两信号正交)。费后: 作为低换手叠加层(仅斜率翻符号时调仓)增量成本近零, 费后证据继承趋势本体。",
+        "data_needs": "需全期限结构: 中国商品期货全合约日线akshare免费可得(斜率=近月/次近月年化价差); crypto侧资金费率+OI快照是自有独家PIT数据流, 正好是这家的燃料; 美期货免费曲线数据是缺口(CME结算价需抓取), 可先不做美盘。",
+        "post_pub_decay": "商品carry族2010年后明显拥挤衰减(Bhardwaj-Gorton-Rouwenhorst 2015复检转弱), 但时序条件化用法(斜率作门控而非收益源)在Koijen et al样本内外均存活; crypto资金费择时属新兴、发表记录浅、尚无充分衰减周期。",
+        "fit": "viable",
+        "fit_reason": "本批最值得立项的增量实验: ①严格避开墓地——不建截面carry组合, 只做'趋势仓位×自身斜率符号一致性'过滤(如: 仅在贴水时保留多头趋势仓); ②数据全免费或已自有(akshare全合约+自采资金费/OI), 后者构成独家数据轴, 满足'新数据轴'豁免条件; ③低换手, 费率增量可忽略; ④crypto可做空, 商品端在期货账户开设前先纸面跟踪。预注册假设: 斜率门控能否提高现行商品/crypto趋势的费后IR。",
+        "source_urls": [
+          "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2298565",
+          "https://www.nber.org/system/files/working_papers/w19325/w19325.pdf",
+          "https://www.sciencedirect.com/science/article/abs/pii/S0378426610001354"
+        ]
+      },
+      {
+        "name": "波动率管理型敞口(Moreira-Muir波动率倒数缩放/目标波动)",
+        "mechanism": "波动率高度可预测(聚集)而期望收益对波动率几乎不敏感, 故按1/已实现方差缩放敞口可在不损失均值的情况下降低承担的方差, 提升风险资产的Sharpe并显著削左尾。",
+        "evidence": "Moreira & Muir 2017 JF(对市场/动量等因子alpha大、效用增益大); Harvey, Hoyle, Korgaonkar, Rattray, Sargaison & van Hemert 2018 JPM(60资产1926起: Sharpe改善集中在股票/信用等风险资产, 债/汇/商品上约为零, 但所有资产类的极端左尾都被削); 关键反证: Cederburg, O'Doherty, Wang & Yan 2020 JFE——103个策略的实时可实施版本普遍跑不赢未管理组合(spanning alpha存在但直接比较无效用增益)。费后: 月频再缩放、交易量小, 成本可忽略, 结论不因费率翻转。",
+        "data_needs": "零新数据: 用自有日线/1h K线算已实现波动即可; 单Mac实时可算; 无杠杆约束下缩放系数截断在[0,1](A股无融资), 只降杠杆不加杠杆。",
+        "post_pub_decay": "发表后学术拉锯而非单调衰减: Cederburg 2020证明原文自身即有前视/实施性问题(不完全是市场学走的alpha); DeMiguel等2024 JF多因子视角部分恢复其价值; 波动目标制在实务界(CTA/风险平价)长期存续, 左尾削减功能未衰减。",
+        "fit": "viable",
+        "fit_reason": "以'风险叠加层'而非'alpha来源'立项则完全可行: 数据零成本、换手低、无需做空(只减仓)、T+1无碍、对A股ETF/美ETF/crypto三条线通用, 且与在跑趋势天然互补(Harvey等指出趋势+目标波动组合最稳)。诚实定位: 按Cederburg的实时协议(扩窗估计、无前视)预期alpha≈0, 主张的收益是回撤/左尾控制与DSR友好——这对准备微实盘的账户比多挣2%更值钱。若检验出费后IR增量再升级为alpha主张。",
+        "source_urls": [
+          "https://onlinelibrary.wiley.com/doi/abs/10.1111/jofi.12513",
+          "https://www.sciencedirect.com/science/article/abs/pii/S0304405X2030132X",
+          "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3175538",
+          "https://jpm.pm-research.com/content/45/1/14.abstract"
+        ]
+      },
+      {
+        "name": "资金费均值回归 / 极端资金费信号(方向性, 非carry)",
+        "mechanism": "资金费是杠杆多空失衡的实时价格: 极端正费率=多头拥挤(趋势追逐散户加杠杆), 极端负费率=空头拥挤; 拥挤仓位遇反向冲击被迫平仓, 价格向反方向快速回归。",
+        "evidence": "证据链最完整的家族。Schmeling/Schrimpf/Todorov《Crypto Carry》(BIS WP1087, Management Science 2024): 资金费由趋势追逐的杠杆需求驱动, carry高企后伴随'carry崩溃'(即极端费率预示反转); Cao/Luo/Cheng/Dong《Anatomy of Cryptocurrency Perpetual Futures Returns》(SSRN 6365329, 2025): 170个预测因子中63个显著, 两因子模型里log-basis(资金费的孪生量)是定价核心; He/Manela/Ross/von Wachter《Fundamentals of Perpetual Futures》(SSRN 4301150)给出funding-现货锚定的理论框架。注意符号有期限结构: 分钟-小时级funding正向预测收益(动量), 极端分位数+多日持有期才是反转。费后: 极端分位触发的事件式交易(11币×每月2-6次, 持有1-5天), 20bp/回合的成本远小于文献报告的事件后行情幅度, 费后可存活。",
+        "data_needs": "关键: 现有Gate资金费仅537行/6个月, 太短。Binance /fapi/v1/fundingRate 免费提供自2019年合约上线以来的全部8h资金费历史(分页拉取, 无需key), 应立即回填10-15个主流币——这一步零成本且使家族马上可测。自采跨所快照(已在跑)未来提供PIT跨所分位数这一独家轴。",
+        "fit": "viable",
+        "fit_reason": "费率约束: 事件式低换手, 20bp/回合可承受。可做空: 满足(perp天然双向)。数据: 免费历史可回填+自采快照。墓地重叠须严防: 'crypto基差carry'(收carry: 空perp多现货)已判死, 本家族必须严格限定为'极端资金费→价格方向反转信号', 不收carry, 不做基差套利; 机制(拥挤度反转)与死家族(收费率收益)不同, 且自采跨所funding快照构成新数据轴。与在跑的crypto布林均值回归天然互补(可先做conditioning overlay再做独立策略)。",
+        "post_pub_decay": "carry变体衰减铁证: 综述(arXiv 2510.14435)复算Schmeling等的carry策略, 2020-25全样本Sharpe 6.45, 2024起降至4.06, 2025转负——正好印证你们判死基差carry。方向性极端费率信号的拥挤-强平机制是结构性的(强平引擎不会被套利掉), 衰减应慢于carry, 但alt币上信号更强也意味着容量小。",
+        "source_urls": [
+          "https://www.bis.org/publ/work1087.pdf",
+          "https://pubsonline.informs.org/doi/10.1287/mnsc.2024.05069",
+          "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=6365329",
+          "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4301150",
+          "https://arxiv.org/html/2510.14435v4"
+        ]
+      },
+      {
+        "name": "OI/持仓量拥挤度",
+        "mechanism": "OI上升+价格上行+高funding=新增杠杆多头拥挤, 市场对反向冲击脆弱; OI骤降=强制去杠杆完成, 抛压出清。ΔOI给funding信号提供'是谁在加仓'的第二维。",
+        "evidence": "学术直接证据最薄的一家: 严肃文献多把OI当控制变量而非信号。旁证: BIS WP1087证明perp未平仓量94%集中且由趋势追逐需求驱动(拥挤机制成立); Kim/Hansen《The Quarter-Hour Effect》(arXiv 2607.09426, 2026)证明开仓订单失衡对4-12小时收益有样本外预测力(仓位流信息含金量的同类证据); 其余多为Amberdata/Coinglass级别的从业者描述, 未见费后成体系的截面检验。诚实结论: 机制可信, 独立OI信号的学术验证是空白——这既是风险也是机会。",
+        "data_needs": "这是自采数据护城河最真实的一家: Binance openInterestHist 硬限制只保留30天(官方文档确认), 长历史OI只有Coinglass/Laevitas付费卖。自采11币日频快照6-12个月后即成免费世界里的稀缺序列。两个零成本改进应立刻做: (1)快照频率从1次/日提到每小时(采集器是自己的, 改cron即可)——拥挤度和级联研究需要日内ΔOI; (2)每次顺手把30天日内OI历史窗口存下来, 回溯窗口立即从1天变30天滚动拼接。",
+        "fit": "marginal",
+        "fit_reason": "费率/做空/成本均无障碍, 无墓地重叠; 定级marginal纯因两点: 学术证据薄(需自己从头验证, 先验成功率低于funding家族), 且当前仅1天自采数据、6-12个月内无法回测。正确姿态: 现在只投入采集端改进(零成本), 不立项策略; 数据够长后与funding信号做联合条件化(高funding×OI新高 vs 高funding×OI下降的分层检验)。",
+        "post_pub_decay": "无发表即无衰减——没有被McLean-Pontiff式套利掉的先例, 但同理也没有先验保护。从业者层面Coinglass指标已大众化, 粗粒度信号(OI创新高)大概率已被交易; 日内ΔOI×funding交互的细粒度信号拥挤度低。",
+        "source_urls": [
+          "https://arxiv.org/html/2607.09426v2",
+          "https://www.bis.org/publ/work1087.pdf",
+          "https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Open-Interest-Statistics",
+          "https://blog.amberdata.io/liquidations-in-crypto-how-to-anticipate-volatile-market-moves"
+        ]
+      },
+      {
+        "name": "稳定币供应 / 链上流量",
+        "mechanism": "稳定币净增发=法币入金待部署的干火药, 供应扩张领先风险偏好上行; 反向为资金撤离。本质是周-月级流动性/regime变量, 不是交易信号。",
+        "evidence": "证据严肃但互相打架: Griffin/Shams《Is Bitcoin Really Un-Tethered?》(Journal of Finance 2020)发现Tether增发后BTC上涨——但样本是2017-18操纵时代; Lyons/Viswanath-Natraj(JIMF 2023, CEPR专栏《Stablecoins don't inflate crypto markets》)用更长样本正面否定: 增发不预测BTC收益, 增发是套利者维持锚定的内生响应; Ante等(2021, FRL)事件研究找到增发窗口的小幅正超额但经济量级小。综合: 作为α信号证据不成立, 作为regime/流动性状态变量有共识。费后无意义谈起——月频状态变量几乎不产生交易。",
+        "data_needs": "免费完全可行: DefiLlama stablecoins API(免key免费)给全部稳定币历史流通量/分链数据; CoinMetrics community数据可交叉验证。注意: 文献里更强的短期预测量是'交易所净流入'——该数据只有Glassnode/CryptoQuant付费档, 免费不可行, 此变体直接放弃。",
+        "fit": "marginal",
+        "fit_reason": "作为独立策略blocked(最强学术证据是否定性的); 作为已跑策略的regime过滤器marginal可试: 稳定币供应30日增速做crypto趋势/布林MR的仓位缩放因子, 增量交易为零、增量成本为零, 唯一投入是一条日频采集管线(顺手并入现有采集层)。无墓地重叠。判定前须按预注册纪律先验证'加过滤 vs 不加'的费后差异。",
+        "post_pub_decay": "Griffin-Shams效应在2018后样本中基本消失(Lyons等直接复算否定), 是crypto文献里发表后衰减/样本外失效的最清晰案例——这恰好是不给它高优先级的理由。",
+        "source_urls": [
+          "https://cepr.org/voxeu/columns/stable-coins-dont-inflate-crypto-markets",
+          "https://people.duke.edu/~charvey/Teaching/697_2022/Public_Presentations_697/Bitcoin_Untethered_2022_697.pdf",
+          "https://link.springer.com/article/10.1186/s40854-022-00343-8",
+          "https://docs.llama.fi/",
+          "https://defillama.com/stablecoins"
+        ]
+      },
+      {
+        "name": "周内 / 时段季节性",
+        "mechanism": "24/7市场里参与者仍按传统时区作息: 美股时段/周末效应/整点算法簇拥造成系统性的时段收益与流动性模式。",
+        "evidence": "文献多但质量分化。经典日历效应(Caporale/Plastun等, Finance Research Letters 2018-21)结果跨子样本不稳; 关键负面证据: 逐小时分解显示'周内效应'是聚合假象——整个周模式坍缩为周日23:00-24:00 UTC单小时(美国散户周末归来), 日线bar把它抹到周一头上。正面证据: Quantpedia/Vojtko-Padysak隔夜季节性(22:00 UTC买入持有2h, Gemini 2015-21, 费前Sharpe 1.58)——但费前; Kim/Hansen刻钟效应(arXiv 2607.09426)是学术最扎实的日内结构证据, 但其可交易性未做费后论证。费后算术直接判死独立策略: 每日2小时持仓=每年250+回合×20bp≈50%/年成本拖累, 对33%/年的费前收益是负和。",
+        "data_needs": "零新增: 交易所1h/15m K线(ccxt免费)完全够用。",
+        "fit": "blocked",
+        "fit_reason": "作为独立策略被费率算术直接杀死(50%/年拖累 vs A股月频截面3.8%/年拖累的教训同构, 且更狠)。唯一免费残值: 作为在跑crypto策略的执行择时overlay——趋势/布林MR的调仓单本来就要发, 挪到统计上有利的时段/避开周日23:00 UTC和整刻钟波动簇, 增量成本为零。此用法不立E编号策略, 只做执行层微调并前后对照滑点。无墓地重叠。",
+        "post_pub_decay": "日历效应是全资产类别中发表后衰减最重的家族(McLean-Pontiff式), crypto版还叠加'聚合假象'问题——多篇早期论文的效应在逐小时数据下不复现。先验应设为强衰减。",
+        "source_urls": [
+          "https://quantpedia.com/strategies/intraday-seasonality-in-bitcoin",
+          "https://www.sciencedirect.com/science/article/abs/pii/S1544612317307894",
+          "https://mlquants.substack.com/p/are-day-of-the-week-effects-in-cryptocurrencies",
+          "https://arxiv.org/html/2607.09426v2"
+        ]
+      },
+      {
+        "name": "逼仓与清算级联后的反转",
+        "mechanism": "强平引擎发出价格不敏感的强制市价单, 把价格推离基本面并触发链式强平; 强制流耗尽(OI骤降+funding极端化)后, 无信息的错位价格向回收敛。这是文献里最接近'结构性、不可套利消失'的机制——强平引擎永远存在。",
+        "evidence": "机制层证据强, 信号层证据中等。arXiv 2607.27070(2026)研究2022-2025七次BTC大级联(含2025-10-10的190亿美元OI清除), 用分钟级数据证实杠杆-流动性-波动的反身回路与事后回归, 但同时给出诚实的负面结果: 早期预警信号跨事件异质、无不变量——即'预测级联'不可行, 可行的是'级联确认后入场'。事件后反转在从业者研究(Amberdata等)中反复出现但缺严格费后检验。费后友好: 大级联每年个位数到十几次, 事件式交易成本可忽略, 单事件历史行情幅度远超20bp。",
+        "data_needs": "痛点在数据而非成本: Binance forceOrder清算流自2021-04起被节流为每秒每symbol仅推最大一单(官方文档确认), 免费清算数据系统性残缺; Coinglass历史清算付费。免费代理方案: 1h K线极端收益+成交量尖峰+funding跳变(ccxt现有)可检测大级联; 完整版需要日内OI骤降确认——再次指向把自采OI快照提到小时频。另可零成本挂一个forceOrder websocket常驻采集(残缺但PIT, 自己攒独家序列)。",
+        "fit": "marginal",
+        "fit_reason": "无费率障碍(事件稀疏)、可做空、无墓地重叠, 且与在跑的crypto布林均值回归同机制根源——最自然的落地不是新策略而是给MR加'级联确认'入场过滤器(现有1h数据即可回测)。定级marginal而非viable只因完整信号依赖的日内OI/清算数据目前免费拿不到历史, 需自采6-12个月。这是六家族中机制最硬、与现有系统协同最高的一家。",
+        "post_pub_decay": "机制受强平引擎保护, 不因发表消失(2022 FTX、2024-08、2025-10反复重演); 但事件异质性意味着任何固定参数的历史拟合都可能在下一次失效——用宽阈值+预注册, 不做精细参数优化。",
+        "source_urls": [
+          "https://arxiv.org/html/2607.27070",
+          "https://developers.binance.com/docs/derivatives/usds-margined-futures/websocket-market-streams/Liquidation-Order-Streams",
+          "https://blog.amberdata.io/liquidations-in-crypto-how-to-anticipate-volatile-market-moves"
+        ]
+      },
+      {
+        "name": "Listing / Delisting 事件效应",
+        "mechanism": "上市=可达性与流动性的离散跳升+散户注意力冲击(公告日拉升); 上市后过度乐观定价系统性回落(IPO长期弱势的crypto版); 退市公告=流动性死刑, 即时暴跌。",
+        "evidence": "事件研究证据真实但时代分层严重。学术: 《Market Reaction to Exchange Listings of Cryptocurrencies》(2019)确认上市公告正超额; Zhang等《Endogenous Arbitrage Networks》记录上市在交易所网络中的传导。从业者: Messari测得'Coinbase效应'2018-20平均5日+91%(分布-32%~+645%); 近期追踪显示'Binance效应'已反转——上市后1周+0.4%、3个月-22.7%、6个月-37.6%, 即公告日抢跑者把后市收益透支为负漂移。可操作变体: 系统性做空新上线perp(负漂移方向, crypto可做空)。Delisting: 公告即时-9%~-24%(EOS/MUSE等案例), 无法抢在公告前, 可交易性差。",
+        "data_needs": "免费可行: Binance exchangeInfo的onboardDate字段免费给出每个perp的上线日期(负漂移变体立即可回测); 上市/退市公告日历可从交易所公告页零成本自采(并入现有采集层, 攒PIT事件库)。",
+        "fit": "marginal",
+        "fit_reason": "无墓地重叠, 事件稀疏故名义换手低。两个硬伤压到marginal: (1)成本假设失效——新上线/将退市币种的点差与滑点远超5bp基准, 费后须用3-5倍滑点haircut重算; (2)做空新listing要付funding——新perp上线初期funding常深负(空头拥挤), 空头持有成本可能吃掉负漂移的大半, 回测必须逐事件净掉funding现金流。建议只做一件事: 用免费onboardDate回测'空新上线perp、持有2-12周、净funding、3倍滑点'这一个预注册假设, 显著则升级, 否则归档。",
+        "post_pub_decay": "衰减证据直接而剧烈: Coinbase效应从2018-20的+91%到近年大幅缩水, Binance上市公告收益被抢跑压到+0.4%/周——公告日拉升这半边基本被套利完; 恰是这个衰减制造了反面(上市后负漂移)机会, 但它同样会被拥挤。",
+        "source_urls": [
+          "https://www.researchgate.net/publication/335690724_Market_Reaction_to_Exchange_Listings_of_Cryptocurrencies",
+          "https://finance.yahoo.com/news/coinbase-effect-means-average-91-161123386.html",
+          "https://web.ourcryptotalk.com/blog/binance-effect-reversal-token-listing-performance",
+          "https://anthonyleezhang.github.io/pdfs/cryptoexchanges.pdf"
+        ]
+      },
+      {
+        "name": "波动率目标化 (Volatility Targeting / Vol-Managed Overlay)",
+        "mechanism": "风险资产的波动聚集+收益-波动负相关使得按已实现波动率反比缩放仓位可在不加新信号的前提下提升风险调整后收益并系统性截断左尾。",
+        "evidence": "Harvey, Hoyle, Korgaonkar, Rattray, Sargaison, van Hemert (2018, JPM 45(1)): 股票/信用类资产 Sharpe 提升、债券/外汇/商品上 Sharpe 几乎不变, 但所有资产类别左尾极端收益均被削弱; Moreira & Muir (2017, JF) 支持面; 关键反面: Cederburg, O'Doherty, Wang, Yan (2020, JFE 138): 103个股票策略上可实时实施的版本普遍跑不赢未管理组合(spanning回归结构不稳定)——即『Sharpe 提升』费后+OOS证据弱, 『尾部/回撤控制』证据强且稳健。费后强度: 仓位缩放型换手远低于截面轮动, 用波动带(band)更新可把额外换手压到每月个位数百分比, A股万7.5单边费率下拖累<0.2%/年, crypto 10bp 往返下同样可忽略。",
+        "data_needs": "零新增: 只需已持有的日线/小时线收盘价算已实现波动率。可选: 用已在采集的 crypto 资金费+OI 快照做条件化(高OI+高波动时更激进降杠杆)属加分项非必需。",
+        "fit": "viable",
+        "fit_reason": "直接套在已在跑的趋势(crypto 1h/商品日/ETF日/美期货日)和布林均值回归上, 单Mac日线数据足够; crypto 可双向加减杠杆完整实现; A股无杠杆+T+1 意味着只能『向下缩放留现金』——仍能拿到回撤控制这一半好处, 且不触发 A股月频截面式的 3.8%/年费拖累(它是仓位缩放不是换股)。不与任何已判死方向重叠。诚实预期: 主要买到的是回撤/尾部改善和更平的权益曲线, 不是费后 Sharpe 免费提升(Cederburg 约束)。",
+        "post_pub_decay": "非截面异象, McLean-Pontiff 式发表后套利衰减不适用; 但 Cederburg et al. 2020 相当于其股票因子版本的 OOS 失败证据——应把『Sharpe 提升』视为已部分证伪, 『尾部收缩』视为机制性(波动聚集是物理性质)且未衰减。",
+        "source_urls": [
+          "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3175538",
+          "https://jpm.pm-research.com/content/45/1/14.abstract",
+          "https://www.sciencedirect.com/science/article/abs/pii/S0304405X2030132X",
+          "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3357038"
+        ]
+      },
+      {
+        "name": "再平衡时点运气对冲 (Rebalance Timing Luck → Overlapping Tranches)",
+        "mechanism": "固定再平衡日是一个任意随机种子, 同一策略仅因换仓日不同年化收益可差100bp以上; 把组合拆成错开日期的重叠子桶(tranches)平均掉这一运气, 是纯方差削减、期望收益零成本。",
+        "evidence": "Hoffstein, Faber, Braun (2020, SSRN 3673910)『Rebalance Timing Luck: The (Dumb) Luck of Smart Beta』: 长多因子指数的时点运气普遍>100bp/年, 复制S&P Enhanced Value的策略仅因换仓日不同单年收益差可达40%; 换手越高时点运气越大, 再平衡越频繁越小; 前作 Hoffstein et al. 2019『The Difference Between Hired and Fired』给出解析式(运气∝换手/子桶数)。费后强度: 分桶不增加总换手(每桶换手率不变, 总量守恒), 额外成本≈0——这是五个家族里最接近字面意义免费午餐的。",
+        "data_needs": "零新增。只需在回测框架里把月频策略改为N个错位子桶重放(用已有日线), 并把单一换仓日回测报告改为全换仓日分布报告(这同时修正回测评估偏差)。",
+        "fit": "viable",
+        "fit_reason": "直接命中两条在跑腿: 转债双低月频(拆4个周错位子桶, 转债10张一手+T+0, 小资金粒度可行)和 LightGBM指增月频。趋势类日频调仓本身时点运气小, 不用动。唯一现实约束是小账户粒度: 指增股票100股一手, 拆桶后单桶买不起高价股——可用『子桶数=2~4』折中或按流通市值加权取整。不产生任何新费率, 不碰做空/T+1限制, 与墓地零重叠。",
+        "post_pub_decay": "不适用——这不是alpha而是方差项, 无法被别人套利掉; 发表只会让更多人分桶, 不影响你分桶的收益。唯一注意: 它不提升期望收益, 买到的是实盘-回测偏差收窄和解雇风险(单一坏种子)下降。",
+        "source_urls": [
+          "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3673910",
+          "https://blog.thinknewfound.com/2019/11/the-dumb-timing-luck-of-smart-beta/",
+          "https://www.thinknewfound.com/rebalance-timing-luck"
+        ]
+      },
+      {
+        "name": "趋势叠加持有 / Return Stacking (资本效率杠杆叠加)",
+        "mechanism": "用期货/永续等资本高效工具把低相关的趋势暴露『叠』在核心持仓之上而非替换之, 靠危机期负相关(crisis alpha)在不牺牲核心仓位的情况下改善组合几何收益。",
+        "evidence": "Hoffstein, Butler, Gordillo (2021, ReSolve/Newfound 白皮书『Return Stacking: Strategies for Overcoming a Low Return Environment』); 趋势腿本身: Hurst, Ooi, Pedersen (2017, JPM)自1880年每个十年期时序动量均为正且在60/40十大回撤中8次表现良好; Moskowitz, Ooi, Pedersen (2012, JFE)。费后强度: 白皮书层面费后逻辑依赖期货融资成本≈无风险利率; 散户经由杠杆ETF实现则内含~1%费率; 趋势sleeve近十年费后Sharpe较历史中枢下移但仍为正。",
+        "data_needs": "无新数据(趋势信号已在产)。需要的不是数据而是工具通道: crypto 永续保证金/组合保证金设置, 或美股杠杆型 stacked ETF; A股侧需要股指期货开户(50万门槛)或两融(5-6%利息)。",
+        "fit": "marginal",
+        "fit_reason": "qtrade 已经在跑趋势四条腿——本家族对 qtrade 的增量内容只剩『资本结构』: 让趋势不占用核心仓位的资金。A股侧被硬约束封死: 无做空+两融利息5-6%吃掉全部叠加收益, 股指期货有50万门槛, 属 blocked; crypto 侧机械上可行(永续加杠杆叠在现货上)但引入清算风险+资金费成本, 且与已在跑的 crypto 趋势重复暴露; 美股杠杆ETF通道(RSST类)零佣金可买但~1%费率且再次与已有 ETF 趋势腿重叠。小资金下资本效率的价值本来就低(没有『资金不够分』的问题)。结论: 证据面(趋势叠加改善60/40)是真的, 但对这个账户的边际价值≈0, 只在未来资金显著变大或获得期货通道时重估。",
+        "post_pub_decay": "趋势本身: 世纪级证据+近十年Sharpe下移但未转负(拥挤度争议存在); stacking 作为包装无独立alpha故无衰减问题; 该判断不受 McLean-Pontiff 截面衰减框架约束。",
+        "source_urls": [
+          "https://catalyst-insights.com/wp-content/uploads/2021/09/Return-Stacking-Paper-ReSolve-Newfound.pdf",
+          "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2993026",
+          "https://www.aqr.com/Insights/Research/Journal-Article/A-Century-of-Evidence-on-Trend-Following-Investing"
+        ]
+      },
+      {
+        "name": "执行时点系统化 (开盘vs收盘vs竞价的系统差, A股T+1折价收割)",
+        "mechanism": "A股 T+1 规则使当日买入者丧失日内卖出期权, 造成开盘价相对昨收系统性折价(隔夜收益均值为负, 全球唯一), 因此『买在开盘、卖在收盘』的纯执行规则每边可拿到结构性折价的一部分。",
+        "evidence": "Qiao & Dam (2020, Journal of Financial Markets 50)『The overnight return puzzle and the T+1 trading rule』: 平均 T+1 折价约14bp/日, 牛熊市、大中小盘均稳健; 因果识别强——不受T+1约束的债券/期货隔夜收益为正, 1993-94及2001年B股豁免T+1窗口期隔夜收益也为正; 美股侧: Lou, Polk, Skouras (2019, JFE)多数异象利润完全集中在隔夜或日内之一, 执行时点选择直接决定拿到哪一半。费后强度: 这是负成本改进——不增加交易次数, 只移动已有交易的时刻; 相对A股万7.5单边费率, 每边最多~14bp的执行改善量级与费率本身同阶。",
+        "data_needs": "回测层: 已有日线OHLC即可(开盘价vs收盘价成交重放); 精化层: A股分钟线(¥2000可议)做集合竞价/开盘半小时VWAP窗口; 自有涨停池数据流(封单/开板)用来剔除一字板不可成交开盘——这是别人没有的PIT过滤器。注意信号-执行错位: 信号收盘算、次日开盘执行, 必须PIT重放这半天的gap。",
+        "fit": "viable",
+        "fit_reason": "对A股两条腿(LightGBM指增换仓、以及若指增解冻后的任何调仓)是单Mac、零新增交易成本的直接改造; 14bp/边 vs 万5印花+万2.5佣金的量级对比意味着执行改造能吃回月频费拖累的可观一块——但明确不构成复活E67低溢价轮动的理由(E67死于换手总量, 执行优化不改变换手量, 除非未来新数据轴)。转债T+0不受此机制覆盖, 转债腿需单独实测其隔夜模式再决定。crypto/美股侧改善量级小一个数量级, 优先级低。",
+        "post_pub_decay": "衰减风险最低的一族: A股隔夜折价由监管规则(T+1)结构性钉住, 套利它恰恰需要当日回转交易——被规则本身禁止, 故发表后无法被套走(2020年发表至今规则未变); 美股 Lou-Polk-Skouras 隔夜/日内分解在发表后有部分衰减与争议, 不作为主注仓依据。",
+        "source_urls": [
+          "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3418356",
+          "https://www.sciencedirect.com/science/article/abs/pii/S1386418120300033",
+          "https://personal.lse.ac.uk/polk/research/TugOfWar.pdf",
+          "https://www.sciencedirect.com/science/article/abs/pii/S0304405X19300650"
+        ]
+      },
+      {
+        "name": "税费结构套利 (中国/美国散户语境的费用与税优化)",
+        "mechanism": "同一暴露选最便宜的法律包装与成交方式: A股印花税只落在股票卖出(5bp), ETF/转债/逆回购全程豁免; 中国个人股票资本利得免税但红利税按持有期歧视(<1月20%/1月-1年10%/>1年0); 美股NRA(W-8BEN)资本利得0%+条约股息预扣10%; crypto taker→maker 直接省3-4bp/边。",
+        "evidence": "政策文件: 财政部2023-08-28印花税减半至卖出万5、ETF/可转债豁免(人民网/中信证券公告); 美国侧基准: Chaudhuri, Burnham, Lo (2020, FAJ 76(3)) 税损收割税前alpha 1.08%/年(wash-sale约束后0.82%)——关键结论是它对本账户不适用: 中国个人A股无资本利得税、美股NRA无美国资本利得税, 故TLH价值恒等于零, 不要进口美国建议; 内部证据: qtrade 自算的A股月频截面费拖累3.8%/年即这一族的反面定价。量化价值: 股票→ETF包装省5bp/往返; 月频持仓避开股权登记日省红利税(A股~2%股息率×20%税率≈最坏40bp/年, 规避可回收大半); crypto MR 挂单化省~3-4bp/边×换手次数。",
+        "data_needs": "近零: 费率表与红利税规则是公开常数; 唯一新增采集是A股分红预案/股权登记日日历(免费, akshare级), 用于月频调仓的除权日避让; crypto 侧需在执行器加 post-only 路径并实测布林MR的挂单成交率损失。",
+        "fit": "viable",
+        "fit_reason": "全部动作在硬约束内: 不加数据成本、不碰杠杆做空、不复活死方向; 转债双低腿其实已经坐在最优包装上(免印花+T+0+低佣), 印证该族思路; 对指增腿红利税避让和佣金复议(万2.45已接近底但ETF佣金可另谈到万0.5)是可落地的双位数bp/年; 上限也要诚实: 这一族是有界的一次性算术, 全吃下约几十bp/年, 救不活费拖累3.8%/年级别的高换手策略——它是防守层不是进攻层。",
+        "post_pub_decay": "无学术衰减概念, 唯一风险是政策变更(印花税率历史上双向调整过; 转债2022年起交易规则收紧先例), 故所有依赖豁免的算术应做成参数而非硬编码。",
+        "source_urls": [
+          "http://finance.people.com.cn/n1/2023/0828/c1004-40065300.html",
+          "https://www.citics.com/newsite/tzgg/ywgg/202308/t20230828_1181105.html",
+          "https://www.tandfonline.com/doi/abs/10.1080/0015198X.2020.1760064",
+          "https://dspace.mit.edu/handle/1721.1/135992"
+        ]
+      }
+    ],
+    "scored": [
+      {
+        "name": "月末/月初效应 (turn-of-month)",
+        "verdict": "park",
+        "net_arithmetic": "美股腿(SPY,自家数据): 经典(-1,+3)窗口差分 1993-2005 +8.7bp/日(t=1.72) → 2006-2015 +1.0bp/日(t=0.17) → 2016-2026 +0.2bp/日(t=0.03); 毛≈0.1%/年 − 成本(12往返×3-7bp点差/PFOF)0.3-0.8%/年 = 净 -0.2~-0.7%/年, 死。A股腿(510300闲置现金覆盖): 毛(2019-2026实测)≈5.5%/年于部署切片(每窗中位0.48%, 剔top-3剩2.8%) − 成本(12往返×[万2.5×2佣金+~4bp价差]≈1.1%/年) + 保留货基收益 ≈ 净+2~+4%/年切片级、0.4-1.2%/年账本级(闲置现金10-30%); 但2019+ t=1.23, 全样本t=2.59(ETF)/3.38(指数), 且该样本今日复核已被偷看(应记trial台账+3)。",
+        "reason": "卡片被自家数据倒置:主打的美股零费腿发表后二十年毛效应归零(2016-26 t=0.03, 费后为负, \"衰减最少\"主张证伪, QuantSeeker 2025复现同向), 唯一幸存的A股腿费后算术成立但仅14年已偷看样本、无中国版机制;解锁条件=免费拉取2010年前上证/沪深300指数史, 用文献冻结窗口做一次quasi-OOS, 过则以\"A股-only闲置现金月历覆盖\"重新提卡, 不过则关闭。"
+      },
+      {
+        "name": "期限结构斜率择时(时序basis/carry门控趋势仓位, 非截面carry)",
+        "verdict": "park",
+        "net_arithmetic": "商品腿(cn_futures 14品种, 成本模型|Δw|×0.06%同E52/CNFUTURES): 5日平滑斜率符号年翻转~2-4次/品种, 每次触发|Δw|≈1/14仓位开关 → 增量年换手≈14×3×0.071≈3x, 费拖≈3×0.06%=0.18%/年≈Sharpe -0.03(账本vol 7.0%), 对照E52独立carry套12.8x换手/0.77%年费; crypto腿(taker 5bp+滑点5bp=10bp/边, E56实测平均|gross|仅0.26): 平滑funding符号门年增换手~2-5x → 20-50bp/年。结论: 费后增量成本确实近零, 提案的成本论证成立——但费率不是本案的约束绑定项, 信息含量才是。",
+        "reason": "费率论证成立但两条腿各撞一条本仓库自己的铁律: ①商品腿不是新数据轴——完全相同的近远月斜率信号即 E52 的 product_carry()(research/log.md L428-448), 其本地实测前后半 Sharpe 0.82/-0.40、2021 起连续四年≤0, 拿一个近五年预测符号为负的信号去门控趋势仓位无法凭空造出信息, 且属 E69-B 判定的\"旧数据上的新问题=默认自欺\"(docs/research-agenda-20260804.md), E52 冻结的重开条件(某季度 corr 转负且独立 Sharpe 回 0.3+)未触发; ②crypto 腿才是真正的独家新轴, 但 funding+OI 快照 2026-08-04 才开采(免费历史被封: binance 451/bybit 403/OKX 仅3月/gate 180天, E56 L545-557), 今天零历史无法回测, 且议程第四扇门已为它排定 ~2027 初成熟后一次性预注册(先验压低, E66 教训)。故不进本批预注册清单: 等自采流满 6-12 个月后按既定议程预注册 crypto 门控一次, 商品腿仅在 E52 季度监测触发重开条件时搭车; 期间可零成本前瞻纸面记录斜率门控标记, 不动账本。"
+      },
+      {
+        "name": "波动率管理型敞口(Moreira-Muir波动率倒数缩放/目标波动)",
+        "verdict": "reject",
+        "net_arithmetic": "Q1费后: 月频1/RV²缩放、系数截断[0,1], 静态多头上平均单向换手≈0.2/月≈2.4×/年 → A股ETF(免印花税)佣金万2.45+冲击≈2.5bp→费拖累≈12bp/年; 美ETF零佣金+点差≈1bp→2-5bp/年; crypto taker 5bp+滑点5bp→≈24bp/年——\"静态beta上费后可忽略\"成立。但毛超额按提案自认的Cederburg实时协议≈0, 故静态beta净期望≈-0.1~-0.25%/年, 买到的只有削尾。关键陷阱: 叠加到在跑活跃账本时, 缩放乘的是全部底层调仓而非仅自身Δw——E26在自家crypto账本实测(12/15/20%三档)费用2-4×、Sharpe 0.81→0.50-0.72。且削尾时效上, 月频对2015 A股式/2020-03式月内完成的急跌滞后≥1个月, 文献削尾多来自日/周频重缩放→提频即退回E26费坑: 费省之处无益, 有益之处费杀。Q3数据: 已采集的免费日线收盘价算21日RV足够(crypto另有1h线提精度), 数据确实零成本、不是约束。",
+        "reason": "该机制在qtrade不是空白而是饱和存量——每本趋势账本腿级已内置vol_target(qtrade/strategies/overlays.py, E6/E14即0.3-0.4)、账本间已用逆波动率配资(qtrade/live/allocate.py), 组合级再叠一层正是研究log E26已判死方向(费用2-4×、Sharpe全面下降, 元结论\"机构overlay全被散户费率杀死\")且E66隐波变体同死, 本提案自认零新数据、不满足重提条件; 最新文献续判不利: JFM 2023\"disappearing profitability\"与2024国际证据示费后/实时下仅市场组合与动量幸存, DeMiguel 2024 JF仅在多因子联合视角部分恢复, 拥挤则以另一形态存在——vol-control/风险平价万亿级机构化造成2018-02/2020-03/2024-08同步去杠杆级联, 月频散户复制是最后离场者; 组合内唯一未被管理的多头beta仅剩冻结观察中的ashare_ml与人工对照户, 面太小, 而一个自认实时alpha≈0、削尾收益在任何可行前向窗口内不可证伪的候选按设计过不了任何净IR/DSR预注册门——其残值是风险策略层的一个配置开关(overlays.py现成), 不该占实验名额; 重开条件=费率结构改变, 或某个大额未管理多头beta账本(如A股指增解冻)进入实盘部署。"
+      },
+      {
+        "name": "资金费均值回归 / 极端资金费信号(方向性, 非carry)",
+        "verdict": "shortlist",
+        "net_arithmetic": "往返成本=2×(taker 5bp+滑点5bp)=20bp, 事件窗(强平级波动)滑点按2-3×压力假设=30-40bp; 毛边际/次=文献极端资金费后1-5日反转1-4%按发表后衰减打对半≈50-150bp, 另加逆拥挤方向持仓为资金费收取方≈15-90bp/天(极端档0.05-0.3%/8h); 频率=11币全宇宙2-6次/月≈40-70次/年, 事件式低换手; 费后期望/次≈+30~+200bp, 成本仅占毛边际10-40% → 结构存活。对照墓地E27死法(research/log.md L178: 单笔期望<20bp<往返成本,任何参数不可交易), 本家族边际/成本比≈5-10×, 不是同一死因。",
+        "reason": "费后算术成立且数据判定被今日实测改写——提案指名的Binance fapi路线复测HTTP 451地理封锁(E56原判正确, 提案此处事实错误), 但data.binance.vision公开档案桶实测HTTP 200且BTC/ADA自2020-01、DOGE 2020-07、SOL 2020-09全量8h资金费免费可回填, 推翻E56\"免费长历史拿不到\"前提、使议程预留的一次性预注册可从~2027合法提前; 但预注册必须带四个硬条件: (a)主判决锚定2023+/2024+子样本(其孪生carry按提案自引文献2025已转负, 大币极端被ETF套利资本压缩, 2020-21样本会虚胖全样本统计), (b)用leg_attribution分离价格反转腿与funding收取腿, 防已判死的carry借道还魂, (c)修正提案两处数据事实(自采快照为OKX单所每日1次非\"跨所\", 应先升级采集到全部8h打点; Gate存量1544行非537行), (d)按议程走完整流程(candidate_count预注册→暴露登记→数据哈希→E69 placebo→双面板门), 先做在跑布林均值回归的conditioning overlay压低先验(E66教训: 机制真实≠费后有增量); OI拥挤度变体因免费历史为零维持park至自采数据成熟。"
+      },
+      {
+        "name": "波动率目标化 (Volatility Targeting / Vol-Managed Overlay)",
+        "verdict": "reject",
+        "reason": "机制本身成立但在本仓已被收割完毕，提案的两个关键前提均不成立：(a) \"不与已判死方向重叠\"为假——组合级vol target(E26: 12/15/20%三档 Sharpe 0.81→0.50-0.72、费用2-4×)明确列于 HANDOFF.md 已关闭方向勿重开清单，A股向下缩放防守版即 E54(真实ETF价格下 maxDD 5.88%>4%门槛、年度胜率84.6%<90%，防守定位不成立)，σ̂改进版即 E66 隐波标定(前瞻性真实但 ΔSharpe -0.22，关闭)；(b) \"直接套在已在跑策略上\"套不出增量——qtrade/presets.py 里每条在跑腿都已内嵌 VolTarget(crypto两腿0.4/168h、商品/美期货/ETF趋势0.30/63d)，Harvey 2018 承诺的左尾截断已入账(E6/E13实录: DD 42.6%→32%)，二次缩放的增量毛收益≈0 而增量成本>0，故费后净增量≤0在任何费率下成立，与提案自引的 Cederburg 2020 及 Barroso-Detzel 2021(费后股票vol-managed普遍失效)一致；数据问题上免费日线确实够(E26/E54/E66全部在既有数据上跑完，数据从来不是约束)，也正因零新增数据轴，按项目规则不满足重开已关闭方向的条件。唯一未开采的活口是\"资金费+OI快照条件化降杠杆\"，但那是另一份提案且独家快照流2026年7月底才开始采集，历史不足以做制度条件化——应等数据成熟后以新数据轴单独预注册，而非借本家族之壳重提。",
+        "net_arithmetic": "增量毛收益≈0：所有在跑腿已带 VolTarget，对已缩放序列再乘同源 σ̂ 缩放因子买不到新尾部保护(E66 归因原文：趋势+已实现σ已把2022处理得足够好)。增量成本>0：本仓实测 E26 费用 2-4×、Sharpe 全档下降；即便采信提案的波动带方案把额外单向换手压到 50-100%/年，crypto 10bp 往返 ≈0.05-0.10%/年、A股卖万7.5+买万2.5≈往返万10 ≈0.05-0.10%/年——费拖累数字本身不大，但分子(毛增量)为零，0 减去任何正数为负。A股唯一无 VolTarget 的两本账：LightGBM指增已冻结(加overlay=破冻结须重新预注册)，转债双低月频加缩放层的对照即 E54 已判负。"
+      },
+      {
+        "name": "再平衡时点运气对冲 (Rebalance Timing Luck → Overlapping Tranches)",
+        "verdict": "shortlist",
+        "net_arithmetic": "这是方差项而非alpha, 算术=分桶的增量成本, 分层算。(A)回测/纸面层(项目当前所在层, 冻结比例费率模型): 分桶换手守恒→增量成本=0, 主张属实。实测补上log缺失的关键数: 按冻结E63规格逐字重放(/Users/kelsey/qtrade/research/cb_double_low.py, 117个月), 双低单边名义换手32.1%/月(2021后35.3%, 年化4.2x); ashare_ml月换手1.06(log:353行)。两本账换手远高于原论文的smart beta指数, RTL∝换手→单换仓日判决的日期运气外推>±100bp/年(Zarattini-Pagani实测: 集中动量1060%年换手下350bp/年、终值$99 vs $272)——即E63后段\"+8.9%/0.91\"与E47的门槛判决都是未测宽度分布里的一次抽样, E68(时点宇宙)/E69(placebo)都没覆盖这条评估偏差轴。(B)实盘层(¥100k miniQMT门槛规模, 国金万2.45未免五=2026-07-15交割单实测): \"免费午餐\"被否证——cb分4桶后每桶每券¥100k/(4×20)=¥1,250≈恰好1手(10张×~110元, 双低选券价≤130), 订单~14→56单/月; 若转债同样收¥5/笔最低佣金, 增量成本(56-14)×5×12≈¥2,520/年≈2.5%/年, 大于双低剔除2021后的净年化+3.4%(log:810-811行), 判死; 若谈成债券万0.5+约¥0.1最低(与E67复活是同一个电话, docs/HANDOFF.md 第六节), 增量≈0且n=2可行(每券2手, ±25%取整噪声)。ashare_ml实盘层免谈: ¥2k/券已≈1手中位HS300股, 减半破一手粒度, 且未免五下83单/月(08月实际成交数, log:1639行)×¥5≈5%/年纯最低佣金——分桶只对其纸面记录有意义, 实盘须免五+~¥1M规模。(C)衰减: 不适用成立——方差削减是分散化效应无拥挤通道, 2019/2020原结果被后续文献复现并放大而非削弱; 唯一\"衰减\"是Tranching Dilemma指出最优桶数随AUM(约$25k时≈2桶), 恰与我们的手数/最低佣金算术互证。(D)数据: 零新增属实——cn_cb value面板(逐日收盘价/转股溢价率)+bonds.parquet(上市/规模/评级)+HS300 PIT日线全够, 任意错位日重放是纯计算。来源: ssrn.com/abstract=3673910; jii.pm-research.com/content/10/1/27; quantpedia.com/the-tranching-dilemma/; thinknewfound.com/rebalance-timing-luck",
+        "reason": "纸面/评估层零成本地修正\"单换仓日=隐藏随机种子\"这条 E68/E69 均未覆盖的评估偏差, 且不可被套利衰减、零新增数据, 值得预注册——但范围必须收窄为(a)E63/E47全换仓日分布报告(预承诺只报分布不选日期, 入trial台账记一族而非21次试验)+(b)转债账本n≤2分桶、以券商电话确认转债佣金最低收费为放行门, 因为\"额外成本≈0\"在¥100k未免五的实盘层被自家算术与后续文献双双否证, ashare_ml实盘分桶则物理不可行。"
+      },
+      {
+        "name": "执行时点系统化 (开盘vs收盘vs竞价的系统差, A股T+1折价收割)",
+        "verdict": "shortlist",
+        "reason": "值得预注册, 但只能以『执行覆盖层』身份入册且效应量先验必须砍半: 机制被 T+1 制度性钉住且自家指数数据实测 2024-26 隔夜均值仍为负 (HS300 −3.9bp/日, CSI500 −5.3bp/日, 但较 2010-19 的 −7.5/−10.8bp 腰斩——『发表后无法被套走』高估约2倍, 幅度可压缩只是符号钉死), 日线 hfq 开盘价 (ashare_ts 2014→) + cn_exec.py 现成一字板过滤 + E61 双轨记账使实验零新增数据成本、可立即作为 E61 影子轨预注册并接 9 月微实盘/QMT TCA 验证; 硬约束三条: (1) 效应量按大盘实测 4-6bp/边定先验而非宣称的 14bp (那是全市场小盘加权), 且须实测扣除买腿延后一夜的信号衰减 (~2.5bp/交易日, 同量级, E48 教训: 省费的聪明改动可能亏掉更多 alpha); (2) 不构成任何部署解锁——ashare_ml IR 0.22→~0.28 仍远低于 0.5 门, 不复活 E67 (换手总量未变), 转债 T+0 不适用; (3) 独立日内收割版在散户费率下直接死刑, 不得混入。本次复核的指数级隔夜测量已构成窥视, 预注册文书须按项目惯例披露。",
+        "net_arithmetic": "覆盖层净改善 = 年单边换手 12.7×(E47档案: 月换手1.06) × 实测隔夜折价 4~6bp(自家 ashare_index 2021-26 实测, 非论文14bp) ≈ +0.5~0.8%/年, 新增交易成本 = 0(同笔交易移时点, 竞价单小资金按竞价价成交), 减未实测的隔夜信号延迟成本(毛超额6.3%/年≈2.5bp/交易日, 同量级须回放定). 对照现状: ashare_ml 费拖累 3.8%/年, 净超额 2.54%→~3.1-3.3%, IR 0.22→~0.28 (<0.5 部署门, 不解锁). 独立日内版: 毛日内漂移 ~9bp/日(HS300 2024-26) − 往返费 10bp − 冻结滑点模型 20bp = −21bp/日; 万一免五+5bp滑点情形 17bp 成本 > 9bp 毛利, 仍死."
+      },
+      {
+        "name": "税费结构套利 (中国/美国散户语境的费用与税优化)",
+        "verdict": "park",
+        "net_arithmetic": "增量=总额−已实现−不适用: crypto maker ~0.6%/年已由E49入账(broker.py maker_first已默认); ETF包装5bp对E47自选50股无载体、转债腿已在免税包装(≈0); 剩红利税避让: 上限2%股息×20%=40bp/年, 混合10/20%档+避让往返成本(印花5bp+滑点~30bp/次)或信号约束(E48先例: 省0.34换手亏0.62pp)后净≤10-25bp/年——且落在已归档的纸面账上, 今日可兑现≈¥0; ETF佣金复议对判决影响~0.1pp(fee_verdicts.py冻结口径)",
+        "reason": "家族拆解后=已完成(E49挂单化/转债包装/佣金解释器)+不适用(ETF包装无载体/TLH自认恒零)+过早(红利税避让服务于无真金的归档E47);无可证伪alpha假设不该烧预注册名额, 待QMT/国金真金落地时作运维项执行(红利日历akshare免费可采), 另注意\"美股NRA资本利得0%\"对在美F-1不成立(IRC §871(a)(2) 183天30%平税), 须参数化核实"
+      }
+    ]
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Survey"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 2,
+      "title": "Score"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "equities",
+      "phaseIndex": 1,
+      "phaseTitle": "Survey",
+      "agentId": "a8c57e0475739408c",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785884120343,
+      "queuedAt": 1785884120332,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "对12个异象/策略家族按qtrade硬约束(单Mac+免费数据/A股万5印花…",
+      "promptPreview": "调查**股票市场异象/策略家族**(美股+A股)中费后证据最强的, 每个家族按 schema 填全。必须覆盖并诚实评估: 隔夜效应(overnight drift, Lou-Polk-Skouras等), 月末/月初效应(turn-of-month), 盈余公告后漂移(PEAD), 52周高点动量, 指数成分调整事件(index add/delete), A股特有异象(涨停连板/打板生态, ST摘帽, 新股/次新, 大宗交易折价)。用 WebSearch/WebFetch 找一手文献与费后净收益证据。qtrade 的硬约束(打分必须对照):\n- 单台 Mac, 免费或极低成本数据(A股日线/分钟线¥2000可议, 美股yfinance日线, crypto交易所K线, 无期权链/无tick/无另类数据)\n- 散户费率: A股印花税卖出万5+佣金万2.5(致 A股月频截面策略费拖累~3.8%/…",
+      "lastProgressAt": 1785884588559,
+      "tokens": 66329,
+      "toolCalls": 20,
+      "durationMs": 468216,
+      "resultPreview": "{\"families\":[{\"name\":\"隔夜漂移(美股, overnight drift)\",\"mechanism\":\"收盘尾盘订单失衡由流动性提供者承接并要求隔夜补偿;日内/隔夜投资者客群分层导致利润几乎全部集中在隔夜段(动量/反转类策略尤甚)。\",\"evidence\":\"Lou-Polk-Skouras, JFE 2019 (14个策略利润全在隔夜或全在日内);NY Fed (Boyarchenko等):1998-2020年ES期货2-3am ET一小时贡献约3.7%/年(占全收益~60%)。证据在发表时点是顶刊级强证据。\",\"post_pub_decay\":\"已被一手来源宣判死亡:NY Fed Liberty Street 2026-07《The Disappearing Overnight Drift》——2021-2025该窗口收益≈0,归因于收盘订单失衡标准差从6.5%压缩…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "futures-macro",
+      "phaseIndex": 1,
+      "phaseTitle": "Survey",
+      "agentId": "ae44f80af56fd8436",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785884120344,
+      "queuedAt": 1785884120332,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "六家族对照qtrade硬约束的结论: 2 viable / 3 marginal / 1 blo…",
+      "promptPreview": "调查**期货/趋势/宏观类策略家族**中散户可复制的: 趋势的变体(52周高点突破/通道突破/动量加速度), dual momentum(Antonacci), 时序动量的残差化, 商品季节性(seasonality), 期限结构斜率择时(而非截面carry——截面已判死), 波动率管理型权益敞口(volatility-managed portfolios, Moreira-Muir)。每家族按 schema 填全, 找一手文献与发表后表现。qtrade 的硬约束(打分必须对照):\n- 单台 Mac, 免费或极低成本数据(A股日线/分钟线¥2000可议, 美股yfinance日线, crypto交易所K线, 无期权链/无tick/无另类数据)\n- 散户费率: A股印花税卖出万5+佣金万2.5(致 A股月频截面策略费拖累~3.8%/年); crypto taker 5bp+滑点5bp; 美股…",
+      "lastProgressAt": 1785884502282,
+      "tokens": 62196,
+      "toolCalls": 19,
+      "durationMs": 381938,
+      "resultPreview": "{\"families\":[{\"name\":\"趋势变体:52周高点突破 / 通道突破 / 动量加速度\",\"mechanism\":\"锚定效应(52周高点作参照价)与信息缓慢扩散导致价格对新信息反应不足, 突破关键位后延续; 加速度(收益的二阶差分)捕捉趋势曲率变化。\",\"evidence\":\"George & Hwang 2004 JF(52周高点, 但为股票截面版); Laubsch, Smales & Vo 2023 SSRN(商品期货52周高/低点: 行为效应存在, 但'择时能力证据不足'); Levine & Pedersen 2016 FAJ《Which Trend Is Your Friend?》核心结论: 最一般形式的均线交叉/通道突破与时序动量是同一线性滤波器的等价表示——即52周高点突破与通道突破对已在跑的趋势系统几乎不提供正交信息; Hurst, Ooi & Pederse…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "crypto",
+      "phaseIndex": 1,
+      "phaseTitle": "Survey",
+      "agentId": "a6be62ff1cccb6286",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785884120345,
+      "queuedAt": 1785884120332,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "六个crypto原生家族按'严肃证据×qtrade硬约束'排序: (1)极端资…",
+      "promptPreview": "调查 **crypto 原生策略家族**中有严肃证据(非营销)的: 资金费率均值回归/极端资金费信号, OI/持仓量拥挤度, 稳定币供应/链上流量(免费链上数据可行性), 周内/时段季节性, 逼仓与清算级联后的反转, listing/delisting 事件效应。特别注意: 我们正每日自采资金费+OI快照, 6-12月后有独家序列。每家族按 schema 填全。qtrade 的硬约束(打分必须对照):\n- 单台 Mac, 免费或极低成本数据(A股日线/分钟线¥2000可议, 美股yfinance日线, crypto交易所K线, 无期权链/无tick/无另类数据)\n- 散户费率: A股印花税卖出万5+佣金万2.5(致 A股月频截面策略费拖累~3.8%/年); crypto taker 5bp+滑点5bp; 美股零佣金通道\n- A股无做空、T+1; 转债T+0; crypto可做空\n- 已判死…",
+      "lastProgressAt": 1785884562137,
+      "tokens": 63495,
+      "toolCalls": 25,
+      "durationMs": 441792,
+      "resultPreview": "{\"families\":[{\"name\":\"资金费均值回归 / 极端资金费信号(方向性, 非carry)\",\"mechanism\":\"资金费是杠杆多空失衡的实时价格: 极端正费率=多头拥挤(趋势追逐散户加杠杆), 极端负费率=空头拥挤; 拥挤仓位遇反向冲击被迫平仓, 价格向反方向快速回归。\",\"evidence\":\"证据链最完整的家族。Schmeling/Schrimpf/Todorov《Crypto Carry》(BIS WP1087, Management Science 2024): 资金费由趋势追逐的杠杆需求驱动, carry高企后伴随'carry崩溃'(即极端费率预示反转); Cao/Luo/Cheng/Dong《Anatomy of Cryptocurrency Perpetual Futures Returns》(SSRN 6365329, 2025): 170个预测因子中6…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "portfolio",
+      "phaseIndex": 1,
+      "phaseTitle": "Survey",
+      "agentId": "a718938f7fffe8cdb",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785884120345,
+      "queuedAt": 1785884120332,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "五个组合构造/执行层家族对照 qtrade 硬约束的结论: (1) 再平衡…",
+      "promptPreview": "调查**组合构造与执行层的免费午餐**(不产生新信号但提升净收益的): volatility targeting 的证据(Harvey等), 再平衡时点/频率的收益(rebalancing timing luck, Hoffstein), 趋势+持有的叠加(return stacking), 执行时点选择(开盘vs收盘vs尾盘成交的系统差), 税务/费用结构优化在中国与美国散户语境下的量化价值。每家族按 schema 填全。qtrade 的硬约束(打分必须对照):\n- 单台 Mac, 免费或极低成本数据(A股日线/分钟线¥2000可议, 美股yfinance日线, crypto交易所K线, 无期权链/无tick/无另类数据)\n- 散户费率: A股印花税卖出万5+佣金万2.5(致 A股月频截面策略费拖累~3.8%/年); crypto taker 5bp+滑点5bp; 美股零佣金通道\n- A…",
+      "lastProgressAt": 1785884443954,
+      "tokens": 56022,
+      "toolCalls": 14,
+      "durationMs": 323609,
+      "resultPreview": "{\"families\":[{\"name\":\"波动率目标化 (Volatility Targeting / Vol-Managed Overlay)\",\"mechanism\":\"风险资产的波动聚集+收益-波动负相关使得按已实现波动率反比缩放仓位可在不加新信号的前提下提升风险调整后收益并系统性截断左尾。\",\"evidence\":\"Harvey, Hoyle, Korgaonkar, Rattray, Sargaison, van Hemert (2018, JPM 45(1)): 股票/信用类资产 Sharpe 提升、债券/外汇/商品上 Sharpe 几乎不变, 但所有资产类别左尾极端收益均被削弱; Moreira & Muir (2017, JF) 支持面; 关键反面: Cederburg, O'Doherty, Wang, Yan (2020, JFE 138): 103个股票策略上可实时…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 5,
+      "label": "score:月末/月初效应 (turn-of-mon",
+      "phaseIndex": 2,
+      "phaseTitle": "Score",
+      "agentId": "a7edd8023547414fb",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785884588572,
+      "queuedAt": 1785884588563,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "月末/月初效应 (turn-of-month)",
+      "promptPreview": "对抗性复核这个策略家族能否进入 qtrade 的预注册候选清单: {\"name\":\"月末/月初效应 (turn-of-month)\",\"mechanism\":\"机构按日历同步再平衡+养老金/工资定投现金流月初集中入市+风险递延;不同频率再平衡mandate层级叠加(2026年新机制证据)。\",\"evidence\":\"Lakonishok-Smidt 1988;McConnell-Xu (FAJ 2008/SSRN):1926-2005全部股权溢价集中在月末-1至月初+3的4日窗口,31/35国成立,不限小盘、不限12月、不限美国;2026 J Int Fin Markets论文《Infrequent rebalancing, risk deferral and equity returns at the turn of the month》给出机制支撑。是日历类异象中唯一有跨国+百年+机制…",
+      "lastProgressAt": 1785884967198,
+      "tokens": 67557,
+      "toolCalls": 19,
+      "durationMs": 378626,
+      "resultPreview": "{\"name\":\"月末/月初效应 (turn-of-month)\",\"verdict\":\"park\",\"net_arithmetic\":\"美股腿(SPY,自家数据): 经典(-1,+3)窗口差分 1993-2005 +8.7bp/日(t=1.72) → 2006-2015 +1.0bp/日(t=0.17) → 2016-2026 +0.2bp/日(t=0.03); 毛≈0.1%/年 − 成本(12往返×3-7bp点差/PFOF)0.3-0.8%/年 = 净 -0.2~-0.7%/年, 死。A股腿(510300闲置现金覆盖): 毛(2019-2026实测)≈5.5%/年于部署切片(每窗中位0.48%, 剔top-3剩2.8%) − 成本(12往返×[万2.5×2佣金+~4bp价差]≈1.1%/年) + 保留货基收益 ≈ 净+2~+4%/年切片级、0.4-1.2%/年账本级(闲置现金10-30…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 6,
+      "label": "score:期限结构斜率择时(时序basis/car",
+      "phaseIndex": 2,
+      "phaseTitle": "Score",
+      "agentId": "a0fecf4f52bf89cb0",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785884588580,
+      "queuedAt": 1785884588563,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "期限结构斜率择时(时序basis/carry门控趋势仓位, 非截面carry)",
+      "promptPreview": "对抗性复核这个策略家族能否进入 qtrade 的预注册候选清单: {\"name\":\"期限结构斜率择时(时序basis/carry门控趋势仓位, 非截面carry)\",\"mechanism\":\"贴水/升水斜率是存储成本与对冲压力驱动的事前风险溢价度量: 同一品种自身处于backwardation时做多期望收益更高——用斜率符号在时间维度上门控/调制方向性仓位, 而非跨品种排序收割carry。\",\"evidence\":\"Koijen, Moskowitz, Pedersen & Vrugt 2018 JFE《Carry》: carry不仅截面、在时序上也显著预测各资产类收益(这正是与已判死的截面carry的区别所在); Gorton, Hayashi & Rouwenhorst 2013(basis与库存/对冲压力的基本面机制); Fuertes, Miffre & Rallis 2010 J…",
+      "lastProgressAt": 1785884773350,
+      "tokens": 60458,
+      "toolCalls": 11,
+      "durationMs": 184770,
+      "resultPreview": "{\"name\":\"期限结构斜率择时(时序basis/carry门控趋势仓位, 非截面carry)\",\"verdict\":\"park\",\"net_arithmetic\":\"商品腿(cn_futures 14品种, 成本模型|Δw|×0.06%同E52/CNFUTURES): 5日平滑斜率符号年翻转~2-4次/品种, 每次触发|Δw|≈1/14仓位开关 → 增量年换手≈14×3×0.071≈3x, 费拖≈3×0.06%=0.18%/年≈Sharpe -0.03(账本vol 7.0%), 对照E52独立carry套12.8x换手/0.77%年费; crypto腿(taker 5bp+滑点5bp=10bp/边, E56实测平均|gross|仅0.26): 平滑funding符号门年增换手~2-5x → 20-50bp/年。结论: 费后增量成本确实近零, 提案的成本论证成立——但费率不是本案的约束绑…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 7,
+      "label": "score:波动率管理型敞口(Moreira-Mui",
+      "phaseIndex": 2,
+      "phaseTitle": "Score",
+      "agentId": "a6b881e24478906a1",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785884588585,
+      "queuedAt": 1785884588564,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "波动率管理型敞口(Moreira-Muir波动率倒数缩放/目标波动)",
+      "promptPreview": "对抗性复核这个策略家族能否进入 qtrade 的预注册候选清单: {\"name\":\"波动率管理型敞口(Moreira-Muir波动率倒数缩放/目标波动)\",\"mechanism\":\"波动率高度可预测(聚集)而期望收益对波动率几乎不敏感, 故按1/已实现方差缩放敞口可在不损失均值的情况下降低承担的方差, 提升风险资产的Sharpe并显著削左尾。\",\"evidence\":\"Moreira & Muir 2017 JF(对市场/动量等因子alpha大、效用增益大); Harvey, Hoyle, Korgaonkar, Rattray, Sargaison & van Hemert 2018 JPM(60资产1926起: Sharpe改善集中在股票/信用等风险资产, 债/汇/商品上约为零, 但所有资产类的极端左尾都被削); 关键反证: Cederburg, O'Doherty, Wang & Y…",
+      "lastProgressAt": 1785884867585,
+      "tokens": 58189,
+      "toolCalls": 15,
+      "durationMs": 279000,
+      "resultPreview": "{\"name\":\"波动率管理型敞口(Moreira-Muir波动率倒数缩放/目标波动)\",\"verdict\":\"reject\",\"net_arithmetic\":\"Q1费后: 月频1/RV²缩放、系数截断[0,1], 静态多头上平均单向换手≈0.2/月≈2.4×/年 → A股ETF(免印花税)佣金万2.45+冲击≈2.5bp→费拖累≈12bp/年; 美ETF零佣金+点差≈1bp→2-5bp/年; crypto taker 5bp+滑点5bp→≈24bp/年——\\\"静态beta上费后可忽略\\\"成立。但毛超额按提案自认的Cederburg实时协议≈0, 故静态beta净期望≈-0.1~-0.25%/年, 买到的只有削尾。关键陷阱: 叠加到在跑活跃账本时, 缩放乘的是全部底层调仓而非仅自身Δw——E26在自家crypto账本实测(12/15/20%三档)费用2-4×、Sharpe 0.81→0.…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 8,
+      "label": "score:资金费均值回归 / 极端资金费信号(方向",
+      "phaseIndex": 2,
+      "phaseTitle": "Score",
+      "agentId": "ad7db86d0fe87b3ee",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785884588590,
+      "queuedAt": 1785884588564,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "资金费均值回归 / 极端资金费信号(方向性, 非carry)",
+      "promptPreview": "对抗性复核这个策略家族能否进入 qtrade 的预注册候选清单: {\"name\":\"资金费均值回归 / 极端资金费信号(方向性, 非carry)\",\"mechanism\":\"资金费是杠杆多空失衡的实时价格: 极端正费率=多头拥挤(趋势追逐散户加杠杆), 极端负费率=空头拥挤; 拥挤仓位遇反向冲击被迫平仓, 价格向反方向快速回归。\",\"evidence\":\"证据链最完整的家族。Schmeling/Schrimpf/Todorov《Crypto Carry》(BIS WP1087, Management Science 2024): 资金费由趋势追逐的杠杆需求驱动, carry高企后伴随'carry崩溃'(即极端费率预示反转); Cao/Luo/Cheng/Dong《Anatomy of Cryptocurrency Perpetual Futures Returns》(SSRN 636532…",
+      "lastProgressAt": 1785884874474,
+      "tokens": 63464,
+      "toolCalls": 17,
+      "durationMs": 285884,
+      "resultPreview": "{\"name\":\"资金费均值回归 / 极端资金费信号(方向性, 非carry)\",\"verdict\":\"shortlist\",\"net_arithmetic\":\"往返成本=2×(taker 5bp+滑点5bp)=20bp, 事件窗(强平级波动)滑点按2-3×压力假设=30-40bp; 毛边际/次=文献极端资金费后1-5日反转1-4%按发表后衰减打对半≈50-150bp, 另加逆拥挤方向持仓为资金费收取方≈15-90bp/天(极端档0.05-0.3%/8h); 频率=11币全宇宙2-6次/月≈40-70次/年, 事件式低换手; 费后期望/次≈+30~+200bp, 成本仅占毛边际10-40% → 结构存活。对照墓地E27死法(research/log.md L178: 单笔期望<20bp<往返成本,任何参数不可交易), 本家族边际/成本比≈5-10×, 不是同一死因。\",\"reason\":\"…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 9,
+      "label": "score:波动率目标化 (Volatility T",
+      "phaseIndex": 2,
+      "phaseTitle": "Score",
+      "agentId": "a082ad0f1098b5e77",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785884588594,
+      "queuedAt": 1785884588564,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "波动率目标化 (Volatility Targeting / Vol-Managed Overlay)",
+      "promptPreview": "对抗性复核这个策略家族能否进入 qtrade 的预注册候选清单: {\"name\":\"波动率目标化 (Volatility Targeting / Vol-Managed Overlay)\",\"mechanism\":\"风险资产的波动聚集+收益-波动负相关使得按已实现波动率反比缩放仓位可在不加新信号的前提下提升风险调整后收益并系统性截断左尾。\",\"evidence\":\"Harvey, Hoyle, Korgaonkar, Rattray, Sargaison, van Hemert (2018, JPM 45(1)): 股票/信用类资产 Sharpe 提升、债券/外汇/商品上 Sharpe 几乎不变, 但所有资产类别左尾极端收益均被削弱; Moreira & Muir (2017, JF) 支持面; 关键反面: Cederburg, O'Doherty, Wang, Yan (2020, JF…",
+      "lastProgressAt": 1785884771493,
+      "tokens": 53578,
+      "toolCalls": 10,
+      "durationMs": 182899,
+      "resultPreview": "{\"name\":\"波动率目标化 (Volatility Targeting / Vol-Managed Overlay)\",\"verdict\":\"reject\",\"reason\":\"机制本身成立但在本仓已被收割完毕，提案的两个关键前提均不成立：(a) \\\"不与已判死方向重叠\\\"为假——组合级vol target(E26: 12/15/20%三档 Sharpe 0.81→0.50-0.72、费用2-4×)明确列于 HANDOFF.md 已关闭方向勿重开清单，A股向下缩放防守版即 E54(真实ETF价格下 maxDD 5.88%>4%门槛、年度胜率84.6%<90%，防守定位不成立)，σ̂改进版即 E66 隐波标定(前瞻性真实但 ΔSharpe -0.22，关闭)；(b) \\\"直接套在已在跑策略上\\\"套不出增量——qtrade/presets.py 里每条在跑腿都已内嵌 VolTarget(c…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 10,
+      "label": "score:再平衡时点运气对冲 (Rebalance",
+      "phaseIndex": 2,
+      "phaseTitle": "Score",
+      "agentId": "a38a815af0b4f20b6",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785884588598,
+      "queuedAt": 1785884588564,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "再平衡时点运气对冲 (Rebalance Timing Luck → Overlapping Tra…",
+      "promptPreview": "对抗性复核这个策略家族能否进入 qtrade 的预注册候选清单: {\"name\":\"再平衡时点运气对冲 (Rebalance Timing Luck → Overlapping Tranches)\",\"mechanism\":\"固定再平衡日是一个任意随机种子, 同一策略仅因换仓日不同年化收益可差100bp以上; 把组合拆成错开日期的重叠子桶(tranches)平均掉这一运气, 是纯方差削减、期望收益零成本。\",\"evidence\":\"Hoffstein, Faber, Braun (2020, SSRN 3673910)『Rebalance Timing Luck: The (Dumb) Luck of Smart Beta』: 长多因子指数的时点运气普遍>100bp/年, 复制S&P Enhanced Value的策略仅因换仓日不同单年收益差可达40%; 换手越高时点运气越大, 再平衡越频…",
+      "lastProgressAt": 1785885010139,
+      "tokens": 79817,
+      "toolCalls": 28,
+      "durationMs": 421541,
+      "resultPreview": "{\"name\":\"再平衡时点运气对冲 (Rebalance Timing Luck → Overlapping Tranches)\",\"verdict\":\"shortlist\",\"net_arithmetic\":\"这是方差项而非alpha, 算术=分桶的增量成本, 分层算。(A)回测/纸面层(项目当前所在层, 冻结比例费率模型): 分桶换手守恒→增量成本=0, 主张属实。实测补上log缺失的关键数: 按冻结E63规格逐字重放(/Users/kelsey/qtrade/research/cb_double_low.py, 117个月), 双低单边名义换手32.1%/月(2021后35.3%, 年化4.2x); ashare_ml月换手1.06(log:353行)。两本账换手远高于原论文的smart beta指数, RTL∝换手→单换仓日判决的日期运气外推>±100bp/年(Zarattini…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 11,
+      "label": "score:执行时点系统化 (开盘vs收盘vs竞价的",
+      "phaseIndex": 2,
+      "phaseTitle": "Score",
+      "agentId": "a039aa19739f37377",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785884588602,
+      "queuedAt": 1785884588564,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "执行时点系统化 (开盘vs收盘vs竞价的系统差, A股T+1折价收割)",
+      "promptPreview": "对抗性复核这个策略家族能否进入 qtrade 的预注册候选清单: {\"name\":\"执行时点系统化 (开盘vs收盘vs竞价的系统差, A股T+1折价收割)\",\"mechanism\":\"A股 T+1 规则使当日买入者丧失日内卖出期权, 造成开盘价相对昨收系统性折价(隔夜收益均值为负, 全球唯一), 因此『买在开盘、卖在收盘』的纯执行规则每边可拿到结构性折价的一部分。\",\"evidence\":\"Qiao & Dam (2020, Journal of Financial Markets 50)『The overnight return puzzle and the T+1 trading rule』: 平均 T+1 折价约14bp/日, 牛熊市、大中小盘均稳健; 因果识别强——不受T+1约束的债券/期货隔夜收益为正, 1993-94及2001年B股豁免T+1窗口期隔夜收益也为正; 美股侧: L…",
+      "lastProgressAt": 1785884978669,
+      "tokens": 71837,
+      "toolCalls": 20,
+      "durationMs": 390066,
+      "resultPreview": "{\"name\":\"执行时点系统化 (开盘vs收盘vs竞价的系统差, A股T+1折价收割)\",\"verdict\":\"shortlist\",\"reason\":\"值得预注册, 但只能以『执行覆盖层』身份入册且效应量先验必须砍半: 机制被 T+1 制度性钉住且自家指数数据实测 2024-26 隔夜均值仍为负 (HS300 −3.9bp/日, CSI500 −5.3bp/日, 但较 2010-19 的 −7.5/−10.8bp 腰斩——『发表后无法被套走』高估约2倍, 幅度可压缩只是符号钉死), 日线 hfq 开盘价 (ashare_ts 2014→) + cn_exec.py 现成一字板过滤 + E61 双轨记账使实验零新增数据成本、可立即作为 E61 影子轨预注册并接 9 月微实盘/QMT TCA 验证; 硬约束三条: (1) 效应量按大盘实测 4-6bp/边定先验而非宣称的 14bp (那是全…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 12,
+      "label": "score:税费结构套利 (中国/美国散户语境的费用",
+      "phaseIndex": 2,
+      "phaseTitle": "Score",
+      "agentId": "a776694cdbc4591af",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785884588606,
+      "queuedAt": 1785884588564,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "税费结构套利 (中国/美国散户语境的费用与税优化)",
+      "promptPreview": "对抗性复核这个策略家族能否进入 qtrade 的预注册候选清单: {\"name\":\"税费结构套利 (中国/美国散户语境的费用与税优化)\",\"mechanism\":\"同一暴露选最便宜的法律包装与成交方式: A股印花税只落在股票卖出(5bp), ETF/转债/逆回购全程豁免; 中国个人股票资本利得免税但红利税按持有期歧视(<1月20%/1月-1年10%/>1年0); 美股NRA(W-8BEN)资本利得0%+条约股息预扣10%; crypto taker→maker 直接省3-4bp/边。\",\"evidence\":\"政策文件: 财政部2023-08-28印花税减半至卖出万5、ETF/可转债豁免(人民网/中信证券公告); 美国侧基准: Chaudhuri, Burnham, Lo (2020, FAJ 76(3)) 税损收割税前alpha 1.08%/年(wash-sale约束后0.82%)——关…",
+      "lastProgressAt": 1785884842210,
+      "tokens": 63118,
+      "toolCalls": 24,
+      "durationMs": 253604,
+      "resultPreview": "{\"name\":\"税费结构套利 (中国/美国散户语境的费用与税优化)\",\"verdict\":\"park\",\"net_arithmetic\":\"增量=总额−已实现−不适用: crypto maker ~0.6%/年已由E49入账(broker.py maker_first已默认); ETF包装5bp对E47自选50股无载体、转债腿已在免税包装(≈0); 剩红利税避让: 上限2%股息×20%=40bp/年, 混合10/20%档+避让往返成本(印花5bp+滑点~30bp/次)或信号约束(E48先例: 省0.34换手亏0.62pp)后净≤10-25bp/年——且落在已归档的纸面账上, 今日可兑现≈¥0; ETF佣金复议对判决影响~0.1pp(fee_verdicts.py冻结口径)\",\"reason\":\"家族拆解后=已完成(E49挂单化/转债包装/佣金解释器)+不适用(ETF包装无载体/TLH自认…"
+    }
+  ],
+  "totalTokens": 766060,
+  "totalToolCalls": 222
+}

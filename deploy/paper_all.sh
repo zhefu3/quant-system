@@ -32,18 +32,15 @@ fi
 # a stance, push a notification and append the digest — reporting, not advice
 .venv/bin/python -m qtrade.live.us_signal_watch >/dev/null 2>&1 || true
 
-# live-forward snapshot collector #2 (2026-08-04): full-universe crypto
-# funding+OI and A股 limit-pool/龙虎榜 — history that free APIs cap or never
-# archive. Own marker so a failure here never blocks cb_events or the backup.
-snap_marker="outputs/market_snapshots_$(date +%Y-%m-%d).done"
-if [[ ! -f $snap_marker ]]; then
-  touch "$snap_marker"
-  .venv/bin/python - <<'PY' || echo "[paper_all] market snapshots failed"
+# live-forward snapshot collector #2 (2026-08-04, hourly since 2026-08-05):
+# crypto funding+OI append EVERY loop (intraday OI structure is the moat —
+# exchanges keep ~30 days of it); the A-share streams stay daily behind the
+# script's own session sentinel. A failure never blocks cb_events or backup.
+.venv/bin/python - <<'PY' || echo "[paper_all] market snapshots failed"
 import subprocess, sys
 r = subprocess.run([".venv/bin/python", "research/collect_market_snapshots.py"], timeout=300)
 sys.exit(r.returncode)
 PY
-fi
 
 # Daily off-site backup of forward records (2026-07-21): the paper records
 # are irreplaceable evidence; one push per day to the private records repo.

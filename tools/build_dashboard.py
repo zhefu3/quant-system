@@ -35,6 +35,13 @@ BOOKS = [
 FRONTIER = [("6%", "+4.0%", "−12.7%"), ("10%", "+6.5%", "−20.4%"),
             ("15%", "+9.4%", "−29.2%"), ("20%", "+12.2%", "−37.1%"),
             ("30%", "+17.1%", "−50.8%")]
+# external strategy map (2026-08-05 survey, 12 agents; see docs/strategy-map)
+PIPELINE_SHORTLIST = [
+    ("再平衡时点分桶", "评估层 · 消除换仓日运气 >100bp/年方差 · 零成本"),
+    ("A股执行时点覆盖层", "执行层 · T+1 隔夜折价实测 4-6bp/日 → +0.5-0.8%/年 · E72 预注册中"),
+    ("极端资金费反转", "crypto 新信号族 · funding 历史已回填 2019 起 · E73 预注册排队"),
+]
+PIPELINE_COUNTS = ("3 入选", "6 暂存(带解锁条件)", "20 判死(墓碑入档)")
 
 
 def daily_equity(key: str) -> pd.Series | None:
@@ -350,6 +357,12 @@ table {{ border-collapse:collapse; font-variant-numeric:tabular-nums }}
 
 <h2>美股信号面板 · etf_trend(预注册机械信号,非投资建议)</h2>
 <div>{us_panel()}</div>
+
+<h2>研究管线 · 外部策略地图(29 家族证据审判,2026-08-05)</h2>
+<div class="muted" style="margin-bottom:10px">{' · '.join(PIPELINE_COUNTS)}
+——入选 ≠ 立项,每项须过预注册与 placebo 对照;判死名单含美股隔夜漂移(NY Fed
+2026 宣判)、美股 PEAD、52周高点、商品季节性等,墓碑全档在仓库。</div>
+<div class="about">{''.join(f'<div class="card"><div class="book-name">{escape(n)}</div><p>{escape(d)}</p></div>' for n, d in PIPELINE_SHORTLIST)}</div>
 
 <h2>机器此刻在做什么(研究日志最近条目)</h2>
 {feed}

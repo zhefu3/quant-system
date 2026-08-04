@@ -65,10 +65,12 @@ def _ashare_session_day() -> str:
     return day.strftime("%Y-%m-%d")
 
 
-def _save(df: pd.DataFrame, stream: str, day: str) -> str:
+def _save(df: pd.DataFrame, stream: str, day: str, append: bool = False) -> str:
     d = ROOT / stream
     d.mkdir(parents=True, exist_ok=True)
     p = d / f"{day}.parquet"
+    if append and p.exists():
+        df = pd.concat([pd.read_parquet(p), df], ignore_index=True)
     df.to_parquet(p)
     return f"{stream}: {len(df)} rows"
 
@@ -95,9 +97,9 @@ def collect_crypto(day: str) -> list[str]:
             fund.append({"symbol": s, "error": str(e)[:80]})
     out = []
     if fund:
-        out.append(_save(pd.DataFrame(fund).assign(ts=str(utc_now())), "crypto_funding", day))
+        out.append(_save(pd.DataFrame(fund).assign(ts=str(utc_now())), "crypto_funding", day, append=True))
     if oi:
-        out.append(_save(pd.DataFrame(oi).assign(ts=str(utc_now())), "crypto_oi", day))
+        out.append(_save(pd.DataFrame(oi).assign(ts=str(utc_now())), "crypto_oi", day, append=True))
     return out
 
 
@@ -125,11 +127,22 @@ def collect_ashare(_day_unused: str) -> list[str]:
 def main() -> None:
     day = _day()
     done = []
-    for fn in (collect_crypto, collect_ashare):
+    # crypto funding/OI runs EVERY call (hourly cadence, 2026-08-05 upgrade):
+    # intraday OI structure is the moat — exchanges keep only ~30 days of it.
+    # Hourly rows append into the day file; the A-share streams stay daily
+    # behind their own sentinel.
+    try:
+        done += collect_crypto(day)
+    except Exception as e:
+        done.append(f"collect_crypto: FAILED ({str(e)[:80]})")
+    sentinel = ROOT / "zt_pool" / f".ashare_{_ashare_session_day()}.done"
+    if not sentinel.exists():
+        sentinel.parent.mkdir(parents=True, exist_ok=True)
+        sentinel.touch()
         try:
-            done += fn(day)
-        except Exception as e:  # stream isolation: report, continue
-            done.append(f"{fn.__name__}: FAILED ({str(e)[:80]})")
+            done += collect_ashare(day)
+        except Exception as e:
+            done.append(f"collect_ashare: FAILED ({str(e)[:80]})")
     print(f"[snapshots {day}] " + " | ".join(done))
 
 
