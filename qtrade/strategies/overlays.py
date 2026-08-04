@@ -78,6 +78,29 @@ def with_vol_target(base_cls, **vt_kwargs):
     return Wrapped
 
 
+class Scale(Strategy):
+    """Constant multiplier on a base strategy's weights — a risk dial, not a
+    signal change. E71 (2026-08-05): the owner picked the 15% vol tier off the
+    scaling frontier; k is frozen at target/realized backtest vol and the same
+    Sharpe rides at k-times the risk. Clipping stays with the caller's caps."""
+
+    name = "scale"
+
+    def __init__(self, base: Strategy, k: float):
+        self.base = base
+        self.k = float(k)
+
+    def target_position(self, bars: pd.DataFrame) -> pd.Series:
+        return (self.base.target_position(bars) * self.k).clip(-1.0, 1.0)
+
+    def describe(self) -> str:
+        return f"scale({self.base.describe()}, k={self.k})"
+
+    def explain(self, bars: pd.DataFrame) -> dict:
+        return {"name": self.name, "k": self.k, "base": self.base.explain(bars),
+                "target": round(float(self.target_position(bars).iloc[-1]), 4)}
+
+
 class LongOnly(Strategy):
     """Clip a strategy's targets at zero — the E62-selected long-flat variant.
 

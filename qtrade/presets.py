@@ -126,6 +126,30 @@ CRYPTO_CORE_V2 = BookPreset(
     risk=RiskLimits(max_weight=0.25, max_gross=2.0, dd_halt=0.23, max_data_age_bars=6),
 )
 
+def _crypto_core_15_strategy() -> Strategy:
+    # E71 (2026-08-05): the owner's chosen 15% risk tier off the frozen
+    # scaling frontier. Same signals, same Sharpe; k = 0.15 / 0.13 realized
+    # backtest vol. An operational rehearsal of the tier, not a new alpha —
+    # observation-only, excluded from the portfolio layer.
+    from .strategies.overlays import Scale
+    return Scale(_crypto_core_strategy(), k=1.154)
+
+
+CRYPTO_CORE_15 = BookPreset(
+    name="crypto_core_15",
+    market="crypto",
+    timeframe="1h",
+    symbols=list(_UNIVERSE),
+    rules=CRYPTO_PERP,
+    rebalance_eps=0.05,
+    build=_crypto_core_15_strategy,
+    # dd_halt = 1.5x the tier's frontier maxDD (29.2%); weights scale by
+    # 1.154 so the single-name cap gets the same headroom ratio as core
+    risk=RiskLimits(max_weight=0.29, max_gross=2.0, dd_halt=0.44,
+                    max_data_age_bars=6),
+)
+
+
 def _cn_futures_strategy() -> Strategy:
     # E50b-approved book (2026-07-12): stitched-data audit Sharpe 0.48 over
     # 8.1y, OOS 0.67, worst year -2.3%. Parameters frozen since E50 — the
@@ -242,6 +266,6 @@ CB_DOUBLE_LOW = BookPreset(
     risk=RiskLimits(max_weight=0.06, max_gross=1.0, dd_halt=0.13, max_data_age_bars=5),
 )
 
-PRESETS = {p.name: p for p in (CRYPTO_CORE, CRYPTO_CORE_4H, CRYPTO_CORE_V2, CN_FUTURES,
+PRESETS = {p.name: p for p in (CRYPTO_CORE, CRYPTO_CORE_4H, CRYPTO_CORE_V2, CRYPTO_CORE_15, CN_FUTURES,
                                FUTURES_IBKR, LLM_AGENTS, ASHARE_ML, ETF_TREND,
                                CB_DOUBLE_LOW)}

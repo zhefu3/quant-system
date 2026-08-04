@@ -5,7 +5,7 @@
 cd /Users/kelsey/qtrade
 # cn_futures last: its data source (akshare) is the flakiest — a slow tick
 # there must not delay the other books (each tick also has a 900s SIGALRM cap)
-for p in crypto_core crypto_core_v2 crypto_core_4h futures_ibkr llm_agents etf_trend cn_futures ashare_ml cb_double_low; do
+for p in crypto_core crypto_core_v2 crypto_core_4h crypto_core_15 futures_ibkr llm_agents etf_trend cn_futures ashare_ml cb_double_low; do
   .venv/bin/python -m qtrade.cli paper --preset "$p" || echo "[paper_all] $p tick failed"
 done
 

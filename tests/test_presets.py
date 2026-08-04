@@ -37,3 +37,20 @@ def test_preset_builds_and_emits_valid_weights(name):
     if info.get("legs"):
         blend = sum(leg["mix"] * leg["target"] for leg in info["legs"])
         assert info["target"] == pytest.approx(blend, abs=1e-3)
+
+
+def test_crypto_core_15_is_core_scaled():
+    """E71: the 15% tier is exactly core x 1.154 — a risk dial, not a signal."""
+    import numpy as np
+    import pandas as pd
+
+    from qtrade.presets import CRYPTO_CORE, CRYPTO_CORE_15
+
+    idx = pd.date_range("2024-01-01", periods=3000, freq="h", tz="UTC")
+    rng = np.random.RandomState(3)
+    px = pd.Series(100 * np.cumprod(1 + rng.normal(0, 0.004, 3000)), index=idx)
+    bars = pd.DataFrame({"open": px, "high": px, "low": px, "close": px,
+                         "volume": 1e6}, index=idx)
+    a = CRYPTO_CORE.strategy().target_position(bars)
+    b = CRYPTO_CORE_15.strategy().target_position(bars)
+    pd.testing.assert_series_equal(b, (a * 1.154).clip(-1, 1), check_names=False)
