@@ -1,0 +1,504 @@
+{
+  "summary": "Verify what returns GitHub quant systems, retail algo traders, and professional funds actually achieve",
+  "agentCount": 9,
+  "logs": [],
+  "result": {
+    "summaries": [
+      "核心结论:调查了 freqtrade、backtrader、zipline(Quantopian)、hummingbot、OctoBot、NautilusTrader、Gekko 七个主流开源量化框架,没有任何一个官方公布过'经核实的用户实盘收益'。官方口径高度一致:教育用途、不保证盈利、先 dry-run/paper trading、后果自负;freqtrade 甚至明说'大多数公开策略表现不佳''回测结果不要当真'。唯一公布真实数据的是 Hummingbot,但公布的是匿名交易量($47B+),刻意不含盈亏——'用量'与'盈利'必须区分。回测 vs 实盘是全部证据的分水岭:(1) 平台级——Quantopian 30 万用户+Point72 $2.5 亿的众包基金因实盘跑输于 2020 关停;其官方论文(888 个真实策略)定量证明回测 Sharpe 对样本外表现几乎无预测力(R^2<0.025),且调参越多实盘落差越大。(2) 个体级——可核实的从业者实盘自述普遍平淡(almost flat 到年化个位数-几十%波动),而所有'高收益'叙事几乎全是回测数字或卖课营销,无对账单。(3) 占比问题无正式统计,最接近的学术基准(巴西期货日交易全样本)是坚持者 97% 亏损、仅 1.1% 赚超最低工资。(4) GitHub 高回测收益仓库的典型死法有实证案例:GodStra 回测收益被复现出'全部来自单一币种';LSTM/LLM/DRL 策略在控制前视偏差与幸存者偏差后超额收益消失(FINSABER)。取证局限:reddit r/algotrading 对爬虫封锁,未能直接核实原帖,相关比例讨论只能经二手来源与学术文献交叉印证。对 qtrade 的含义:开源框架是'工具可信、收益主张不可信'的领域,任何策略评估只能以前向实盘/模拟盘为准——这与项目现行'微实盘+预注册'路线一致。",
+      "四条线的证据都指向同一分布形态:尾部极瘦、且'可见样本'严重失真。(1) 日内交易两大自然实验:巴西(Chague/De-Losso/Giovannetti)——坚持 300+ 天的 1,551 人中 97% 亏损,仅 0.4% 赚过银行柜员起薪,冠军日均 $310 但日波动 $2,560,无学习效应;台湾(Barber/Lee/Liu/Odean, 1992-2006 全市场)——年均 45 万日内交易者中单年扣费后赚钱约 20%(多为运气),可持续盈利者约 4,000 人即 <1%。(2) 监管披露:eToro 当前 CFD 风险警示为 51% 账户亏损(滚动 12 个月口径、牛市压低,历史曾 ~76%);ESMA 汇总各国研究为 74-89% 亏损;法国 AMF 四年全样本 89% 亏损、户均 -€10,887。(3) 零售算法交易(非日内)没有干净的盈利占比学术统计;最接近的证据是 SEBI 2024(93% 个人 F&O 交易者三年亏损 ~$215 亿,而对手方 FPI/自营利润的 97%/96% 来自算法)与 Quantopian 888 策略研究(回测 Sharpe 对样本外表现 R²<0.025,回测越多衰减越大——零售算法的死因是过拟合);流传的'90% 算法散户跑不赢买入持有'是营销数字,无一手来源。(4) 晒收益的幸存者偏差已被量化:Heimer & Simon 实测周收益每高 1 SD、当周主动广播概率 +7%;Finfluencers 研究显示 56% 财经博主为负技能(-2.3%/月)且粉丝反而更多——社交媒体上的收益展示是经过双重选择(谁发声 × 谁被看见)的极端有偏样本,不构成任何可行性证据。",
+      "职业量化机构的诚实基准(全部有 URL 可查):(1) 行业指数层面——SG CTA Index 自 2000 年设立以来 Sharpe 约 0.61,近年窗口年化仅 3-5%、波动约 9%;SG Trend Index 自 2000 年 CAGR 约 5.6%、最大回撤 20.6%;BarclayHedge 官方 Barclay CTA Index 与 Systematic Traders Index 近 10 年(2016-2025)CAGR 分别仅约 2.5% 与 2.0%(由官方年度数据复合);量化中性类别(Equity Market Neutral)近年 3-12%/年且样本极小。指数级 CTA 的最好年份是 2022 年的 +20.1%,那是 25 年一遇。(2) 头部机构层面——Citadel Wellington、Millennium、D.E. Shaw Composite、Two Sigma、AQR Apex 等旗舰近三年(2023-2025)净收益普遍落在每年 8-20%,极端好的单基金年份(DE Shaw Oculus +36%、AQR Apex +19.6%)也不超过 40%;前 20 大对冲基金 2024 年资产加权收益 13.1%,行业平均(HFRI)仅 8.3%。同门反例:Two Sigma Macro Compass 2023 年 -16%。(3) Medallion 是唯一的离群点(1988-2018 费前约 66%/费后约 39%),但它规模封顶百亿量级、强制分红、2005 年起只对员工开放、收 5/44 费用,不可投资也不可外推;同一家文艺复兴对外开放的 RIEF 在 2020 年 -19.9%(Medallion 同年 +76%),随后被赎回近半——这是\"高收益策略不可规模化\"的最强实证。(4) 巴菲特 1965-2024 复合 19.9%(出处:伯克希尔年报首页表格,对照标普 10.4%),60 年复利下约 20%/年就是公开市场的天花板纪录。(5) 行业共识参数——趋势类 CTA 主流目标波动 10-15%(Quantica 明示 12% p.a.,AQR 论文用 10%),实现波动约 12%;费后 Sharpe:AQR 论文给指数/大型管理人 0.27-0.88,CFM 基于约 1200 只 CTA 给长期中位约 0.5,精心执行的分散趋势策略扣费后'接近 1'已是学术上限。结论:任何业余回测若宣称长期年化远超 20%、Sharpe 长期大于 1.5-2,与上述全部职业实证相悖,应默认是过拟合/成本低估,而非真 alpha。"
+    ],
+    "claims": [
+      {
+        "claim": "freqtrade 官方文档首页/README 免责声明原话:\"This software is for educational purposes only. Do not risk money which you are afraid to lose. USE THE SOFTWARE AT YOUR OWN RISK. THE AUTHORS AND ALL AFFILIATES ASSUME NO RESPONSIBILITY FOR YOUR TRADING RESULTS.\" 并要求 \"Always start by running a trading bot in Dry-run and do not engage money before you understand how it works and what profit/loss you should expect.\" 官方从未公布任何经核实的用户实盘收益。",
+        "source_url": "https://www.freqtrade.io/en/stable/",
+        "confidence": "high"
+      },
+      {
+        "claim": "freqtrade 官方 Strategy Quickstart 明说:\"Algo trading is difficult, and most public strategies are not good performers\"(大多数公开策略表现不佳),并有专门警告框 \"Backtests can be very inaccurate\":\"Do not assume these results are achieveable or realistic.\"——官方自己把回测收益与真实可得收益切开。",
+        "source_url": "https://www.freqtrade.io/en/stable/strategy-101/",
+        "confidence": "high"
+      },
+      {
+        "claim": "freqtrade 官方 FAQ 对'为什么我交易了还亏钱'的回答原话:\"it will always be a gamble, which should leave you with modest wins on monthly basis but you can't say much from few trades.\"——官方对盈利预期的定性是'赌博+月度小赢',无任何收益承诺。",
+        "source_url": "https://www.freqtrade.io/en/latest/faq/",
+        "confidence": "high"
+      },
+      {
+        "claim": "freqtrade 回测文档原话:\"backtesting will never replace running a strategy in dry-run mode. Also, keep in mind that past results don't guarantee future success\",并承认回测假设 \"can never be perfect, and will always be biased in one way or the other\",且 \"only forward-testing (dry-mode) can really confirm a strategy\"。",
+        "source_url": "https://www.freqtrade.io/en/stable/backtesting/",
+        "confidence": "high"
+      },
+      {
+        "claim": "freqtrade 官方策略仓库(freqtrade-strategies)对自己发布的所有策略声明 \"These strategies are for educational purposes only\",给出的回测表仅示意交易次数,\"Actual performance will be different\"——官方策略库本身不提供任何'能赚钱'的策略。",
+        "source_url": "https://github.com/freqtrade/freqtrade-strategies",
+        "confidence": "high"
+      },
+      {
+        "claim": "Hummingbot 是唯一系统性公布用户真实数据的框架,但公布的只有匿名化交易量(2025 年至今累计 $47B+,此前一年 $34B、覆盖 140+ 交易所),明确 \"No individual trading data\"、\"Anonymized USD totals only\"——即官方公布的是'用了多少',从不公布也不掌握'赚了多少'。交易量常被外界误读为盈利证据。",
+        "source_url": "https://hummingbot.org/reporting/",
+        "confidence": "high"
+      },
+      {
+        "claim": "Hummingbot 官方博客对做市盈利性的原话:\"Market making is not a risk-free, always profitable trading operation\",并要求先用 paper trading 理解风险再投入真钱。",
+        "source_url": "https://hummingbot.org/blog/what-is-market-making/",
+        "confidence": "high"
+      },
+      {
+        "claim": "OctoBot 官方 FAQ/文档承认不保证收益:盈利取决于策略配置、市场条件与资金管理,\"you can end up losing funds\",并强调过去表现不预测未来。同样无任何经核实的用户实盘收益公布。",
+        "source_url": "https://www.octobot.cloud/en/guides/octobot-usage/frequently-asked-questions-faq",
+        "confidence": "medium"
+      },
+      {
+        "claim": "NautilusTrader 定位为回测+实盘引擎(\"production-grade ... engine for multi-asset, multi-venue trading systems\"),使用受专门法律免责声明约束,官方无任何盈利声明或用户收益数据;backtrader README 亦零盈利声明、零收益数据(且项目已长期不活跃);zipline 是纯回测库。三者官方均不存在'能不能赚钱'的正面答复。",
+        "source_url": "https://nautilustrader.io/legal/disclaimer/",
+        "confidence": "high"
+      },
+      {
+        "claim": "zipline 的母体 Quantopian 是最重要的平台级证据:30 万注册用户、Point72 承诺最高 $2.5 亿锚定投资的众包对冲基金,2020 年 2 月因策略实盘表现不佳(underperformance)向投资人退钱,同年 11 月整体关停。这是'海量高回测收益策略→实盘整体失败'的最大规模真实案例。",
+        "source_url": "https://en.wikipedia.org/wiki/Quantopian",
+        "confidence": "high"
+      },
+      {
+        "claim": "Quantopian 官方研究 Wiecki et al. (2016) \"All that Glitters Is Not Gold\":对 888 个真实用户策略做回测 vs 至少 6 个月样本外对比,发现回测 Sharpe 等常用指标对样本外表现几乎无预测力(R^2 < 0.025),且'回测调参越多,样本外落差越大'。这是回测收益不等于实盘收益的最核心定量证据。",
+        "source_url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2745220",
+        "confidence": "high"
+      },
+      {
+        "claim": "关于'用开源框架实盘赚钱的人占比',不存在任何可信的正式统计。可核实的从业者讨论(Blind)中,个人实盘报告普遍平淡:楼主的期货趋势策略 \"Almost flat. It has not been net profitable across long time frame\";另一人 3 年外汇实盘最好年份 +55%、最差 +1.7%;JPMorgan 从业者研究 6 年后的评价是 \"Too much snake oil out there\"。注意:r/algotrading 已对爬虫封锁,本次无法直接核实 reddit 原帖,此为本调查的取证局限。",
+        "source_url": "https://www.teamblind.com/post/algotrading-ocgevgm3",
+        "confidence": "medium"
+      },
+      {
+        "claim": "零售自动交易盈利比例的可信学术参照:Chague, De-Losso & Giovannetti \"Day Trading for a Living?\"(巴西期货市场全样本,2013-2015 起步、坚持 300 天以上的日内交易者):97% 亏损,仅 1.1% 收入超过最低工资,仅 0.5% 超过银行柜员起薪。社区讨论中引用的'绝大多数人不赚钱'与此基准一致。",
+        "source_url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3423101",
+        "confidence": "high"
+      },
+      {
+        "claim": "GitHub 高回测收益策略被指认过拟合的具体案例:freqtrade 官方策略库中以遗传算法+hyperopt 生成、以高回测收益闻名的 GodStra 策略,被 issue #259 复现发现回测收益几乎完全来自单一币种,把该币移出后策略几乎不再交易——典型的单点过拟合、无法泛化。",
+        "source_url": "https://github.com/freqtrade/freqtrade-strategies/issues/259",
+        "confidence": "medium"
+      },
+      {
+        "claim": "学术侧的系统性复现失败证据:FINSABER 框架(\"Can LLM-based Financial Investing Strategies Outperform the Market in Long Run?\")对已发表的 LSTM/LLM 交易策略做控制幸存者偏差与前视偏差的重评估,结论是宣称的超额收益在严格设定下大幅消失,长期常跑不赢 buy-and-hold;FinRL 类 DRL 交易研究也被指存在单 seed 报告、不现实的成交假设与成本模型等系统性问题。",
+        "source_url": "https://arxiv.org/pdf/2505.07078",
+        "confidence": "medium"
+      },
+      {
+        "claim": "曾经最流行的开源加密 bot 之一 Gekko(10k+ star)于 2020 年停止维护并归档,README 仅留 \"Use Gekko at your own risk\",整个生命周期从未产生公开可核实的用户盈利证据——热门开源 bot '高星≠有人靠它赚钱'的代表案例。",
+        "source_url": "https://github.com/askmike/gekko",
+        "confidence": "medium"
+      },
+      {
+        "claim": "网络上可搜到的 freqtrade '六个月 +100%'、'66% 胜率实盘' 之类高收益叙事,来源几乎全是卖课/引流页面(Gumroad、Medium 教程、SEO 站)或无净值曲线与对账单的自述,无一附带可核实的券商/交易所对账证据,与官方口径('多数公开策略表现不佳')直接矛盾,应按营销内容而非盈利证据对待。",
+        "source_url": "https://freqtradepro.gumroad.com/l/freqtrademastery",
+        "confidence": "medium"
+      },
+      {
+        "claim": "freqtrade 社区存在第三方独立检验站 strat.ninja(Freqtrade Strategy Ninja),对社区策略做统一 dry-run 前向跟踪排名——社区自己也默认'回测排行不可信、只有前向跟踪算数'。(本次两次抓取该站均失败,内容细节未能直接核实,仅确认其存在与用途。)",
+        "source_url": "https://strat.ninja/faq.php",
+        "confidence": "low"
+      },
+      {
+        "claim": "巴西研究(Chague, De-Losso, Giovannetti,《Day Trading for a Living?》): 2013-2015 年间开始做巴西股指期货(mini-Ibovespa/mini-dollar)日内交易的 19,646 名个人中,坚持超过 300 个交易日的 1,551 人里 97% 亏损;仅约 1.1% 赚得超过巴西最低工资(约 US$16/天),仅 0.4%(8 人)赚得超过银行柜员起薪(US$54/天);收益最高的个人日均仅赚 US$310,且日收益标准差高达 US$2,560;研究未发现任何'越做越好'的学习效应。",
+        "source_url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3423101",
+        "confidence": "high"
+      },
+      {
+        "claim": "巴西研究摘要原文(经 RePEc 页面核对): 'persisted for at least 300 days: 97% of them lost money, only 0.4% earned more than a bank teller (US$54 per day), and the top individual earned only US$310 per day with great risk (a standard deviation of US$2,560)'。97% 与 0.4% 为发表版摘要数字;1.1%(超过最低工资)出自论文正文/早期版本,略低一档置信度。",
+        "source_url": "https://ideas.repec.org/p/spa/wpaper/2019wpecon47.html",
+        "confidence": "high"
+      },
+      {
+        "claim": "台湾研究(Barber, Lee, Liu, Odean, Journal of Financial Markets 2014,《The Cross-Section of Speculator Skill》,1992-2006 全市场 37 亿笔交易): 平均每年约 45 万台湾个人做日内交易(占 TSE 成交量 17%);其中年交易额超过 NT$600,000 的约 27.7 万人里,单年扣除费用后赚钱的约 17-20%(视口径),但主要是运气;能'可预测地、持续地'在扣费后盈利的只有约 4,000 人,即不到全部日内交易者的 1%。以上数字直接读自期刊 PDF 第 3、6 页。",
+        "source_url": "https://faculty.haas.berkeley.edu/odean/papers/day%20traders/The%20Cross-Section%20of%20Speculator%20Skill.pdf",
+        "confidence": "high"
+      },
+      {
+        "claim": "台湾研究的技能分布细节: 按上一年排名的前 500 名日内交易者次年日均毛(净)超额收益 61.3 (37.9) bp/天,而有亏损历史的数万人次年为 -11.5 (-28.9) bp/天——即技能差异真实存在,但只集中在极小的头部;同组作者的姊妹篇《Do Day Traders Rationally Learn About Their Ability?》进一步表明多数人学习缓慢、最终退出。",
+        "source_url": "https://faculty.haas.berkeley.edu/odean/papers/Day%20Traders/Day%20Trading%20and%20Learning%20110217.pdf",
+        "confidence": "high"
+      },
+      {
+        "claim": "eToro 当前(2026-08 直接抓取其官网 CFD 风险页)监管强制披露: '51% of retail investor accounts lose money when trading CFDs with this provider';其 General Risk Disclosure 页近期为 50%。注意该数字按 ESMA 规则以滚动 12 个月的账户口径计算,随行情波动(eToro 2019-2020 年前后曾高达 ~67-76%),且牛市会压低该数字。",
+        "source_url": "https://www.etoro.com/trading/risks-of-cfd-trading/",
+        "confidence": "high"
+      },
+      {
+        "claim": "ESMA 2018 年产品干预决定所汇总的各国监管机构(NCA)研究: 74%-89% 的零售 CFD 账户亏损,户均亏损 €1,600 到 €29,000——这是'零售 CFD 亏损面'最权威的监管区间数字,也是各券商风险警示披露义务的来源。",
+        "source_url": "https://www.esma.europa.eu/press-news/esma-news/esma-agrees-prohibit-binary-options-and-restrict-cfds-protect-retail-investors",
+        "confidence": "high"
+      },
+      {
+        "claim": "法国 AMF 2014 年研究(2009-2013 四年、14,799 名活跃零售外汇/CFD 客户、约 1,600 万笔交易): 89% 的客户亏损,户均亏损 €10,887,合计亏损约 €1.61 亿——时间跨度最长的零售杠杆交易者全样本之一。",
+        "source_url": "https://www.amf-france.org/sites/institutionnel/files/contenu_simple/rapport_etude_analyse/epargne_prestataire/Etude%20des%20resultats%20des%20investisseurs%20particuliers%20sur%20le%20trading%20de%20CFD%20et%20de%20Forex%20en%20France.pdf",
+        "confidence": "high"
+      },
+      {
+        "claim": "SEBI 2024 年 9 月研究(印度股票期货期权,FY2022-FY2024): 93% 的个人 F&O 交易者三年合计亏损,总亏损约 ₹1.8 lakh crore(约 US$215 亿),人均约 ₹2 lakh;扣除成本后年赚超 ₹1 lakh 的仅约 1%;超过 75% 的亏损者仍继续交易。同期对手方: FPI 与自营盘 FY24 毛利分别 ₹28,000 crore 和 ₹33,000 crore,其中 97%(FPI)与 96%(自营)的利润来自算法交易——这是'算法端赚走非算法散户的钱'目前最干净的市场级证据。",
+        "source_url": "https://aibi.org.in/Sebipr/Updated_SEBI_Study_Reveals_93_percentage_of_Individual_Traders_Incurred_Losses_in_Equity_F&O_between_FY22_and_FY24.pdf",
+        "confidence": "high"
+      },
+      {
+        "claim": "关于'零售算法交易者(非日内)'本身盈利占比,目前不存在干净的大样本学术统计;最接近的直接证据是 Quantopian 平台研究(Wiecki, Campbell, Lent, Stauth 2016,《All That Glitters Is Not Gold》): 888 个由零售量化作者开发、有至少 6 个月真实样本外记录的算法策略中,回测 Sharpe 对样本外表现几乎无预测力(R² < 0.025),且作者回测次数越多、样本外衰减越大(过拟合的直接实证)。即零售算法交易者的核心失败模式是回测过拟合而非手续费。",
+        "source_url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2745220",
+        "confidence": "high"
+      },
+      {
+        "claim": "网上流传的'约 90% 零售算法交易者第一年跑不赢买入持有'出自算法交易软件商(tradealgo.com 等)的营销页面,追不到任何一手数据来源,不应引用。",
+        "source_url": "https://www.tradealgo.com/trading-guides/ai-trading/algorithmic-trading-for-retail-investors-a-complete-2026-guide",
+        "confidence": "low"
+      },
+      {
+        "claim": "'晒收益'的幸存者偏差有直接量化研究: Heimer & Simon《Facebook Finance》(myForexBook 社交平台,5,500+ 零售外汇交易者、200 万笔交易、14 万条消息,2009-2010): 周对数收益每高一个标准差,该周主动联系其他交易者的概率上升约 7%,联系人数上升约 6%——即赢家系统性地更多发声('self-enhancing transmission bias',报喜不报忧),且接收者听到高收益后会加大交易强度。数字直接读自论文 PDF 第 4 页。",
+        "source_url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2021935",
+        "confidence": "high"
+      },
+      {
+        "claim": "该传播偏差的理论量化框架为 Han, Hirshleifer, Walden《Social Transmission Bias and Investor Behavior》(JFQA 2022 / NBER w24281): 选择性汇报盈利 + 高方差策略更容易产生'可晒的极端收益',共同导致主动/高风险策略在人群中扩散,即使其期望收益更差。",
+        "source_url": "https://www.nber.org/system/files/working_papers/w24281/w24281.pdf",
+        "confidence": "high"
+      },
+      {
+        "claim": "社交媒体'大 V'层面的量化(Kakhbod, Kazempour, Livdan, Schuerhoff《Finfluencers》2023,StockTwits 全量推文): 仅 28% 的财经博主有正技能(+2.6%/月超额),16% 无技能,56% 为'负技能'(-2.3%/月);且负技能博主粉丝更多、对散户交易影响更大;对负技能博主反向操作可获约 1.2%/月的样本外收益——直接证明'粉丝量/曝光度与真实技能负相关',晒单可见度不是能力信号。",
+        "source_url": "https://papers.ssrn.com/sol3/papers.cfm?abstract_id=4428232",
+        "confidence": "high"
+      },
+      {
+        "claim": "SG CTA Index(2000年1月设立,SG Prime Services 编制,等权追踪对新资金开放的最大一批 CTA)2022 年 +20.1%,为该指数 2000 年设立以来最佳年度;SG Trend Index 同年 +27.3%;2024 年 SG CTA Index 仅约 +2.4%,接近持平",
+        "source_url": "https://www.alpha-week.com/2022-cta-index-performance-review",
+        "confidence": "high"
+      },
+      {
+        "claim": "SG CTA Index 自 2000 年 1 月设立以来实现的 Sharpe 约 0.61(CFM 2022 年白皮书计算,同期标普500全收益 Sharpe 0.44);同一论文引 Eurekahedge 约 1200 只(含已清盘)CTA 基金数据,得出 CTA 长期中位 Sharpe 约 0.5——这就是'专业 CTA 典型 Sharpe 0.5 左右'的行业实证出处",
+        "source_url": "https://www.cfm.com/wp-content/uploads/2022/12/39-A-Good-Time-for-Trend-Following-FINAL.pdf",
+        "confidence": "high"
+      },
+      {
+        "claim": "近期窗口下 SG CTA Index 的量级:2019/5–2025/5 年化仅 3.40%、年化波动 9.20%;2019/5–2024/12 年化 5.25%、波动 9.19%、Sharpe 0.14(iMGP DBi 官方材料中与其 DBMF ETF 的对照表)——即行业基准指数波动约 9%,近年年化个位数",
+        "source_url": "https://imgpfunds.com/wp-content/uploads/2025/06/DBMF-May-2025-Monthly-Video-Final.pdf",
+        "confidence": "medium"
+      },
+      {
+        "claim": "Simplify(CTA ETF 发行商)引用:2022/3–2026/2 四年间 SG CTA Index 年化仅 3.16%(其自家 ETF 同期 11.01%,为营销对照,取其对指数的引用即可)",
+        "source_url": "https://www.simplify.us/etfs-use-case/cta-four-years-investor-portfolios",
+        "confidence": "medium"
+      },
+      {
+        "claim": "SG Trend Index 自 2000 年以来 CAGR 约 5.6%(Top Traders Unplugged 2026 年 5 月报告:5.64%,2025 年 10 月口径 5.23%),历史最大回撤 20.61%;同报告 BTOP50 自 2000 年 CAGR 4.39%、最大回撤 15.94%;对照同期标普500全收益 CAGR 8.29%、最大回撤 50.95%",
+        "source_url": "https://www.toptradersunplugged.com/trend-following-performance-report-may-2026/",
+        "confidence": "medium"
+      },
+      {
+        "claim": "BarclayHedge 官方 Barclay CTA Index(2026 年含 305 个 program,等权):2016–2025 年度收益依次为 -1.23%/0.70%/-3.17%/5.17%/5.43%/5.03%/7.13%/-0.39%/3.45%/3.10%,复合得近 10 年 CAGR ≈ 2.5%(年度数据为官方,CAGR 由我复合计算);1980 年代高收益(1980 +63.69%)拉高其自 1980 年以来的长期均值,不代表当代水平",
+        "source_url": "https://portal.barclayhedge.com/cgi-bin/indices/displayCtaIndex.cgi?indexCat=Barclay-CTA-Indices&indexName=Barclay-CTA-Index",
+        "confidence": "high"
+      },
+      {
+        "claim": "BarclayHedge 系统化交易类别 Barclay Systematic Traders Index(2026 年含 224 个 program):2016–2025 年度收益复合得近 10 年 CAGR ≈ 2.0%(2024 +3.32%、2025 +1.72%;年度数据官方,CAGR 我计算)——'量化/系统化'类别整体近十年也就年化 2% 上下",
+        "source_url": "https://portal.barclayhedge.com/cgi-bin/indices/displayCtaIndex.cgi?indexCat=Barclay-CTA-Indices&indexName=Systematic-Traders-Index",
+        "confidence": "high"
+      },
+      {
+        "claim": "BarclayHedge 对冲基金指数中偏量化的股票市场中性类别(Barclay Equity Market Neutral Index):2022 +2.97%、2023 +5.69%、2024 +12.13%、2025 +8.52%;注意 2026 年 7 月仅 10 只基金报数,样本极小、有幸存者/自愿申报偏差",
+        "source_url": "https://portal.barclayhedge.com/cgi-bin/indices/displayHfIndex.cgi?indexCat=Barclay-Hedge-Fund-Indices&indexName=Equity-Market-Neutral-Index",
+        "confidence": "high"
+      },
+      {
+        "claim": "头部量化/多策略 2024 年净收益:D.E. Shaw 旗舰 Composite 约 +18%、宏观 Oculus +36%;Citadel Wellington 与 Millennium 各约 +15%(Forbes:Wellington 15.1%);前 20 大对冲基金资产加权收益 13.1%,同期 HFRI 资产加权综合指数仅 +8.3%——即'顶级机构'与'行业平均'差距本身就只有几个百分点量级",
+        "source_url": "https://www.forbes.com/sites/hanktucker/2025/01/19/citadel-de-shaw-and-the-worlds-top-20-hedge-funds-gained-a-record-94-billion-in-2024/",
+        "confidence": "high"
+      },
+      {
+        "claim": "2025 年:Millennium +10.5%、Citadel Wellington +10.2%(Millennium 自 2020 年以来首次跑赢 Wellington);D.E. Shaw Composite +18.5%、Oculus 约 +28.2%——头部旗舰的常态区间是每年 10–20% 净收益,而非 30%+",
+        "source_url": "https://www.hedgeweek.com/millennium-and-citadel-post-double-digit-2025-gains-but-lag-smaller-hedge-funds/",
+        "confidence": "high"
+      },
+      {
+        "claim": "Two Sigma 旗舰:Spectrum 2023 +8.6%、2024 +10.9%;Absolute Return Enhanced 2023 +12%、2024 +14.3%——顶级量化机构的旗舰基金常年在高个位数到百分之十几",
+        "source_url": "https://www.hedgeweek.com/renaissance-tech-and-two-sigma-lead-2024-quant-gains/",
+        "confidence": "medium"
+      },
+      {
+        "claim": "反例:Two Sigma 旗下量化宏观 Macro Compass Enhanced 2023 年亏约 16%(Bloomberg)——同一家顶级机构内部,单一策略线年度 -16% 也属常态波动,提醒不要把机构光环等同于稳定盈利",
+        "source_url": "https://www.bloomberg.com/news/articles/2024-01-29/two-sigma-s-macro-compass-enhanced-fund-sank-16-last-year",
+        "confidence": "medium"
+      },
+      {
+        "claim": "AQR:最老牌的 Absolute Return 多策略 2023 +18.5%(CNBC);多策略 Apex 2023 +16.2%、2024 +15.1%、2025 +19.6%(Bloomberg 称其为'动荡量化年'中的表现)——AQR 近三年是量化行业景气周期的上沿样本,15–20%/年已属机构顶级表现",
+        "source_url": "https://www.bloomberg.com/news/articles/2026-01-02/aqr-s-multistrategy-apex-gains-19-6-in-turbulent-quant-year",
+        "confidence": "high"
+      },
+      {
+        "claim": "文艺复兴 Medallion:1988–2018 年均约 66%(费前)/约 39%(费后),收费 5% 管理费 + 44% 业绩费(数字出自 Zuckerman《The Man Who Solved the Market》所汇编数据,被广泛转引);其成立条件不可复制:规模刻意封顶在百亿美元量级、每年强制分红出金、2005 年前后已清退全部外部投资人,只对内部员工开放——因此 Medallion 收益不构成任何可投资/可外推的基准",
+        "source_url": "https://www.quantifiedstrategies.com/medallion-fund-returns/",
+        "confidence": "high"
+      },
+      {
+        "claim": "Medallion 与同门对外基金的对照(规模化的代价):2020 年 Medallion +76%,而同一家公司对外开放的 RIEF -19.9%、RIDA -31.9%;随后外部基金遭大规模赎回,RIEF 资产从 2020 年初 358 亿美元缩水至约 196 亿——能吸纳外部大资金的低换手策略,收益就落回'普通机构'区间甚至大幅为负",
+        "source_url": "https://www.institutionalinvestor.com/article/2bswms7wco7as686o8ikg/portfolio/renaissances-medallion-fund-surged-76-in-2020-but-funds-open-to-outsiders-tanked",
+        "confidence": "high"
+      },
+      {
+        "claim": "巴菲特基准的出处:伯克希尔年报首页业绩表——1965–2024 伯克希尔市值复合年化 19.9%,同期标普500(含股息)10.4%;60 年累计 5,502,284% 对 39,054%。含义:约 20%/年是公开可查、持续 60 年复利的天花板级纪录,常被用作'长期年化 20% 已是世界顶级'的锚",
+        "source_url": "https://www.sec.gov/Archives/edgar/data/1067983/000119312525054885/d810841dars.pdf",
+        "confidence": "high"
+      },
+      {
+        "claim": "同一巴菲特数字的二手报道(便于引用):CNBC 报道伯克希尔 60 年累计 5,502,284%、复合 19.9% vs 标普 10.4%",
+        "source_url": "https://www.cnbc.com/2025/05/05/warren-buffetts-return-tally-after-60-years-5502284percent.html",
+        "confidence": "high"
+      },
+      {
+        "claim": "专业 CTA 目标波动率的一手出处:Quantica(机构趋势 CTA)公开季报明确其代表性趋势策略'targets a long-term portfolio volatility of 12% p.a.';同报告长期表(1990/1–2025/4,BTOP50 与 SG Trend 拼接):趋势 CTA 年化收益 6.2%、年化波动 12.4%、Sharpe 0.27(相对 3 个月美元利率)、最大回撤 -20.7%,同期标普500 年化 10.3%、波动 14.9%、Sharpe 0.49——'目标波动 10–15%'与'实现波动约 12%'均有据可查",
+        "source_url": "https://quantica-capital.com/publications/pdf/2025Q2_QuanticaQuarterlyInsights.pdf",
+        "confidence": "high"
+      },
+      {
+        "claim": "专业 CTA Sharpe 区间的一手出处:AQR《Demystifying Managed Futures》(Hurst, Ooi, Pedersen)——各管理期货指数与最大最成功管理人的费后 Sharpe 介于 0.27–0.88;其假想的分散化时序动量策略(TSMOM)按 10% 事前波动率目标运行,费前 Sharpe 1.8,扣除 2/20 费用与交易成本后'接近 1';并指出实际管理期货指数实现的 Sharpe 低于该模拟。CTA 行业历史收费为至少 2% 管理费 + 20% 业绩费",
+        "source_url": "https://www.aqr.com/-/media/AQR/Documents/Insights/Journal-Article/Demystifying-Managed-Futures.pdf",
+        "confidence": "high"
+      },
+      {
+        "claim": "波动率目标并非全行业统一 10–15%:SG Short-Term Traders Index 成分(短周期 CTA)年化波动仅约 4%(AlphaWeek 引 SG 数据);CTA 行业 AUM 约 3400 亿美元(SG 2025 引 BarclayHedge 2024Q4 估计)——引用行业共识时应写成'趋势类主流目标波动约 10–15%,短线子类更低'",
+        "source_url": "https://content.sgmarkets.com/CTA_UPDATE_KEEPING_UP_WITH_THE_TRENDFOLLOWERS_2025",
+        "confidence": "medium"
+      }
+    ],
+    "verified": [
+      {
+        "claim": "freqtrade 官方文档首页/README 免责声明原话:\"This software is for educational purposes only. Do not risk money which you are afraid to lose. USE THE SOFTWARE AT YOUR OWN RISK. THE AUTHORS AND ALL AFFILIATES ASSUME NO RESPONSIBILITY FOR YOUR TRADING RESULTS.\" 并要求 \"Always start by running a trading bot in Dry-run and do not engage money before you understand how it works and what profit/loss you should expect.\" 官方从未公布任何经核实的用户实盘收益。(来源 https://www.freqtrade.io/en/stable/)",
+        "verdict": "confirmed",
+        "correction": "两段引文经 WebFetch 与官方文档首页 (https://www.freqtrade.io/en/stable/) 及 GitHub README 逐字核对一致,语境无曲解(确为面向全体用户的正式免责声明)。唯一微小差异:README 写作 \"Dry-Run\",文档页写作 \"Dry-run\",报告引用与所标来源(文档页)一致。\"官方从未公布经核实的用户实盘收益\"亦成立:官方文档/README 无任何此类数据,流传的收益数字均为第三方或社区自述。"
+      },
+      {
+        "claim": "freqtrade 官方 Strategy Quickstart（https://www.freqtrade.io/en/stable/strategy-101/）明说 \"Algo trading is difficult, and most public strategies are not good performers\"，并有警告框 \"Backtests can be very inaccurate\" 写明 \"Do not assume these results are achieveable or realistic.\"，官方自己把回测收益与真实可得收益切开。",
+        "verdict": "confirmed",
+        "correction": "两处引文均在官方页面原文逐字核实（含 \"achieveable\" 原文拼写；第一句出自 Final Thoughts 一节，完整句为 \"...not good performers due to the time and effort to make a strategy work profitably in multiple scenarios\"）。语境无曲解，仅一处精度提示：\"Do not assume these results are achieveable or realistic\" 直接指向的是第三方策略排名网站展示的回测结果；不过同一警告框开头即写 \"There are many reasons why backtest results may not match reality\"，正文另有 \"it can be very easy to distort results so a strategy will look a lot more profitable than it really is\"，故\"官方切开回测与真实收益\"的总结成立。"
+      },
+      {
+        "claim": "freqtrade 官方 FAQ 对\"为什么我交易了还亏钱\"的回答原话为 \"it will always be a gamble, which should leave you with modest wins on monthly basis but you can't say much from few trades\",官方对盈利预期的定性是\"赌博+月度小赢\",无任何收益承诺。(来源 https://www.freqtrade.io/en/latest/faq/)",
+        "verdict": "confirmed",
+        "correction": "引文逐字准确(两处来源交叉验证:官网 FAQ 页与 GitHub 仓库 docs/faq.md;原文 \"always\" 为斜体,且该句前有 \"We of course constantly aim to improve the bot but...\")。语境无曲解。两点可选的精确化:(1) FAQ 问题原标题是 \"I have made 12 trades already, why is my total profit negative?\",回答的主旨是 12 笔交易样本太少不足以下结论;(2) 同段还提到回测显示当时的默认算法\"在数千笔交易之后\"才在整体上为正,且即便如此个别币种仍会亏损——这是强限定陈述,不构成收益承诺,故报告中\"无任何收益承诺\"的定性成立。"
+      },
+      {
+        "claim": "freqtrade 官方回测文档(https://www.freqtrade.io/en/stable/backtesting/)原话:\"backtesting will never replace running a strategy in dry-run mode. Also, keep in mind that past results don't guarantee future success\";回测假设 \"can never be perfect, and will always be biased in one way or the other\";\"only forward-testing (dry-mode) can really confirm a strategy\"。",
+        "verdict": "confirmed",
+        "correction": "三段引文均在该页面逐字核实(WebFetch + 直接抓取 HTML 双重验证),URL 正确,语境未被曲解——原文确实是在警示回测局限。两处可选的精确化:(1) 第一句原文中 \"never\" 为加粗强调,出处为 \"Assumptions made by backtesting\" 一节结尾;(2) \"can never be perfect...\" 一句出自 \"Improved backtest accuracy\" 一节,其中 \"this\" 具体指回测对 K 线内价格走势(intra-candle,如先到 high 还是先到 low)的假设,虽句中也回指了整体假设列表,报告若写成\"关于 K 线内价格走势的回测假设\"会更严谨;(3) \"only forward-testing...\" 出自同节 Tip 框中关于 --timeframe-detail 的括号补充,但表述本身是一般性论断,一般化引用无碍。"
+      },
+      {
+        "claim": "freqtrade 官方策略仓库(freqtrade-strategies)对自己发布的所有策略声明 \"These strategies are for educational purposes only\",给出的回测表仅示意交易次数,\"Actual performance will be different\"——官方策略库本身不提供任何'能赚钱'的策略。(来源 https://github.com/freqtrade/freqtrade-strategies)",
+        "verdict": "confirmed",
+        "correction": "两处引文逐字核实无误(经 GitHub 渲染页与 raw README 双重验证):Disclaimer 节原文 \"These strategies are for educational purposes only. Do not risk money which you are afraid to lose. USE THE SOFTWARE AT YOUR OWN RISK...\";回测表说明原文 \"The results above should serve as a general outline to demonstrate the number of trades to expect. Actual performance will be different based on various factors.\"(报告引用为截取,语义无失真)。语境无曲解。唯一精度建议:末句\"不提供任何'能赚钱'的策略\"是推断而非引文——README 只是不作盈利承诺并全面免责,并未反向断言策略不赚钱;若求严谨可改为\"官方策略库不对任何策略作盈利承诺,明确声明仅供教学\"。"
+      },
+      {
+        "claim": "Hummingbot 是唯一系统性公布用户真实数据的框架,但公布的只有匿名化交易量(2025 年至今累计 $47B+,此前一年 $34B、覆盖 140+ 交易所),明确 \"No individual trading data\"、\"Anonymized USD totals only\"——官方公布的是\"用了多少\",从不公布也不掌握\"赚了多少\"。(来源 https://hummingbot.org/reporting/)",
+        "verdict": "corrected",
+        "correction": "核心论点成立,但来源标注与两处数字口径需修正。已确认:(1) https://hummingbot.org/reporting/ 原文确有 \"Anonymized USD totals only\"(exact)与 \"No individual trading data is transmitted\"(引文略有截短);采集字段仅为聚合交易量、连接器 ID、版本号、系统规格、随机 UUID——完全不含 PnL,故\"从不公布也不掌握'赚了多少'\"成立。(2) $47B+ 属实,但出处是 hummingbot.org 首页(\"$47B+ Total Trade Volume...tracked since Jan 2025\"),实时看板 reporting.hummingbot.org 现已显示 $49.24B(112,197 实例、320 连接器)——/reporting/ 文档页本身不含任何数字,建议来源改注首页+看板,或数字更新为\"约 $49B\"。(3) \"$34B、140+ 交易所\"确为官方原句,出自 GitHub README:\"Over the past year, Hummingbot users have generated over $34 billion in trading volume across 140+ unique trading venues\"——但原文只说 \"over the past year\",未指明是哪一年,且该句早于 2025 年计量重置、统计口径未公布;写成\"此前一年\"是推断,建议改为\"更早的 README 口径:此前某一年度 $34B、140+ 交易场所\"。注意 140+ 只属于 $34B 那句,现行连接器数为 318-320,勿混用。(4) \"唯一\"未找到反例(Freqtrade/Jesse/OctoBot 均无跨用户聚合交易量公示,Jesse 明确自称 self-hosted/privacy-focused),但穷举不可能,建议软化为\"主流开源交易框架中唯一(已知)\"。(5) \"交易量常被外界误读为盈利证据\"是作者论断而非 Hummingbot 官方表述,报告中应与引文区隔。"
+      }
+    ]
+  },
+  "workflowProgress": [
+    {
+      "type": "workflow_phase",
+      "index": 1,
+      "title": "Research"
+    },
+    {
+      "type": "workflow_phase",
+      "index": 2,
+      "title": "Verify"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 1,
+      "label": "opensource",
+      "phaseIndex": 1,
+      "phaseTitle": "Research",
+      "agentId": "ae147efdc59d963e0",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785882764513,
+      "queuedAt": 1785882764503,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "核心结论:调查了 freqtrade、backtrader、zipline(Quantopian)…",
+      "promptPreview": "用 WebSearch/WebFetch 调查知名开源量化交易系统(freqtrade, backtrader, zipline, hummingbot, OctoBot, Nautilus 等)的用户**真实盈利证据**。要点:\n1. 这些项目的文档/社区是否公布经核实的实盘收益?找它们官方 wiki/FAQ 里关于\"能不能赚钱\"的原话。\n2. 社区(reddit r/algotrading 等)对\"用开源框架实盘赚钱的人占比\"有什么可信讨论/调查?\n3. GitHub 上晒高收益的策略仓库,有无被复现失败/指认过拟合的著名案例?\n每条带 URL 与置信度。区分\"回测收益\"与\"实盘收益\"——这是本调查的核心。",
+      "lastProgressAt": 1785883206244,
+      "tokens": 72418,
+      "toolCalls": 38,
+      "durationMs": 441731,
+      "resultPreview": "{\"claims\":[{\"claim\":\"freqtrade 官方文档首页/README 免责声明原话:\\\"This software is for educational purposes only. Do not risk money which you are afraid to lose. USE THE SOFTWARE AT YOUR OWN RISK. THE AUTHORS AND ALL AFFILIATES ASSUME NO RESPONSIBILITY FOR YOUR TRADING RESULTS.\\\" 并要求 \\\"Always start by running a trading bot in Dry-run and do not engage money before you understand how it works and what profit/l…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 2,
+      "label": "retail",
+      "phaseIndex": 1,
+      "phaseTitle": "Research",
+      "agentId": "a9274af7a4dbd9ee6",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785882764514,
+      "queuedAt": 1785882764503,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "四条线的证据都指向同一分布形态:尾部极瘦、且'可见样本'严重失…",
+      "promptPreview": "用 WebSearch/WebFetch 调查**散户/个人算法交易者的真实收益分布**的学术与监管证据:\n1. 巴西期货日内交易者研究(Chague & De-Losso)的结论数字;台湾日内交易研究(Barber, Lee, Liu, Odean)的长期盈利者占比。\n2. eToro/零售 CFD 券商披露的亏损客户占比(监管要求披露的那个百分比)。\n3. 任何关于零售算法交易者(非日内)盈利占比的研究或大样本统计。\n4. \"在社交媒体晒收益的人\"的幸存者偏差有无量化研究。\n每条带 URL 与置信度、具体数字。",
+      "lastProgressAt": 1785883070716,
+      "tokens": 66962,
+      "toolCalls": 20,
+      "durationMs": 306202,
+      "resultPreview": "{\"claims\":[{\"claim\":\"巴西研究(Chague, De-Losso, Giovannetti,《Day Trading for a Living?》): 2013-2015 年间开始做巴西股指期货(mini-Ibovespa/mini-dollar)日内交易的 19,646 名个人中,坚持超过 300 个交易日的 1,551 人里 97% 亏损;仅约 1.1% 赚得超过巴西最低工资(约 US$16/天),仅 0.4%(8 人)赚得超过银行柜员起薪(US$54/天);收益最高的个人日均仅赚 US$310,且日收益标准差高达 US$2,560;研究未发现任何'越做越好'的学习效应。\",\"source_url\":\"https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3423101\",\"confidence\":\"high\"},{…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 3,
+      "label": "pro",
+      "phaseIndex": 1,
+      "phaseTitle": "Research",
+      "agentId": "a6b5c161cf1e5e3ef",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785882764514,
+      "queuedAt": 1785882764503,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "职业量化机构的诚实基准(全部有 URL 可查):(1) 行业指数层面——S…",
+      "promptPreview": "用 WebSearch/WebFetch 调查**职业量化机构实际达到的收益水平**(作为诚实基准):\n1. SG CTA 指数、SG Trend 指数近 10 年年化收益与波动;巴克莱对冲基金指数量化类别。\n2. 头部量化对冲基金(Two Sigma/DE Shaw/Millennium/AQR)公开报道的旗舰基金近年年化净收益区间;文艺复兴 Medallion 的特殊性(规模上限/不对外)与其机构基金(RIEF)的实际表现对比。\n3. 巴菲特长期年化 ~20% 这一基准的出处与含义。\n4. 专业 CTA 的典型目标波动率(10-15%?)与典型 Sharpe(0.5-1?)的行业共识来源。\n每条带 URL 与置信度、具体数字。",
+      "lastProgressAt": 1785883165562,
+      "tokens": 90638,
+      "toolCalls": 40,
+      "durationMs": 401048,
+      "resultPreview": "{\"claims\":[{\"claim\":\"SG CTA Index(2000年1月设立,SG Prime Services 编制,等权追踪对新资金开放的最大一批 CTA)2022 年 +20.1%,为该指数 2000 年设立以来最佳年度;SG Trend Index 同年 +27.3%;2024 年 SG CTA Index 仅约 +2.4%,接近持平\",\"source_url\":\"https://www.alpha-week.com/2022-cta-index-performance-review\",\"confidence\":\"high\"},{\"claim\":\"SG CTA Index 自 2000 年 1 月设立以来实现的 Sharpe 约 0.61(CFM 2022 年白皮书计算,同期标普500全收益 Sharpe 0.44);同一论文引 Eurekahedge 约 1200 只(…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 4,
+      "label": "verify",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "a05e43c1e566a1f55",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785883206263,
+      "queuedAt": 1785883206249,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "freqtrade 官方文档首页/README 免责声明原话:\"This software i…",
+      "promptPreview": "对抗性核查(将写入给用户的报告): \"freqtrade 官方文档首页/README 免责声明原话:\"This software is for educational purposes only. Do not risk money which you are afraid to lose. USE THE SOFTWARE AT YOUR OWN RISK. THE AUTHORS AND ALL AFFILIATES ASSUME NO RESPONSIBILITY FOR YOUR TRADING RESULTS.\" 并要求 \"Always start by running a trading bot in Dry-run and do not engage money before you understand how it works and what profit/loss y…",
+      "lastProgressAt": 1785883257648,
+      "tokens": 35901,
+      "toolCalls": 5,
+      "durationMs": 51385,
+      "resultPreview": "{\"claim\":\"freqtrade 官方文档首页/README 免责声明原话:\\\"This software is for educational purposes only. Do not risk money which you are afraid to lose. USE THE SOFTWARE AT YOUR OWN RISK. THE AUTHORS AND ALL AFFILIATES ASSUME NO RESPONSIBILITY FOR YOUR TRADING RESULTS.\\\" 并要求 \\\"Always start by running a trading bot in Dry-run and do not engage money before you understand how it works and what profit/loss you sho…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 5,
+      "label": "verify",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "af7b0dc40256e14bb",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785883206269,
+      "queuedAt": 1785883206249,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "freqtrade 官方 Strategy Quickstart（https://www.freqtrade.i…",
+      "promptPreview": "对抗性核查(将写入给用户的报告): \"freqtrade 官方 Strategy Quickstart 明说:\"Algo trading is difficult, and most public strategies are not good performers\"(大多数公开策略表现不佳),并有专门警告框 \"Backtests can be very inaccurate\":\"Do not assume these results are achieveable or realistic.\"——官方自己把回测收益与真实可得收益切开。\" (来源 https://www.freqtrade.io/en/stable/strategy-101/)。用 WebFetch/WebSearch 交叉验证数字是否准确、语境是否被曲解。返回 JSON",
+      "lastProgressAt": 1785883275244,
+      "tokens": 39203,
+      "toolCalls": 8,
+      "durationMs": 68975,
+      "resultPreview": "{\"claim\":\"freqtrade 官方 Strategy Quickstart（https://www.freqtrade.io/en/stable/strategy-101/）明说 \\\"Algo trading is difficult, and most public strategies are not good performers\\\"，并有警告框 \\\"Backtests can be very inaccurate\\\" 写明 \\\"Do not assume these results are achieveable or realistic.\\\"，官方自己把回测收益与真实可得收益切开。\",\"verdict\":\"confirmed\",\"correction\":\"两处引文均在官方页面原文逐字核实（含 \\\"achieveable\\\" 原文拼写；第一句出自 Final Though…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 6,
+      "label": "verify",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "a1bb7ffc2aa9915de",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785883206274,
+      "queuedAt": 1785883206250,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "freqtrade 官方 FAQ 对\"为什么我交易了还亏钱\"的回答原话为 \"it…",
+      "promptPreview": "对抗性核查(将写入给用户的报告): \"freqtrade 官方 FAQ 对'为什么我交易了还亏钱'的回答原话:\"it will always be a gamble, which should leave you with modest wins on monthly basis but you can't say much from few trades.\"——官方对盈利预期的定性是'赌博+月度小赢',无任何收益承诺。\" (来源 https://www.freqtrade.io/en/latest/faq/)。用 WebFetch/WebSearch 交叉验证数字是否准确、语境是否被曲解。返回 JSON",
+      "lastProgressAt": 1785883261845,
+      "tokens": 35786,
+      "toolCalls": 4,
+      "durationMs": 55571,
+      "resultPreview": "{\"claim\":\"freqtrade 官方 FAQ 对\\\"为什么我交易了还亏钱\\\"的回答原话为 \\\"it will always be a gamble, which should leave you with modest wins on monthly basis but you can't say much from few trades\\\",官方对盈利预期的定性是\\\"赌博+月度小赢\\\",无任何收益承诺。(来源 https://www.freqtrade.io/en/latest/faq/)\",\"verdict\":\"confirmed\",\"correction\":\"引文逐字准确(两处来源交叉验证:官网 FAQ 页与 GitHub 仓库 docs/faq.md;原文 \\\"always\\\" 为斜体,且该句前有 \\\"We of course constantly aim to impro…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 7,
+      "label": "verify",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "a20e1c8e2804e6d9b",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785883206279,
+      "queuedAt": 1785883206250,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "freqtrade 官方回测文档(https://www.freqtrade.io/en/stable/b…",
+      "promptPreview": "对抗性核查(将写入给用户的报告): \"freqtrade 回测文档原话:\"backtesting will never replace running a strategy in dry-run mode. Also, keep in mind that past results don't guarantee future success\",并承认回测假设 \"can never be perfect, and will always be biased in one way or the other\",且 \"only forward-testing (dry-mode) can really confirm a strategy\"。\" (来源 https://www.freqtrade.io/en/stable/backtesting/)。用 WebFetch/WebSearch 交叉验…",
+      "lastProgressAt": 1785883260796,
+      "tokens": 36364,
+      "toolCalls": 4,
+      "durationMs": 54517,
+      "resultPreview": "{\"claim\":\"freqtrade 官方回测文档(https://www.freqtrade.io/en/stable/backtesting/)原话:\\\"backtesting will never replace running a strategy in dry-run mode. Also, keep in mind that past results don't guarantee future success\\\";回测假设 \\\"can never be perfect, and will always be biased in one way or the other\\\";\\\"only forward-testing (dry-mode) can really confirm a strategy\\\"。\",\"verdict\":\"confirmed\",\"correction\"…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 8,
+      "label": "verify",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "a028c289f822821d2",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785883206284,
+      "queuedAt": 1785883206250,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "freqtrade 官方策略仓库(freqtrade-strategies)对自己发布的所…",
+      "promptPreview": "对抗性核查(将写入给用户的报告): \"freqtrade 官方策略仓库(freqtrade-strategies)对自己发布的所有策略声明 \"These strategies are for educational purposes only\",给出的回测表仅示意交易次数,\"Actual performance will be different\"——官方策略库本身不提供任何'能赚钱'的策略。\" (来源 https://github.com/freqtrade/freqtrade-strategies)。用 WebFetch/WebSearch 交叉验证数字是否准确、语境是否被曲解。返回 JSON",
+      "lastProgressAt": 1785883266810,
+      "tokens": 35138,
+      "toolCalls": 4,
+      "durationMs": 60526,
+      "resultPreview": "{\"claim\":\"freqtrade 官方策略仓库(freqtrade-strategies)对自己发布的所有策略声明 \\\"These strategies are for educational purposes only\\\",给出的回测表仅示意交易次数,\\\"Actual performance will be different\\\"——官方策略库本身不提供任何'能赚钱'的策略。(来源 https://github.com/freqtrade/freqtrade-strategies)\",\"verdict\":\"confirmed\",\"correction\":\"两处引文逐字核实无误(经 GitHub 渲染页与 raw README 双重验证):Disclaimer 节原文 \\\"These strategies are for educational purposes only. Do n…"
+    },
+    {
+      "type": "workflow_agent",
+      "index": 9,
+      "label": "verify",
+      "phaseIndex": 2,
+      "phaseTitle": "Verify",
+      "agentId": "a3f4d81c8bd7750a3",
+      "model": "claude-fable-5",
+      "state": "done",
+      "startedAt": 1785883206288,
+      "queuedAt": 1785883206250,
+      "attempt": 1,
+      "lastToolName": "StructuredOutput",
+      "lastToolSummary": "Hummingbot 是唯一系统性公布用户真实数据的框架,但公布的只有…",
+      "promptPreview": "对抗性核查(将写入给用户的报告): \"Hummingbot 是唯一系统性公布用户真实数据的框架,但公布的只有匿名化交易量(2025 年至今累计 $47B+,此前一年 $34B、覆盖 140+ 交易所),明确 \"No individual trading data\"、\"Anonymized USD totals only\"——即官方公布的是'用了多少',从不公布也不掌握'赚了多少'。交易量常被外界误读为盈利证据。\" (来源 https://hummingbot.org/reporting/)。用 WebFetch/WebSearch 交叉验证数字是否准确、语境是否被曲解。返回 JSON",
+      "lastProgressAt": 1785883318611,
+      "tokens": 42043,
+      "toolCalls": 9,
+      "durationMs": 112323,
+      "resultPreview": "{\"claim\":\"Hummingbot 是唯一系统性公布用户真实数据的框架,但公布的只有匿名化交易量(2025 年至今累计 $47B+,此前一年 $34B、覆盖 140+ 交易所),明确 \\\"No individual trading data\\\"、\\\"Anonymized USD totals only\\\"——官方公布的是\\\"用了多少\\\",从不公布也不掌握\\\"赚了多少\\\"。(来源 https://hummingbot.org/reporting/)\",\"verdict\":\"corrected\",\"correction\":\"核心论点成立,但来源标注与两处数字口径需修正。已确认:(1) https://hummingbot.org/reporting/ 原文确有 \\\"Anonymized USD totals only\\\"(exact)与 \\\"No individual trading d…"
+    }
+  ],
+  "totalTokens": 454453,
+  "totalToolCalls": 132
+}
