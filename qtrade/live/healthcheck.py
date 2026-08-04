@@ -160,10 +160,27 @@ def _cross_source_checks() -> tuple[list[str], list[str]]:
                                           adjust=adjust,
                                           start_date=(end - pd.Timedelta(days=14)).strftime("%Y%m%d"),
                                           end_date=end.strftime("%Y%m%d"))
+
+            def _ak_daily_sina():
+                # fallback backend (2026-08-04: the EM-backed hist endpoint
+                # went dark for 3 days and the darkness monitor caught it) —
+                # sina serves raw daily bars under a different route
+                import akshare as ak
+                code = ("sh" if sym.endswith(".SH") else "sz") + sym.split(".")[0]
+                end = df.index[-1].tz_convert("Asia/Shanghai")
+                h = ak.stock_zh_a_daily(symbol=code,
+                                        start_date=(end - pd.Timedelta(days=14)).strftime("%Y%m%d"),
+                                        end_date=end.strftime("%Y%m%d"))
+                return h.rename(columns={"date": "日期", "close": "收盘"})
             try:
                 r_aks = {}
                 for adjust, tag in (("", "raw"), ("hfq", "hfq")):
-                    h = call_with_timeout(_ak_hist, 45.0, adjust)
+                    try:
+                        h = call_with_timeout(_ak_hist, 45.0, adjust)
+                    except Exception:
+                        if adjust != "":
+                            continue  # sina fallback only serves raw prices
+                        h = call_with_timeout(_ak_daily_sina, 45.0)
                     by_date = {cn_date(d): float(c)
                                for d, c in zip(h["日期"], h["收盘"])}
                     if day1 in by_date and day2 in by_date:
@@ -226,6 +243,10 @@ def run_health(alert: bool = False) -> int:
     cov = store.coverage()
     stale_count = 0
     n_integrity = 0
+    # event/snapshot partitions are not bar series — their parquet schemas are
+    # stream-specific by design and the OHLCV integrity contract does not apply
+    NON_BAR_PARTITIONS = ("market_snapshots", "cn_cb_events")
+    cov = cov[~cov["market"].astype(str).str.startswith(NON_BAR_PARTITIONS)]
     for _, row in cov.iterrows():
         m, s, tf = row["market"], row["symbol"], row["timeframe"]
         try:
