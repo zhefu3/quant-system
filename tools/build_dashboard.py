@@ -337,10 +337,10 @@ table {{ border-collapse:collapse; font-variant-numeric:tabular-nums }}
 <div class="wrap">
 <header>
   <div class="muted mono">QTRADE · AUTONOMOUS QUANT RESEARCH · SINCE 2026-06</div>
-  <h1>十本纸面账,一台机器,全程预注册</h1>
+  <h1>十一本纸面账,一台机器,全程预注册</h1>
   <div class="statusband">
     <span class="bignum {ccls}">{combined:+.2f}%</span>
-    <span class="muted">十本账合计(各 10k 起,纸面模拟)</span>
+    <span class="muted">十一本账合计(各 10k 起,纸面模拟)</span>
     {alerts_line()}
     <span class="muted">生成于 {now}</span>
   </div>
@@ -374,7 +374,7 @@ table {{ border-collapse:collapse; font-variant-numeric:tabular-nums }}
 <h2>系统与纪律</h2>
 <div class="about">
   <div class="card"><div class="book-name">这是什么</div>
-    <p>单机自主量化研究系统:{n_exp} 个编号实验(失败全记录),十本纸面账每小时
+    <p>单机自主量化研究系统:{n_exp} 个编号实验(失败全记录),十一本纸面账每小时
     自动记账,每日异地备份 + 死人开关,监控自带暗窗报警。</p></div>
   <div class="card"><div class="book-name">证据口径</div>
     <p>经外部评审四轮 + 过程零假设检验(E69-B):历史回测数字不构成独立证据;
