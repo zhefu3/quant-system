@@ -179,6 +179,10 @@ def run_tick(preset_name: str, state_dir: str | None = None) -> dict:
         from .llm_agents import make_targets_fn
 
         targets_fn = make_targets_fn(PRESETS[preset_name])
+    elif preset_name == "llm_us":
+        from .llm_us import make_targets_fn as make_us_targets_fn
+
+        targets_fn = make_us_targets_fn(PRESETS[preset_name])
     trader = PaperTrader(PRESETS[preset_name], state_dir=state_dir, targets_fn=targets_fn)
     summary = trader.tick()
     ts = datetime.now(timezone.utc).strftime("%H:%M")

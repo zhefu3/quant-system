@@ -28,16 +28,28 @@ class USAdapter:
     ) -> pd.DataFrame:
         if timeframe not in INTERVAL_MAP:
             raise ValueError(f"yfinance supports {list(INTERVAL_MAP)}, got {timeframe}")
+        import time
+
         import yfinance as yf
 
-        df = yf.download(
-            symbol,
-            start=utc_date(start),
-            end=utc_date(end) if end is not None else None,
-            interval=INTERVAL_MAP[timeframe],
-            auto_adjust=True,  # backtests need split/dividend-adjusted prices
-            progress=False,
-        )
+        # Yahoo throttling shows up as an empty "possibly delisted" response,
+        # not an error (2026-08-05: a request burst blanked AAPL of all
+        # things). Empties get a short backoff-retry before we give up —
+        # a real delisting stays empty, a throttle blip recovers in seconds.
+        df = None
+        for wait_s in (0, 3, 10):
+            if wait_s:
+                time.sleep(wait_s)
+            df = yf.download(
+                symbol,
+                start=utc_date(start),
+                end=utc_date(end) if end is not None else None,
+                interval=INTERVAL_MAP[timeframe],
+                auto_adjust=True,  # backtests need split/dividend-adjusted prices
+                progress=False,
+            )
+            if df is not None and not df.empty:
+                break
         if df is None or df.empty:
             raise RuntimeError(f"yfinance returned no data for {symbol} {timeframe}")
         if isinstance(df.columns, pd.MultiIndex):

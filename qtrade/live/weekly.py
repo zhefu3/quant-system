@@ -106,17 +106,26 @@ def _cb_ipo_section():
 
 
 def _llm_cost_section():
-    """E60 prereg guard: monthly llm_agents API spend vs the frozen $30 cap."""
+    """E60/E70 prereg guard: monthly LLM-book API spend vs the SAME frozen
+    $30 cap (E70 prereg folds llm_us into the existing budget, not a new one)."""
     import json
 
-    ddir = DEFAULT_ROOT / "llm_agents" / "decisions"
-    if not ddir.exists():
-        return
     month = datetime.now(timezone.utc).strftime("%Y-%m")
-    cost = 0.0
-    for f in ddir.glob(f"{month}-*.json"):
-        for u in json.loads(f.read_text()).get("usage", []):
-            haiku = "haiku" in u.get("model", "")
-            cost += u["in"] * (1 if haiku else 3) / 1e6 + u["out"] * (5 if haiku else 15) / 1e6
-    flag = "⚠ 超预注册上限$30 → 降频或停(E60)" if cost > 30 else "ok"
-    print(f"--- llm_agents API 成本 ---\n{month} 月累计 ~${cost:.2f} / $30 上限 [{flag}]")
+    per_book, total = {}, 0.0
+    for book in ("llm_agents", "llm_us"):
+        ddir = DEFAULT_ROOT / book / "decisions"
+        if not ddir.exists():
+            continue
+        cost = 0.0
+        for f in ddir.glob(f"{month}-*.json"):
+            for u in json.loads(f.read_text()).get("usage", []):
+                haiku = "haiku" in u.get("model", "")
+                cost += u["in"] * (1 if haiku else 3) / 1e6 + u["out"] * (5 if haiku else 15) / 1e6
+        per_book[book] = cost
+        total += cost
+    if not per_book:
+        return
+    detail = " + ".join(f"{b} ${c:.2f}" for b, c in per_book.items())
+    flag = "⚠ 超预注册上限$30 → 降频或停(E60/E70)" if total > 30 else "ok"
+    print(f"--- LLM 账本 API 成本 ---\n{month} 月累计 ~${total:.2f}"
+          f" ({detail}) / $30 共用上限 [{flag}]")

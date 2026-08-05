@@ -22,7 +22,7 @@ def fetch_live_bars(preset: BookPreset, adapter=None) -> dict[str, pd.DataFrame]
     adapter = adapter or make_adapter(preset.market)
     now = pd.Timestamp.now("UTC")
     tf_delta = pd.Timedelta(preset.timeframe)
-    start = now - tf_delta * WARMUP_BARS
+    start = now - tf_delta * (preset.warmup_bars or WARMUP_BARS)
     drop = getattr(adapter, "drop_in_progress", _drop_in_progress)
     out = {}
     for sym in preset.symbols:

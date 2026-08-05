@@ -1784,3 +1784,33 @@ data.binance.vision 回填收官: **11/11 合约, 各自上市起至 2026-07 全
 封锁"的死结正式解开——E73(极端资金费反转)的研究数据轴就位, 6.5 年跨度含
 2021 疯牛/2022 深熊/2024 单边多个 funding 极端期。存 data_store/funding_hist/,
 快照哈希下次判决时一并入 manifest。自采小时级快照继续(独立轴: 跨所对照+OI)。
+
+### E70 落地: llm_us 观察账本上线, 首日建仓 24 票 (2026-08-05)
+
+**宇宙冻结附录**(首 tick 前完成, 预注册要求): 美股市值前 50, 规则=NYSE/NASDAQ
+上市普通股+ADR(ETF 排除, 一司一类, "美股"按字面取"在美上市"故 TSM/ASML/BABA
+入围), 排名源 yfinance fast_info market_cap, 候选超集 130 家。季度重评(1/4/7/10
+月首个委员会日)带 50/60 滞后带防追排名。快照+完整市值表存
+research/artifacts/llm_us_universe_20260804.json, 脚本 research/
+freeze_llm_us_universe.py。前 50 断层清晰: NVDA $5.1T 领跑, 第 50 名 TXN
+$259B, 落选最近者距门槛远(限速失败的 MMC/FI 均 ~$100B 级, 不影响名单)。
+
+**实现**: qtrade/live/llm_us.py 与 llm_agents 逐字同构, 预注册差异点全落地——
+纯多头钳制([0,0.05], gross≤1 归一)、决策按**美股交易日**键控缓存(session_date=
+最后完成日线, 周末/假日零 API 成本)、反思基准 SPY(crypto 臂是 BTC)、年化因子
+252。prompt SHA256 钉死(3b0f71fb...)。接线: presets(US_ETF 规则 0.01%+0.03%/
+dd_halt 0.15/warmup 200 天)、paper_all 每小时循环、health(LLM 决策新鲜度推广为
+双账本, llm_us 容忍 5 天过长周末)、weekly($30 上限改为两账本合计)、仪表盘账本卡。
+测试 12 项新增(宇宙=附录逐字节、纯多头、交易日缓存键、预注册边界), 全套 188 过。
+
+**首 tick 事故(当日修复入档)**: claude-sonnet-5 **省略 thinking 参数时自适应思考
+默认开启**, max_tokens 是思考+正文总硬顶——50 票决策的思考量吃光 3000 上限, 文本
+块从未生成, json 解析空串报错。llm_agents(10 币)任务小未撞顶所以从未暴露。修复:
+决策 8000/辩论 3000 token 预算(模型与 prompt 哈希未动, 运营参数)。教训: **换更大
+任务复用同构 LLM 链时, token 预算必须按任务规模重算, 不能照抄**。同批修复: yfinance
+空响应("possibly delisted"实为限速)加 3 次退避重试, etf_trend 一并受益。
+
+**首日决策**(2026-08-04 键): 24 票纯多头, gross 64%, 最大 MSFT 5%, 理由"AI/半导体
+capex 周期广泛确认"倾多但留 36% 现金。成本 $0.143/次(月增 ~$3, 与 llm_agents 合计
+远低于 $30 共用上限)。A/B 对照 SPY buy-hold + etf_trend 同起点, 评估 2027-02-04。
+诚实先验不变: 大概率打不过——本账本的价值是把"AI 盯新闻选美股"以可证伪形式呈现。

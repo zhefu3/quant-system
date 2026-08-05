@@ -41,6 +41,10 @@ class BookPreset:
     # validated backtest max drawdown: normal operation never touches it,
     # beyond-backtest behavior flattens the book pending human review.
     risk: RiskLimits = field(default_factory=RiskLimits)
+    # Override the default live warm-up depth (signals.WARMUP_BARS) for books
+    # that need no Strategy warm-up — a 50-name universe fetched hourly should
+    # not pull 3 years per symbol from a free API just to compute a brief.
+    warmup_bars: int | None = None
 
     def strategy(self) -> Strategy:
         if self.build is None:
@@ -213,6 +217,36 @@ LLM_AGENTS = BookPreset(
     risk=RiskLimits(max_weight=0.10, max_gross=1.0, dd_halt=0.15, max_data_age_bars=2),
 )
 
+# E70 OBSERVATION book (prereg 2026-08-04): the E60 committee architecture
+# transplanted to US large caps — LONG-ONLY on the 50 largest US-listed
+# stocks, frozen 2026-08-04 by research/freeze_llm_us_universe.py (artifact:
+# research/artifacts/llm_us_universe_20260804.json; quarterly re-eval with
+# 50/60 hysteresis). Honest prior: loses to SPY buy-and-hold and etf_trend
+# (the A/B counterfactuals, evaluated 2027-02-04). Forward-record-only: not
+# in the portfolio layer, never capital-allocation evidence. dd_halt 0.15
+# per prereg — no validated backtest exists to size it from.
+_LLM_US_UNIVERSE = [
+    "AAPL", "ABBV", "AMAT", "AMD", "AMZN", "ARM", "ASML", "AVGO", "BABA",
+    "BAC", "BRK-B", "CAT", "COST", "CSCO", "CVX", "GE", "GEV", "GOOGL",
+    "GS", "HD", "HSBC", "INTC", "JNJ", "JPM", "KO", "LLY", "LRCX", "MA",
+    "META", "MRK", "MS", "MSFT", "MU", "NFLX", "NVDA", "NVS", "ORCL",
+    "PANW", "PG", "PLTR", "PM", "RTX", "TSLA", "TSM", "TXN", "UNH", "V",
+    "WFC", "WMT", "XOM",
+]
+
+LLM_US = BookPreset(
+    name="llm_us",
+    market="us_etf",  # same yfinance adapter; "etf" is the venue not the assets
+    timeframe="1d",
+    symbols=list(_LLM_US_UNIVERSE),
+    rules=US_ETF_RULES,
+    rebalance_eps=0.02,
+    build=None,  # targets come from qtrade/live/llm_us.py
+    risk=RiskLimits(max_weight=0.05, max_gross=1.0, dd_halt=0.15, max_data_age_bars=5),
+    # brief lookbacks need ~91 trading days; 200 calendar days covers with slack
+    warmup_bars=200,
+)
+
 # E61 OBSERVATION book: E47's LightGBM index-enhancement, forward paper record.
 # Universe is ~300 point-in-time HS300 members (dynamic), so symbols is empty
 # and the book bypasses PaperTrader (see live/ashare_ml.py). dd_halt sized for
@@ -267,5 +301,5 @@ CB_DOUBLE_LOW = BookPreset(
 )
 
 PRESETS = {p.name: p for p in (CRYPTO_CORE, CRYPTO_CORE_4H, CRYPTO_CORE_V2, CRYPTO_CORE_15, CN_FUTURES,
-                               FUTURES_IBKR, LLM_AGENTS, ASHARE_ML, ETF_TREND,
-                               CB_DOUBLE_LOW)}
+                               FUTURES_IBKR, LLM_AGENTS, LLM_US, ASHARE_ML,
+                               ETF_TREND, CB_DOUBLE_LOW)}

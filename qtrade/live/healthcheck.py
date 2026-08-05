@@ -307,19 +307,23 @@ def run_health(alert: bool = False) -> int:
                   "(the 07-21 starvation mode); await IBC restart or kick it")
             findings.append("ib_gateway: zombie session")
 
-    # llm_agents committee freshness: with the graceful fallback (billing
-    # outage 2026-07-22), a missing daily decision no longer starves the
-    # heartbeat — so it needs its own explicit check to reach the alerts.
-    ddir = DEFAULT_ROOT / "llm_agents" / "decisions"
-    if ddir.exists():
+    # LLM committee freshness: with the graceful fallback (billing outage
+    # 2026-07-22), a missing daily decision no longer starves the heartbeat —
+    # so it needs its own explicit check to reach the alerts. llm_agents
+    # decides every UTC day; llm_us only on US trading days, so its key can
+    # legitimately sit 4 days old across a holiday weekend (warn at 5).
+    for llm_book, tol_d in (("llm_agents", 1), ("llm_us", 5)):
+        ddir = DEFAULT_ROOT / llm_book / "decisions"
+        if not ddir.exists():
+            continue
         latest = max((f.stem for f in ddir.glob("*.json")), default=None)
         if latest:
             age_d = (pd.Timestamp.now("UTC").normalize()
                      - pd.Timestamp(latest, tz="UTC")).days
-            if age_d >= 1:
-                print(f"WARN  llm_agents: no committee decision since {latest} "
+            if age_d >= tol_d:
+                print(f"WARN  {llm_book}: no committee decision since {latest} "
                       f"({age_d}d) — API credits/outage? book is frozen-marking")
-                findings.append(f"llm_agents: no decision since {latest}")
+                findings.append(f"{llm_book}: no decision since {latest}")
 
     if LIVE_ROOT.exists():
         flagged = [(p.parent.name, p.name) for flag in ("HALTED", "RECONCILE")
